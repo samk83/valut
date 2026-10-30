@@ -125,3 +125,44 @@ MK 보호 키 = HKDF( Argon2id(PIN, salt), 보안칩 키로 만든 값 )
 2. Phase 1 Security PoC (네이티브, 실기기): 키 결합, 3회 파기, 재설치 차단, 백업 제외 검증
 3. Phase 2 UI/UX 디자인 → Owner 승인
 4. 이후 MVP 개발 (별도 개발 승인 필요)
+
+---
+
+## 6. 재검증 (2026-10-30, 공식 문서·최신 포렌식 자료 기준)
+
+### 6.1 확인된 사실
+
+| 항목 | 확인 내용 | 출처 |
+|---|---|---|
+| Android 롤백 방지 키 | `ROLLBACK_RESISTANCE` 키는 삭제되면 보안 하드웨어가 "다시는 사용할 수 없게" 보장 (RPMB 사용). 저장소를 복원해도 삭제된 키는 살아나지 않음 | [AOSP KeyMint](https://source.android.com/docs/security/features/keystore/implementer-ref) |
+| 앱용 시도 횟수 제한 | Android KeyMint·iOS Secure Enclave 모두 *앱 비밀번호 실패 횟수*를 칩이 직접 세어 주는 기능은 공식 문서에서 확인되지 않음 → 카운터는 앱이 관리 | 같은 문서, [Apple SE](https://developer.apple.com/documentation/security/protecting-keys-with-the-secure-enclave) |
+| iOS Secure Enclave 키 | 키 데이터는 SE만 사용할 수 있게 인코딩되어 Keychain에 저장, 밖으로 꺼낼 수 없음, 생성한 기기에서만 사용 가능 | [Apple SE](https://developer.apple.com/documentation/security/protecting-keys-with-the-secure-enclave), [Apple Forum](https://developer.apple.com/forums/thread/682480) |
+| 포렌식 업체 현황 | Cellebrite는 2026년 최신 iPhone·iOS의 BFU/AFU 접근과 최신 Pixel·Samsung 전체 파일 추출을 주장. 단 SE·Titan M 때문에 무차별 대입은 "점점 비현실적"이라고 언급 | [Cellebrite 2026](https://cellebrite.com/en/blog/the-access-gap-is-closed-what-cellebrite-can-unlock-in-2026/) |
+| 유출 문서 (미검증) | iPhone 11~16 AFU 원격 해제 주장, iPhone 17+는 메모리 보호(MIE)로 제외. 과거 유출 자료에서 iPhone·Pixel(GrapheneOS)이 가장 강했음 | [Privacy Guides](https://www.privacyguides.org/news/2026/10/19/leaked-document-suggests-cellebrite-can-wirelessly-exploit-iphones/) |
+| iOS 비활동 재부팅 | 72시간 잠겨 있으면 자동 재부팅 → BFU(가장 안전한 상태)로 복귀 | [Magnet Forensics](https://www.magnetforensics.com/blog/understanding-the-security-impacts-of-ios-18s-inactivity-reboot/) |
+| Android 원본 삭제 | `createDeleteRequest` = 사용자 확인 후 **영구 삭제**, `createTrashRequest` = 휴지통 | [MediaStore](https://learn.microsoft.com/en-us/dotnet/api/android.provider.mediastore.createdeleterequest?view=net-android-37.0) |
+| iOS 원본 삭제 | 공식 문서는 "삭제 요청"만 명시. '최근 삭제된 항목'으로 이동하는 동작은 알려진 동작이며 PoC에서 실기기로 확인 | [PhotoKit](https://developer.apple.com/documentation/photos/phassetchangerequest/deleteassets(_:)) |
+| Argon2id | OWASP 최소 19 MiB / 2회 / 병렬 1 (서버 기준). 휴대폰 금고는 이보다 훨씬 높게 설정 가능 | [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) |
+
+### 6.2 핵심 결론
+
+- **OS 잠금은 포렌식 업체가 뚫을 수 있다고 봐야 합니다.** 그래서 PrivateVault는 OS 잠금에 의존하지 않고, **앱 전용 PIN + 보안칩 키**로 별도 암호화합니다. OS가 뚫려도 금고 파일은 암호문입니다.
+- 남는 공격은 "그 휴대폰 위에서 PIN 대입"뿐이며, 방어력은 **PIN 길이 × PIN 1회 검사 시간**으로 결정됩니다.
+- 금고가 **열려 있는 순간**에 휴대폰을 장악당하면(원격 해킹 포함) 어떤 앱도 막을 수 없습니다 → 짧은 자동 잠금이 중요합니다.
+
+### 6.3 최고 수준 설계 권고 (v2)
+
+| # | 권고 | 효과 |
+|---|---|---|
+| S1 | Argon2id를 **256 MiB, 1회 검사 약 1초**로 조정 (기기 성능 측정 후 확정) | 대입 속도를 최대한 늦춤 |
+| S2 | PIN **최소 10자리** (패턴은 이 등급에서 제외 권장) | 10자리 × 1초 ≈ 300년 (추정) |
+| S3 | Android: **StrongBox + ROLLBACK_RESISTANCE 지원 기기만** 금고 생성 허용 | 3회 파기 후 저장소 복원 공격 차단 |
+| S4 | iOS: Secure Enclave 키 + `ThisDeviceOnly` + 파일 보호 `Complete` (잠기면 앱 데이터 파일도 OS 키로 잠김) | 이중 암호화 |
+| S5 | 자동 잠금: 백그라운드 즉시 + 화면 켜진 채 무조작 1~2분 | 열린 상태 장악 위험 감소 |
+| S6 | 잠금 시 메모리의 키·복호화 이미지 즉시 삭제 | 메모리 덤프 위험 감소 |
+| S7 | 네트워크 권한 0, 외부 SDK 0, 보안 핵심부 Swift/Kotlin 네이티브 | 공격면 최소화 |
+| S8 | 권장 기기 안내: 최신 iPhone(17 이상) / 최신 Pixel | 포렌식 저항성이 가장 높은 기기군 |
+| S9 | 출시 전 외부 보안 감사 (OWASP MASVS L2 + 리버스 엔지니어링 저항) | 독립 검증 없이는 "최고 등급" 표현 금지 |
+| S10 | 앱 내 카메라 촬영 (Owner 승인 시) | 사진첩·클라우드에 원본이 아예 생기지 않음 |
+
+> 한계: 칩이 앱 PIN 실패 횟수를 직접 세어 주지 않으므로, 루팅·탈옥 + 앱 변조가 가능한 공격자는 3회 제한을 우회해 대입을 시도할 수 있습니다. 이때도 S1·S2로 현실적인 시간 안에는 풀 수 없게 만드는 것이 목표입니다.
