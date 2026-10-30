@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import VaultCore from '../../modules/vault-core';
 import { C } from '../theme';
-import { MIN_PATTERN_DOTS, LockMethod, PatternPad, patternToSecret, readLockMethod, saveLockMethod } from '../pattern';
+import { clearLockMethod, MIN_PATTERN_DOTS, LockMethod, PatternPad, patternToSecret, readLockMethod, saveLockMethod } from '../pattern';
 import { Body, Bullet, Busy, Button, PinDots, PinPad, s, Segmented, TestBanner, Title } from '../ui';
 
 export function Welcome({ onNext }: { onNext: () => void }) {
@@ -89,7 +89,8 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
       setPin('');
       setFirst(null);
     }
-    if (!r.ok && r.error !== 'INTERRUPTED') saveLockMethod(previous);
+    // On a clear failure put back what was there, so an existing vault keeps its lock kind.
+    if (!r.ok && r.error !== 'INTERRUPTED') previous ? saveLockMethod(previous) : clearLockMethod();
     if (r.ok) onDone();
     else if (r.error === 'WEAK_PIN') setError(method === 'pin' ? REJECTION[r.reason] : 'This pattern is too simple. Try another.');
     else if (r.error === 'EXISTS' || r.error === 'INTERRUPTED') onLocked();
@@ -156,7 +157,10 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
   // A second tap before the busy state renders must not spend another attempt.
   const inFlight = useRef(false);
   const final = left === 1;
-  const [method] = useState(readLockMethod);
+  // If the saved lock kind is lost, let the user pick the input instead of guessing:
+  // a pattern typed on a PIN pad would spend attempts and could erase the vault.
+  const [saved] = useState(readLockMethod);
+  const [method, setMethod] = useState<LockMethod>(saved ?? 'pin');
   const what = method === 'pin' ? 'PIN' : 'pattern';
 
   const submit = async (secret: string) => {
@@ -203,6 +207,22 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
   return (
     <View style={[s.screen, final && { backgroundColor: '#140B0A' }]}>
       <TestBanner />
+      {saved === null && (
+        <View style={{ marginBottom: 20 }}>
+          <Segmented
+            value={method}
+            onChange={(m) => {
+              setMethod(m);
+              setPin('');
+              setMsg(null);
+            }}
+            options={[
+              { value: 'pin', label: 'PIN' },
+              { value: 'pattern', label: 'Pattern' },
+            ]}
+          />
+        </View>
+      )}
       <Text style={[s.label, final && { color: C.danger }]}>{final ? 'Final attempt' : 'Locked'}</Text>
       <Title>{final ? 'Last chance.' : method === 'pin' ? 'Enter PIN' : 'Draw pattern'}</Title>
       <Body style={{ color: final ? '#F3B7AA' : C.muted }}>

@@ -9,12 +9,15 @@ export type LockMethod = 'pin' | 'pattern';
 // Only the kind of lock is stored here, never the PIN or the pattern itself.
 const methodFile = () => new File(Paths.document, 'lock-method');
 
-export function readLockMethod(): LockMethod {
+/** The saved lock kind, or null when the file is missing or unreadable (never guessed). */
+export function readLockMethod(): LockMethod | null {
   try {
     const f = methodFile();
-    return f.exists && f.textSync().trim() === 'pattern' ? 'pattern' : 'pin';
+    if (!f.exists) return null;
+    const v = f.textSync().trim();
+    return v === 'pin' || v === 'pattern' ? v : null;
   } catch {
-    return 'pin';
+    return null;
   }
 }
 
@@ -23,6 +26,13 @@ export function saveLockMethod(m: LockMethod) {
     const f = methodFile();
     if (!f.exists) f.create();
     f.write(m);
+  } catch {}
+}
+
+export function clearLockMethod() {
+  try {
+    const f = methodFile();
+    if (f.exists) f.delete();
   } catch {}
 }
 
