@@ -5,6 +5,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.RandomAccessFile
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -27,6 +28,10 @@ class VaultKeyManager(
 ) {
     private val lockFile = File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".lock")
 
+    // Identifies the current master key without revealing it, so an object holding a master
+    // key can tell whether the vault was destroyed or recreated by someone else meanwhile.
+    private val checkFile = File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".check")
+
     fun exists(): Boolean = envelopeFile.exists() && hardwareKey.exists()
 
     fun remainingAttempts(): Int = (MAX_ATTEMPTS - counter.read()).coerceAtLeast(0)
@@ -41,6 +46,7 @@ class VaultKeyManager(
             hardwareKey.create()
             val mk = Aead.randomBytes(Aead.KEY_BYTES)
             try {
+                SecureFiles.writeAtomic(checkFile, keyCheck(mk))
                 writeEnvelope(pin, mk)
             } catch (e: Throwable) {
                 mk.wipe()
@@ -54,6 +60,22 @@ class VaultKeyManager(
      * are destroyed and [VaultDestroyedException] is thrown.
      */
     fun unlock(pin: CharArray): ByteArray = exclusive { unlockLocked(pin) }
+
+    /**
+     * Runs [block] only if [mk] is still the live master key, holding the vault lock so the
+     * vault cannot be destroyed while it runs. Otherwise throws [VaultDestroyedException].
+     */
+    fun <T> whileKeyIsLive(
+        mk: ByteArray,
+        block: () -> T,
+    ): T =
+        exclusive {
+            val live =
+                envelopeFile.exists() && hardwareKey.exists() && checkFile.exists() &&
+                    MessageDigest.isEqual(checkFile.readBytes(), keyCheck(mk))
+            if (!live) throw VaultDestroyedException()
+            block()
+        }
 
     /** Re-wraps the same master key under a new PIN. The current PIN is required (PV-017). */
     fun changePin(
@@ -80,6 +102,7 @@ class VaultKeyManager(
         exclusive {
             if (hardwareKey.exists()) hardwareKey.destroy()
             SecureFiles.shred(envelopeFile)
+            SecureFiles.shred(checkFile)
             counter.write(0)
         }
 
@@ -143,6 +166,7 @@ class VaultKeyManager(
         counter.write(MAX_ATTEMPTS)
         if (hardwareKey.exists()) hardwareKey.destroy()
         SecureFiles.shred(envelopeFile)
+        SecureFiles.shred(checkFile)
         // Temp copies of an envelope (left by a crash during a write) open with the same keys.
         envelopeFile.absoluteFile.parentFile?.listFiles { f -> f.name.startsWith(envelopeFile.name + ".") && f.name.endsWith(".tmp") }
             ?.forEach { SecureFiles.shred(it) }
@@ -187,6 +211,8 @@ class VaultKeyManager(
             kek.wipe()
         }
     }
+
+    private fun keyCheck(mk: ByteArray): ByteArray = Kdf.hkdfSha256(mk, ByteArray(0), CHECK_INFO)
 
     private fun deriveKek(
         pin: CharArray,
@@ -251,6 +277,7 @@ class VaultKeyManager(
         private const val FORMAT_VERSION = 1
         private val MAGIC = "PVK1".toByteArray(Charsets.US_ASCII)
         private const val HEADER_BYTES = 4 + 1 + 4 + 4 + 1 + Kdf.SALT_BYTES
+        private val CHECK_INFO = "PrivateVault MK check v1".toByteArray(Charsets.US_ASCII)
         private val KEK_INFO = "PrivateVault KEK v1".toByteArray(Charsets.US_ASCII)
     }
 }

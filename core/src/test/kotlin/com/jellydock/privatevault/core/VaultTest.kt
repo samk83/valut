@@ -245,6 +245,51 @@ class VaultTest {
     }
 
     @Test
+    fun `lock during the PIN check keeps the vault locked`() {
+        lateinit var v: Vault
+        val locking =
+            object : HardwareKey by hw {
+                var armed = false
+
+                override fun mix(data: ByteArray): ByteArray {
+                    if (armed) v.lock()
+                    return hw.mix(data)
+                }
+            }
+        v = Vault(dir, locking, TEST_PARAMS, chunkSize = 4096)
+        v.create(pin("482915"))
+        v.lock()
+        locking.armed = true
+        assertFailsWith<VaultStateException> { v.unlock(pin("482915")) }
+        assertFalse(v.isUnlocked)
+        locking.armed = false
+        v.unlock(pin("482915"))
+        assertTrue(v.isUnlocked)
+    }
+
+    @Test
+    fun `import through a stale object after another one destroyed the vault is refused`() {
+        val a = newVault()
+        a.create(pin("482915"))
+        newVault().destroy()
+        val content = Aead.randomBytes(1000)
+        assertFailsWith<VaultDestroyedException> { a.importItem(content.inputStream(), photo, expectedSha256 = sha256(content)) }
+    }
+
+    @Test
+    fun `import through a stale object after the vault was recreated is refused`() {
+        val a = newVault()
+        a.create(pin("482915"))
+        newVault().apply {
+            destroy()
+            create(pin("592016"))
+        }
+        val content = Aead.randomBytes(1000)
+        assertFailsWith<VaultDestroyedException> { a.importItem(content.inputStream(), photo, expectedSha256 = sha256(content)) }
+        assertTrue(File(dir, "items").listFiles().isNullOrEmpty())
+    }
+
+    @Test
     fun `item ids cannot escape the vault folder`() {
         val v = newVault()
         v.create(pin("482915"))

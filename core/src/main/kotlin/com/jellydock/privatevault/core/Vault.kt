@@ -53,6 +53,10 @@ class Vault(
     @Volatile
     private var masterKey: ByteArray? = null
 
+    // Bumped by every lock(). An unlock that finishes after a lock() that happened while its
+    // PIN check was running is discarded, so backgrounding during the check keeps it locked.
+    private var lockGeneration = 0L
+
     init {
         // An interrupted import leaves only ciphertext in staging; discard it (PRD 14).
         SecureFiles.deleteTree(staging)
@@ -79,15 +83,21 @@ class Vault(
     fun create(pin: CharArray) {
         root.mkdirs()
         // Fails without touching anything if a vault already exists or the PIN is weak.
+        val generation = currentGeneration()
         val mk = keys.create(pin)
         // Only now is it safe to clear leftover ciphertext of a destroyed vault.
         SecureFiles.deleteTree(items)
-        setMasterKey(mk)
+        setMasterKey(mk, generation)
     }
 
+    /**
+     * Unlocks the vault. If [lock] is called while the PIN is being checked (the app went to
+     * the background), the result is thrown away and [VaultStateException] is thrown.
+     */
     fun unlock(pin: CharArray) {
         lock()
-        setMasterKey(destroyingItemsOnLockout { keys.unlock(pin) })
+        val generation = currentGeneration()
+        setMasterKey(destroyingItemsOnLockout { keys.unlock(pin) }, generation)
     }
 
     fun changePin(
@@ -98,6 +108,7 @@ class Vault(
     /** Drops the master key from memory. Call when the app leaves the screen (SPEC AC-07). */
     @Synchronized
     fun lock() {
+        lockGeneration++
         masterKey?.wipe()
         masterKey = null
     }
@@ -137,8 +148,12 @@ class Vault(
             // The wrapped key is written last: an item without it can never be opened.
             SecureFiles.writeAtomic(File(stage, "key"), Aead.seal(mk, fileKey, aad("key", idBytes)))
             SecureFiles.syncDir(stage)
-            items.mkdirs()
-            SecureFiles.moveAtomic(stage, File(items, id))
+            // Publish only if this master key is still the vault's key. Another object may
+            // have destroyed or recreated the vault; then the original must be kept.
+            keys.whileKeyIsLive(mk) {
+                items.mkdirs()
+                SecureFiles.moveAtomic(stage, File(items, id))
+            }
             return ImportResult(VaultItem(id, finalMeta), safeToDeleteOriginal = expectedSha256 != null)
         } catch (e: IntegrityException) {
             SecureFiles.deleteTree(stage)
@@ -253,7 +268,17 @@ class Vault(
     private fun requireUnlocked(): ByteArray = masterKey?.copyOf() ?: throw VaultStateException("Vault is locked")
 
     @Synchronized
-    private fun setMasterKey(mk: ByteArray) {
+    private fun currentGeneration(): Long = lockGeneration
+
+    @Synchronized
+    private fun setMasterKey(
+        mk: ByteArray,
+        generation: Long,
+    ) {
+        if (generation != lockGeneration) {
+            mk.wipe()
+            throw VaultStateException("Vault was locked while unlocking")
+        }
         masterKey?.wipe()
         masterKey = mk
     }
