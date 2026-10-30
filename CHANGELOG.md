@@ -12,3 +12,4 @@
 - SPEC.md: PIN 최소 4자리로 확정 (Owner 결정), 10자리 권장·강도 표시 AC-03a 추가
 - iOS·Android 동시 개발 확정 (SPEC, NEXT_STEPS, STATUS 반영)
 - SPEC.md: 앱 내 카메라(사진·동영상 촬영) MVP 포함, AC-34~39 추가
+- docs/DESIGN.md: 최종 디자인 시안(Obsidian & Brass, 16개 화면) 기록
