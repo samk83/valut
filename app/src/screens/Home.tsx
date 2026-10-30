@@ -43,6 +43,9 @@ export function Home({
 
   /** Deletes the gallery originals of verified imports. Only exact matches are removed. */
   const deleteOriginals = async (imported: Imported[]): Promise<{ deleted: number; kept: number; note: string | null }> => {
+    if (VaultCore.isDemo) {
+      return { deleted: 0, kept: imported.length, note: 'Preview only: nothing is kept after the app closes, so originals are never deleted here. The real app deletes them at this step.' };
+    }
     const candidates = imported.filter((d) => d.safe && d.assetId);
     const unknown = imported.length - candidates.length;
     if (candidates.length === 0) {

@@ -74,6 +74,10 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
+    // Record the lock kind before the vault exists, so a crash right after create
+    // cannot leave a pattern vault behind a PIN pad.
+    const previous = readLockMethod();
+    saveLockMethod(method);
     let r: Awaited<ReturnType<typeof VaultCore.create>>;
     try {
       r = await VaultCore.create(value);
@@ -85,10 +89,9 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
       setPin('');
       setFirst(null);
     }
-    if (r.ok) {
-      saveLockMethod(method);
-      onDone();
-    } else if (r.error === 'WEAK_PIN') setError(method === 'pin' ? REJECTION[r.reason] : 'This pattern is too simple. Try another.');
+    if (!r.ok && r.error !== 'INTERRUPTED') saveLockMethod(previous);
+    if (r.ok) onDone();
+    else if (r.error === 'WEAK_PIN') setError(method === 'pin' ? REJECTION[r.reason] : 'This pattern is too simple. Try another.');
     else if (r.error === 'EXISTS' || r.error === 'INTERRUPTED') onLocked();
     else setError(`Could not create vault (${r.error}).`);
   };

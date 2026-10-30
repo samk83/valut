@@ -40,7 +40,8 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
   const [size, setSize] = useState(0);
   const [dots, setDots] = useState<number[]>([]);
   const [finger, setFinger] = useState<{ x: number; y: number } | null>(null);
-  const origin = useRef({ x: 0, y: 0 });
+  // Window position of the grid; null until measured, and moves are ignored until then.
+  const origin = useRef<{ x: number; y: number } | null>(null);
   const view = useRef<ComponentRef<typeof View>>(null);
   const state = useRef({ dots: [] as number[], size: 0, disabled: false, onDone });
   state.current = { dots, size, disabled: !!disabled, onDone };
@@ -60,7 +61,10 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
     return Math.hypot(x - cx, y - cy) < c * 0.38 ? row * GRID + col + 1 : null;
   };
 
+  const measure = () => view.current?.measureInWindow((x, y) => (origin.current = { x, y }));
+
   const track = (pageX: number, pageY: number) => {
+    if (!origin.current) return;
     const x = pageX - origin.current.x;
     const y = pageY - origin.current.y;
     setFinger({ x, y });
@@ -79,11 +83,8 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
       onPanResponderGrant: (e) => {
         state.current.dots = [];
         setDots([]);
-        const { pageX, pageY } = e.nativeEvent;
-        view.current?.measureInWindow((x, y) => {
-          origin.current = { x, y };
-          track(pageX, pageY);
-        });
+        track(e.nativeEvent.pageX, e.nativeEvent.pageY);
+        measure();
       },
       onPanResponderMove: (e) => track(e.nativeEvent.pageX, e.nativeEvent.pageY),
       onPanResponderRelease: () => {
@@ -110,7 +111,10 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
   return (
     <View
       ref={view}
-      onLayout={(e) => setSize(Math.min(e.nativeEvent.layout.width, 320))}
+      onLayout={(e) => {
+        setSize(Math.min(e.nativeEvent.layout.width, 320));
+        measure();
+      }}
       style={{ width: '100%', maxWidth: 320, aspectRatio: 1, alignSelf: 'center', opacity: disabled ? 0.4 : 1 }}
       {...responder.panHandlers}
     >
