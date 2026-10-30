@@ -7,6 +7,10 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## Android 테스트 앱 (2026-10-30)
+- Owner: APK 설치 후 docs/ANDROID_TEST_APP.md 표의 10개 항목 확인, 결과(특히 설정 화면의 StrongBox/TEE, PIN 확인 시간) 알려주기
+- 남은 개선: 동영상 임시 파일 없는 스트리밍 재생, 패턴 잠금, 한국어 문구, Argon2 비용 실측 후 조정, 녹화 중 바로 암호화
+
 ## 권장 순서
 1. SPEC 승인
 2. Phase 1 Security PoC (네이티브, 실기기 1~2대) — 공통 코어 완료(core/), 아래는 실기기 단계
