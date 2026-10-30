@@ -151,7 +151,7 @@
           <article class="step" data-step="2">
             <p class="step-num">03 / 06</p>
             <h3>사진첩에서<br>금고로 옮깁니다.</h3>
-            <p>고른 사진과 동영상을 파일마다 다른 키로 암호화하고, 다시 풀어서 확인한 뒤에야 원본 삭제를 요청합니다. 중간에 실패하면 원본은 그대로 남습니다.</p>
+            <p>고른 사진과 동영상을 파일마다 다른 키로 암호화하고 다시 풀어서 확인합니다. "가져온 뒤 원본 삭제"를 켜 두었다면 그 확인이 끝난 뒤에야 원본 삭제를 요청합니다. 중간에 실패하면 원본은 그대로 남습니다.</p>
             <div class="tech"><span>AES-256-GCM</span><span>파일별 키</span><span>검증 후 삭제</span></div>
             <div class="step-shot"></div>
           </article>
@@ -187,34 +187,38 @@
                 <p class="s-eyebrow" style="margin-top: calc(30 * var(--u))">Step 1 of 3</p>
                 <h4>Your files.<br>Your device.<br>Your eyes only.</h4>
                 <div class="s-list">
-                  <div class="s-li"><i></i><div><b>Encrypted on this phone</b><span>AES-256, sealed with your PIN and the phone's security chip.</span></div></div>
+                  <div class="s-li"><i></i><div><b>Encrypted on this phone</b><span>AES-256, sealed with your PIN or pattern and the phone’s security chip.</span></div></div>
                   <div class="s-li"><i></i><div><b>Nothing ever leaves</b><span>No account, no cloud, no sharing, no internet access.</span></div></div>
-                  <div class="s-li"><i class="warn"></i><div><b>No recovery, ever</b><span>Lose your PIN, your phone or the app, and the files are gone.</span></div></div>
+                  <div class="s-li"><i class="warn"></i><div><b>No recovery, ever</b><span>Forget your PIN or pattern, lose your phone or delete the app, and the files are gone for good.</span></div></div>
                 </div>
                 <div class="s-btn">Create my vault</div>
+                <p class="s-foot">Requires a device passcode and a hardware security chip.</p>
               </div>
               <!-- 1 Unlock -->
               <div class="scr scr-unlock" data-screen="1">
-                <svg class="s-icon"><use href="#dial"></use></svg>
-                <h4>Enter PIN</h4>
+                <svg class="s-lock" viewBox="0 0 360 360"><circle cx="180" cy="180" r="150" fill="none" stroke="url(#pvMetal)" stroke-width="16"></circle><circle cx="180" cy="160" r="30" fill="url(#pvMetal)"></circle><path d="M165 176 L152 246 L208 246 L195 176 Z" fill="url(#pvMetal)"></path></svg>
+                <p class="s-eyebrow" style="color: var(--faint); margin-top: calc(20 * var(--u))">Vault locked</p>
+                <h4>Welcome back</h4>
                 <div class="s-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
-                <p class="s-attempts"><span class="pips"><i class="used"></i><i></i><i></i></span>2 attempts left</p>
+                <p class="s-attempts"><b>2 of 3</b> attempts remaining</p>
                 <div class="s-keys">
-                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="blank"></span><span>0</span><span class="del">Delete</span>
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="blank"></span><span>0</span><span class="del">←</span>
                 </div>
+                <p class="s-foot">Three wrong attempts permanently destroys this vault.<br>There is no recovery.</p>
               </div>
               <!-- 2 Importing -->
               <div class="scr scr-import" data-screen="2">
-                <p class="s-eyebrow">Moving into vault</p>
-                <h4>8 of 12 items</h4>
-                <div class="s-thumbs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i><i></i><i></i></div>
-                <div class="s-bar"><i></i></div>
-                <div class="s-stages">
-                  <div class="s-stage"><span class="ic ok">✓</span><div>Encrypt<small>AES-256-GCM · per-file key</small></div></div>
-                  <div class="s-stage"><span class="ic ok">✓</span><div>Verify<small>decrypt &amp; compare</small></div></div>
-                  <div class="s-stage"><span class="ic">3</span><div>Ask Photos to delete original<small>only after both steps pass</small></div></div>
+                <svg class="s-ring" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86" fill="none" stroke="#1C2029" stroke-width="8"></circle><circle cx="100" cy="100" r="86" fill="none" stroke="url(#pvMetal)" stroke-width="8" stroke-linecap="round" stroke-dasharray="345.8 540.4" transform="rotate(-90 100 100)"></circle><text x="100" y="114" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="44" fill="#F2EEE6">64%</text></svg>
+                <p class="s-eyebrow" style="margin-top: calc(30 * var(--u))">Sealing</p>
+                <h4>Encrypting 9 of 14</h4>
+                <p class="s-sub">Each original is deleted from your gallery only after its encrypted copy is verified.</p>
+                <div class="s-card">
+                  <div class="s-stage"><span class="ic ok">✓</span><div>1&nbsp; Encrypt into the vault</div></div>
+                  <div class="s-stage"><span class="ic">…</span><div>2&nbsp; Verify the encrypted copy</div></div>
+                  <div class="s-stage dim"><span class="ic">3</span><div>3&nbsp; Delete the original</div></div>
+                  <div class="s-tally"><span>8 sealed</span><span>8 originals deleted</span></div>
                 </div>
-                <p class="s-note">If anything fails, the original stays where it was.</p>
+                <p class="s-foot">Keep the app open. If it closes, any original not yet verified stays in your gallery.</p>
               </div>
               <!-- 3 Camera -->
               <div class="scr scr-camera" data-screen="3">
@@ -228,9 +232,9 @@
               <div class="scr scr-home" data-screen="4">
                 <div class="s-top"><p class="s-eyebrow" style="color: var(--faint)">PrivateVault</p><h4>Your Vault</h4></div>
                 <div class="s-pills"><span><span class="dot"></span>Encrypted on device</span><span>Offline · no cloud</span><span>Locks in 1:00</span></div>
-                <div class="s-tabs"><b>All 128</b><span>Photos 112</span><span>Videos 16</span></div>
+                <div class="s-seg"><b><svg viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="9.5" r="1.8"></circle><path d="m21 16-5-5-9 9"></path></svg>Photos <em>112</em></b><span><svg viewBox="0 0 24 24" fill="none" stroke="#8F897F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2.5"></rect><path d="m15.5 10.5 6-3.5v10l-6-3.5"></path></svg>Videos <em>16</em></span></div>
                 <p class="s-month">October</p>
-                <div class="s-grid"><i></i><i class="v" data-d="0:42"></i><i></i><i></i><i></i><i class="v" data-d="2:10"></i><i></i><i></i><i></i><i class="v" data-d="1:05"></i><i></i><i></i><i></i><i class="v" data-d="0:18"></i><i></i></div>
+                <div class="s-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="s-dock"><span>Import from Photos</span><span class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0D12" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span></div>
               </div>
               <!-- 5 Destroyed -->
