@@ -2,7 +2,7 @@
   "expo": {
     "name": "PrivateVault Test",
     "slug": "privatevault-test",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -21,7 +21,10 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "blockedPermissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -29,15 +32,37 @@
         "android.permission.INTERNET",
         "android.permission.SYSTEM_ALERT_WINDOW"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
     },
     "plugins": [
       "expo-video",
       "expo-font",
-      ["expo-camera", { "recordAudioAndroid": true }],
+      [
+        "expo-camera",
+        {
+          "recordAudioAndroid": true
+        }
+      ],
       "expo-image-picker",
-      ["expo-media-library", { "isAccessMediaLocationEnabled": false, "granularPermissions": ["photo", "video"] }],
-      ["expo-build-properties", { "android": { "minSdkVersion": 26 } }],
+      [
+        "expo-media-library",
+        {
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": [
+            "photo",
+            "video"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "./plugins/withLargeHeap"
     ]
   }

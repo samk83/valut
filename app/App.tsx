@@ -114,6 +114,16 @@ export default function App() {
     setRoute({ name: 'home' });
   };
 
+  // Captures that could not be saved earlier (app killed, battery died) are added now.
+  const afterUnlock = () => {
+    home();
+    VaultCore.recoverPending()
+      .then((r) => {
+        if (r.saved > 0) setRefreshKey((k) => k + 1);
+      })
+      .catch(() => {});
+  };
+
   let screen: React.ReactNode;
   switch (route.name) {
     case 'loading':
@@ -126,7 +136,7 @@ export default function App() {
       screen = <CreatePin onDone={home} onLocked={toLocked} />;
       break;
     case 'unlock':
-      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={home} onDestroyed={() => setRoute({ name: 'destroyed' })} />;
+      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed' })} />;
       break;
     case 'destroyed':
       screen = <Destroyed onNew={() => setRoute({ name: 'create' })} />;

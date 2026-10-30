@@ -6,13 +6,16 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
+import android.content.ContentUris
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Base64
 import com.jellydock.privatevault.core.Argon2Params
 import com.jellydock.privatevault.core.IncompleteEntryException
 import com.jellydock.privatevault.core.ItemKind
 import com.jellydock.privatevault.core.ItemMeta
 import com.jellydock.privatevault.core.KeysUnavailableException
+import com.jellydock.privatevault.core.PendingImports
 import com.jellydock.privatevault.core.PinPolicy
 import com.jellydock.privatevault.core.SecureFiles
 import com.jellydock.privatevault.core.Vault
@@ -42,6 +45,8 @@ class VaultCoreModule : Module() {
 
   private lateinit var hardwareKey: AndroidHardwareKey
   private lateinit var vault: Vault
+  private lateinit var inbox: PendingImports
+  private val inboxLock = Any()
   private val playbackTicket = java.util.concurrent.atomic.AtomicInteger()
 
   private val root: File get() = File(context.noBackupFilesDir, "vault")
@@ -55,15 +60,24 @@ class VaultCoreModule : Module() {
         hardwareKey = AndroidHardwareKey(AndroidHardwareKey.strongBoxFeature(context.packageManager))
         root.mkdirs()
         vault = Vault(root, hardwareKey, PARAMS)
+        inbox = PendingImports(File(context.noBackupFilesDir, "pending"))
         // allowBackup=false and noBackupFilesDir keep data off backups. The marker below also
         // lives there, so its absence means a fresh install: clear anything left (SPEC AC-20).
         val marker = File(context.noBackupFilesDir, "installed.marker")
         if (!marker.exists()) {
           vault.wipeLeftoversForFreshInstall()
+          inbox.clear()
           marker.writeText("1")
         }
+        // Captures are only taken while a vault is unlocked. With no key envelope at all, the
+        // vault was destroyed (possibly a reset cut short before its captures were removed),
+        // so they must not flow into a vault created later.
+        if (!hasEnvelopeFiles()) destroyWaitingCaptures()
         clearPlayback()
         clearPickerCaches()
+        // A capture left in the camera cache by a crash could be evicted by Android when
+        // storage is low; move it to the holding area right away (no key needed).
+        synchronized(inboxLock) { collectStrayCaptures(minAgeMs = 0) }
       }
 
       AsyncFunction("status") {
@@ -85,6 +99,8 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("create") { pin: String ->
         withPin(pin) { chars ->
+          // Anything still waiting belongs to an earlier, destroyed vault.
+          if (!hasEnvelopeFiles()) destroyWaitingCaptures()
           try {
             vault.create(chars)
             ok()
@@ -102,6 +118,9 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("unlock") { pin: String ->
         withPin(pin) { chars ->
+          // Check memory before the core records the attempt: if the OS killed the app in
+          // the middle of the Argon2 run, that attempt would stay counted (SPEC AC-50g).
+          if (!enoughMemoryForPinCheck()) return@withPin mapOf("ok" to false, "error" to "OUT_OF_MEMORY")
           try {
             vault.unlock(chars)
             ok()
@@ -109,6 +128,7 @@ class VaultCoreModule : Module() {
             mapOf("ok" to false, "error" to "WRONG_PIN", "remaining" to e.remainingAttempts)
           } catch (e: VaultDestroyedException) {
             clearPlayback()
+            destroyWaitingCaptures()
             mapOf("ok" to false, "error" to "DESTROYED")
           } catch (e: IncompleteEntryException) {
             mapOf("ok" to false, "error" to "INCOMPLETE")
@@ -129,6 +149,50 @@ class VaultCoreModule : Module() {
         vault.lock()
         clearPlayback()
         clearPickerCaches()
+      }
+
+      /**
+       * Imports camera captures still waiting from an earlier run (app killed, battery died
+       * or import failed). Call after every unlock. Returns how many were saved (AC-50d).
+       */
+      AsyncFunction("recoverPending") {
+        synchronized(inboxLock) { recoverPendingLocked() }
+      }
+
+      /**
+       * Saves an in-app camera capture. The file is first moved to the holding area and is
+       * removed only after its encrypted copy is verified; on failure it stays there and is
+       * retried after the next unlock, so a capture is never lost (AC-50d).
+       */
+      AsyncFunction("importCapture") { uri: String, kind: String ->
+        val source = Uri.parse(uri).path?.let { File(it) } ?: throw CodedException("E_OPEN", "Bad capture uri", null)
+        val itemKind = ItemKind.valueOf(kind)
+        synchronized(inboxLock) {
+          try {
+            // If even the move fails, the file stays in the camera cache and is collected
+            // on the next start.
+            val held = inbox.stash(source, itemKind)
+            val thumb = runCatching { makeThumbnail(Uri.fromFile(held), itemKind) }.getOrNull()
+            val result = inbox.importOne(vault, held, mimeFor(itemKind), thumb)
+            mapOf("saved" to result.safeToDeleteOriginal, "waiting" to inbox.pending().size)
+          } catch (e: Exception) {
+            mapOf("saved" to false, "waiting" to inbox.pending().size)
+          }
+        }
+      }
+
+      /**
+       * Before an original is deleted from the gallery, re-reads it from MediaStore and
+       * compares it with the decrypted vault copy. Only an exact match may be deleted (AC-50e).
+       */
+      AsyncFunction("matchesOriginal") { id: String, assetId: String, kind: String ->
+        val base =
+          if (kind == "VIDEO") MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val original = ContentUris.withAppendedId(base, assetId.toLong())
+        val originalSha = runCatching { open(original).use { sha256(it) } }.getOrNull() ?: return@AsyncFunction false
+        val vaultDigest = MessageDigest.getInstance("SHA-256")
+        vault.read(id, DigestOutput(vaultDigest))
+        MessageDigest.isEqual(originalSha, vaultDigest.digest())
       }
 
       AsyncFunction("list") {
@@ -198,6 +262,7 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("destroy") {
         vault.destroy()
+        destroyWaitingCaptures()
         clearPlayback()
       }
     }
@@ -289,8 +354,64 @@ class VaultCoreModule : Module() {
   }
 
   /** Plaintext copies made by expo-image-picker and expo-camera before import. */
+  /**
+   * Picker output is only a copy of a gallery item that still exists, so it is safe to
+   * delete. Camera output is NOT deleted here: it is the only copy (see collectStrayCaptures).
+   */
   private fun clearPickerCaches() {
-    listOf("ImagePicker", "Camera").forEach { SecureFiles.deleteTree(File(context.cacheDir, it)) }
+    SecureFiles.deleteTree(File(context.cacheDir, "ImagePicker"))
+  }
+
+
+  private fun recoverPendingLocked(): Map<String, Int> {
+    // Skip a capture the camera may still be writing (a video being recorded).
+    collectStrayCaptures(minAgeMs = 10_000)
+    var saved = 0
+    for (file in inbox.pending()) {
+      val ok =
+        runCatching {
+          val kind = inbox.kindOf(file)!!
+          val thumb = runCatching { makeThumbnail(Uri.fromFile(file), kind) }.getOrNull()
+          inbox.importOne(vault, file, mimeFor(kind), thumb).safeToDeleteOriginal
+        }.getOrDefault(false)
+      if (ok) saved++
+    }
+    return mapOf("saved" to saved, "waiting" to inbox.pending().size)
+  }
+
+  /** Captures left in the camera cache by a crash before they reached the holding area. */
+  private fun collectStrayCaptures(minAgeMs: Long) {
+    val cutoff = System.currentTimeMillis() - minAgeMs
+    File(context.cacheDir, "Camera").listFiles { f -> f.isFile && f.length() > 0 && f.lastModified() <= cutoff }?.forEach { f ->
+      val kind = if (f.extension.equals("mp4", true)) ItemKind.VIDEO else ItemKind.PHOTO
+      runCatching { inbox.stash(f, kind) }
+    }
+  }
+
+  private fun hasEnvelopeFiles() = File(root, "vault.key").exists() || File(root, "vault.key.bak").exists()
+
+  /** Only after a destruction (3 wrong PINs or reset): captures must not reach a new vault. */
+  private fun destroyWaitingCaptures() {
+    synchronized(inboxLock) {
+      inbox.clear()
+      SecureFiles.deleteTree(File(context.cacheDir, "Camera"))
+    }
+  }
+
+  private fun mimeFor(kind: ItemKind) = if (kind == ItemKind.VIDEO) "video/mp4" else "image/jpeg"
+
+  private fun enoughMemoryForPinCheck(): Boolean {
+    val needed = PARAMS.memoryKiB * 1024L * 3 / 2
+    fun free(): Long = Runtime.getRuntime().let { it.maxMemory() - (it.totalMemory() - it.freeMemory()) }
+    if (free() >= needed) return true
+    System.gc()
+    return free() >= needed
+  }
+
+  private class DigestOutput(private val digest: MessageDigest) : java.io.OutputStream() {
+    override fun write(b: Int) = digest.update(b.toByte())
+
+    override fun write(b: ByteArray, off: Int, len: Int) = digest.update(b, off, len)
   }
 
   companion object {
