@@ -295,5 +295,8 @@ class DataLossTest {
         restarted.unlock(pinOk)
         assertContentEquals(content, readAll(restarted, id))
         assertTrue(File(dir, "vault.key.bak").exists(), "backup is added on first unlock")
+        restarted.list()
+        assertTrue(File(dir, "items/$id/key.bak").exists(), "item key backup is added")
+        assertTrue(File(dir, "items/$id/meta.bak").exists(), "item metadata backup is added")
     }
 }

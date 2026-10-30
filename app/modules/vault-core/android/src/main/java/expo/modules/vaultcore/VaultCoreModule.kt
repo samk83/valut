@@ -69,6 +69,10 @@ class VaultCoreModule : Module() {
           inbox.clear()
           marker.writeText("1")
         }
+        // Captures are only taken while a vault is unlocked. With no key envelope at all, the
+        // vault was destroyed (possibly a reset cut short before its captures were removed),
+        // so they must not flow into a vault created later.
+        if (!hasEnvelopeFiles()) destroyWaitingCaptures()
         clearPlayback()
         clearPickerCaches()
         // A capture left in the camera cache by a crash could be evicted by Android when
@@ -95,6 +99,8 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("create") { pin: String ->
         withPin(pin) { chars ->
+          // Anything still waiting belongs to an earlier, destroyed vault.
+          if (!hasEnvelopeFiles()) destroyWaitingCaptures()
           try {
             vault.create(chars)
             ok()
@@ -381,6 +387,8 @@ class VaultCoreModule : Module() {
       runCatching { inbox.stash(f, kind) }
     }
   }
+
+  private fun hasEnvelopeFiles() = File(root, "vault.key").exists() || File(root, "vault.key.bak").exists()
 
   /** Only after a destruction (3 wrong PINs or reset): captures must not reach a new vault. */
   private fun destroyWaitingCaptures() {

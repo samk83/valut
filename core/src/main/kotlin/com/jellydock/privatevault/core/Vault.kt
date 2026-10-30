@@ -271,7 +271,15 @@ class Vault(
     ): T {
         val first =
             try {
-                return open(File(dir, name).readBytes())
+                val bytes = File(dir, name).readBytes()
+                val value = open(bytes)
+                // Main copy is good: make sure the backup exists and matches (items from the
+                // first test build have none, and a damaged backup is replaced).
+                val backup = File(dir, "$name.bak")
+                runCatching {
+                    if (!backup.exists() || !backup.readBytes().contentEquals(bytes)) SecureFiles.writeAtomic(backup, bytes)
+                }
+                return value
             } catch (e: IntegrityException) {
                 e
             } catch (e: IOException) {
