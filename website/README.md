@@ -2,11 +2,14 @@
 
 정적 웹사이트(HTML·CSS·JS 파일만, 빌드 도구 없음)입니다. 디자인은 앱 최종 시안 **Obsidian & Brass**([docs/DESIGN.md](../docs/DESIGN.md))를 따릅니다.
 
+기본 언어는 **영어**입니다 (Owner 결정 2026-10-30). 한국어 페이지는 `ko/`에 보관 중이며, 아직 링크하지 않았고 검색엔진 노출을 막아 두었습니다(`noindex`).
+
 ## 구성
-- `index.html` — 페이지 본문 (히어로 · 소개 영상 · 작동 방식 스크롤 · 보안 기술 · 알아두실 점 · 기술 사양 · 다운로드)
+- `index.html` — 영어 소개 페이지 (히어로 · 소개 영상 · 작동 방식 스크롤 · 보안 기술 · 알아두실 점 · 기술 사양 · 다운로드)
 - `styles.css` — 디자인 토큰과 스타일
 - `script.js` — 스크롤에 따라 휴대폰 화면 전환, 모바일용 화면 복제, 영상 자리 안내 (외부 요청·추적 없음)
-- `privacy.html` — 개인정보처리방침 (스토어 등록 시 이 주소를 입력)
+- `privacy.html` — 영어 개인정보처리방침 (스토어 등록 시 이 주소를 입력)
+- `ko/index.html`, `ko/privacy.html` — 한국어 버전 (보관용, 나중에 공개)
 - `assets/favicon.svg` — 앱 아이콘 "The Dial"
 - `assets/fonts/` — 글꼴 파일 (직접 호스팅, 외부 요청 0건)
 - `tools/fetch_fonts.py` — 글꼴 다시 받기. 한국어 문구를 바꾸면 실행: `python website/tools/fetch_fonts.py`

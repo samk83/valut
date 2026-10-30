@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>개인정보처리방침 · PrivateVault</title>
-<meta name="description" content="PrivateVault 앱과 웹사이트의 개인정보처리방침. 앱은 개인정보를 수집하거나 전송하지 않습니다.">
+<title>Privacy Policy · PrivateVault</title>
+<meta name="description" content="Privacy policy for the PrivateVault app and website. The app does not collect or send personal data.">
 <meta name="theme-color" content="#0B0D12">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
@@ -13,15 +13,15 @@
 <body>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="index.html" aria-label="PrivateVault 홈">
+    <a class="brand" href="index.html" aria-label="PrivateVault home">
       <img src="assets/favicon.svg" width="28" height="28" alt="">
       PrivateVault
     </a>
-    <nav class="nav" aria-label="사이트">
-      <a class="nav-link" href="index.html#how">작동 방식</a>
-      <a class="nav-link" href="index.html#security">보안 기술</a>
-      <a class="nav-link" href="index.html#specs">기술 사양</a>
-      <a class="nav-cta" href="index.html#download">다운로드</a>
+    <nav class="nav" aria-label="Site">
+      <a class="nav-link" href="index.html#how">How it works</a>
+      <a class="nav-link" href="index.html#security">Security</a>
+      <a class="nav-link" href="index.html#specs">Tech specs</a>
+      <a class="nav-cta" href="index.html#download">Download</a>
     </nav>
   </div>
 </header>
@@ -29,109 +29,109 @@
 <main class="policy">
   <div class="wrap">
     <article class="policy-body">
-      <p class="eyebrow" lang="en">Privacy Policy</p>
-      <h1>개인정보처리방침</h1>
-      <p class="policy-meta">시행일: <span class="tbd">[출시일]</span> · 운영: JellyDock</p>
+      <p class="eyebrow">PrivateVault</p>
+      <h1>Privacy Policy</h1>
+      <p class="policy-meta">Effective date: <span class="tbd">[launch date]</span> · Operated by JellyDock</p>
 
       <section class="policy-summary" aria-labelledby="sum-title">
-        <h2 id="sum-title">요약</h2>
-        <p>PrivateVault 앱은 개인정보를 수집하지 않고, 어디로도 전송하지 않습니다. 서버와 계정이 없으며, 금고에 넣은 사진과 동영상은 이 휴대폰 안에서만 암호화되어 저장됩니다. PIN(또는 패턴)과 이 휴대폰 없이는 저희(JellyDock)를 포함해 누구도 내용을 열 수 없도록 설계했습니다.</p>
+        <h2 id="sum-title">Summary</h2>
+        <p>The PrivateVault app does not collect personal data and does not send it anywhere. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored only on your phone. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone.</p>
       </section>
 
       <section>
-        <h2>1. 앱이 다루는 정보</h2>
-        <p>앱은 아래 정보를 휴대폰 안에서만 처리합니다. 이 정보는 운영자에게 전달되지 않습니다.</p>
+        <h2>1. Information the app handles</h2>
+        <p>The app processes the following on your phone only. None of it is sent to us.</p>
         <ul>
-          <li><strong>금고에 넣은 사진·동영상</strong>과 그 파일 이름, 촬영 정보, 썸네일: 파일마다 다른 키로 암호화(AES-256-GCM)해 앱 저장 공간에 보관합니다. 사진첩에서 가져온 파일의 위치 등 촬영 정보는 지우지 않고 암호화된 채로 보관합니다.</li>
-          <li><strong>PIN 또는 패턴</strong>: 원문은 저장하지 않습니다. 금고를 여는 키를 만드는 데에만 쓰고(Argon2id), 휴대폰 보안칩의 키와 함께 있어야 금고가 열립니다.</li>
-          <li><strong>잠금 해제 실패 횟수와 앱 설정</strong>: 3회 오류 시 키 파기 기능과 앱 동작에 필요합니다.</li>
+          <li><strong>Photos and videos in the vault</strong>, with their file names, capture details and thumbnails. Each file is encrypted with its own key (AES-256-GCM) and kept in the app’s storage. Capture details of files imported from your photo library, including location, are kept as they are, encrypted.</li>
+          <li><strong>Your PIN or pattern.</strong> It is never stored as entered. It is used only to derive the key that opens the vault (Argon2id), and the vault opens only together with a key held in your phone’s security chip.</li>
+          <li><strong>Failed unlock count and app settings</strong>, needed for the three-attempt key destruction and for the app to work.</li>
         </ul>
       </section>
 
       <section>
-        <h2>2. 기기 권한</h2>
-        <div class="policy-table" role="region" aria-label="권한 목록" tabindex="0">
+        <h2>2. Device permissions</h2>
+        <div class="policy-table" role="region" aria-label="Permissions" tabindex="0">
           <table>
-            <thead><tr><th scope="col">권한</th><th scope="col">쓰는 곳</th><th scope="col">거부하면</th></tr></thead>
+            <thead><tr><th scope="col">Permission</th><th scope="col">Used for</th><th scope="col">If you decline</th></tr></thead>
             <tbody>
-              <tr><th scope="row">사진</th><td>사진첩에서 고른 사진·동영상을 금고로 가져오고, 가져온 원본의 삭제를 요청합니다.</td><td>가져오기나 원본 삭제 요청이 제한됩니다.</td></tr>
-              <tr><th scope="row">카메라</th><td>금고 카메라로 사진과 동영상을 찍습니다. 찍은 파일은 사진첩에 저장하지 않습니다.</td><td>금고 카메라를 쓸 수 없습니다.</td></tr>
-              <tr><th scope="row">마이크</th><td>금고 카메라로 동영상을 찍을 때 소리를 녹음합니다.</td><td>동영상 소리 녹음이 제한됩니다.</td></tr>
+              <tr><th scope="row">Photos</th><td>Importing the photos and videos you pick into the vault, and asking your library to delete the imported originals.</td><td data-label="If you decline">Importing, or asking to delete originals, is limited.</td></tr>
+              <tr><th scope="row">Camera</th><td>Taking photos and videos with the vault camera. These are never saved to your photo library.</td><td data-label="If you decline">The vault camera can’t be used.</td></tr>
+              <tr><th scope="row">Microphone</th><td>Recording sound when you shoot video with the vault camera.</td><td data-label="If you decline">Recording sound with video is limited.</td></tr>
             </tbody>
           </table>
         </div>
-        <p>위치, 연락처, 인터넷 권한은 쓰지 않습니다. 금고 카메라로 찍은 파일에서는 위치 정보를 지웁니다.</p>
+        <p>The app does not use location, contacts or internet access. Location data is removed from photos and videos taken with the vault camera.</p>
       </section>
 
       <section>
-        <h2>3. 수집·이용·제3자 제공</h2>
-        <p>앱은 개인정보를 수집하지 않으므로 운영자가 이용하거나 제3자에게 제공하는 개인정보가 없습니다. 광고, 분석, 오류 보고 도구를 넣지 않았으며, 처리를 맡기는 외부 업체도 없습니다.</p>
-        <p>다만 아래 정보는 운영자가 받을 수 있습니다.</p>
+        <h2>3. Collection, use and sharing</h2>
+        <p>Because the app collects no personal data, we have none to use or share with anyone. The app contains no advertising, analytics or crash-reporting tools, and no outside company processes data on our behalf.</p>
+        <p>We may receive only the following:</p>
         <ul>
-          <li><strong>문의 메일</strong>: 사용자가 직접 보낸 이메일 주소와 내용. 답변에만 쓰고, 문의 처리가 끝나면 지체 없이 지웁니다. 단, 관련 법령이 보관을 요구하면 그 기간 동안 보관합니다.</li>
-          <li><strong>스토어가 제공하는 정보</strong>: Apple App Store와 Google Play는 각 회사의 방침에 따라, 사용자가 공유에 동의한 경우 앱 충돌 보고서와 통계를 개발자에게 제공할 수 있습니다. 이 정보는 Apple·Google이 처리하며 개인을 식별하지 않는 형태로 제공됩니다. 유료 결제가 있다면 결제 처리도 각 스토어가 맡습니다.</li>
+          <li><strong>Support email.</strong> If you email us, we receive your email address and message. We use them only to reply, and delete them once your request is resolved, unless a law requires us to keep them longer.</li>
+          <li><strong>Information from the app stores.</strong> Under their own policies, Apple’s App Store and Google Play may give developers crash reports and statistics from users who agreed to share them. Apple and Google process this information and provide it in a form that does not identify you. If the app is paid, payments are handled by the store.</li>
         </ul>
       </section>
 
       <section>
-        <h2>4. 백업과 기기 이전</h2>
-        <p>금고 데이터와 키는 iCloud·iTunes 백업, Google 백업, 기기 간 이전에 포함되지 않습니다. 그래서 휴대폰을 바꾸거나 잃어버리면 금고를 옮기거나 되살릴 수 없습니다.</p>
-        <p>금고로 옮긴 원본은 사진첩의 '최근 삭제된 항목'(휴지통)이나 iCloud 사진·Google 포토에 이미 올라간 사본으로 남아 있을 수 있습니다. 앱은 이 사본을 지울 수 없으므로 사용자가 직접 지워야 합니다.</p>
+        <h2>4. Backups and device transfers</h2>
+        <p>Vault data and keys are excluded from iCloud and iTunes backups, Google backups and device-to-device transfers. If you change or lose your phone, the vault can’t be moved or restored.</p>
+        <p>Originals you move into the vault may still exist in your photo library’s Recently Deleted (trash), or as copies already uploaded to iCloud Photos or Google Photos. The app can’t delete those copies. You need to delete them yourself.</p>
       </section>
 
       <section>
-        <h2>5. 보관 기간과 파기</h2>
-        <p>금고에 넣은 파일은 사용자가 지울 때까지 휴대폰에만 남습니다. 다음의 경우 데이터나 키가 지워지며, 되살릴 방법은 없습니다.</p>
+        <h2>5. Retention and deletion</h2>
+        <p>Files in the vault stay on your phone until you delete them. Data or keys are deleted in these cases, and there is no way to recover them:</p>
         <ul>
-          <li>파일을 영구 삭제할 때: 그 파일의 키, 암호화된 파일, 썸네일을 지웁니다.</li>
-          <li>금고를 초기화하거나 PIN 또는 패턴을 3회 연속 틀렸을 때: 금고를 여는 키를 지웁니다.</li>
-          <li>앱을 삭제할 때: 앱 저장 공간이 지워집니다. 다시 설치하면 남아 있던 키를 지우고 새 금고로 시작합니다.</li>
+          <li>When you permanently delete a file: its key, the encrypted file and its thumbnail are deleted.</li>
+          <li>When you reset the vault, or enter a wrong PIN or pattern three times in a row: the key that opens the vault is deleted.</li>
+          <li>When you delete the app: the app’s storage is erased. If you reinstall, any leftover keys are wiped and you start with a new vault.</li>
         </ul>
       </section>
 
       <section>
-        <h2>6. 이 웹사이트</h2>
-        <p>이 웹사이트는 쿠키 등 자동수집장치를 설치·운영하지 않고 방문 분석 도구도 쓰지 않으며, 글꼴을 포함한 모든 파일을 이 사이트에서 직접 제공합니다. 다만 웹사이트를 호스팅하는 업체는 보안과 운영을 위해 접속 기록(IP 주소, 접속 시각, 브라우저 정보)을 남길 수 있습니다. 호스팅 업체: <span class="tbd">[배포 시 기재: 업체명, 서버 소재 국가, 보관 기간]</span>. 서버가 국외에 있으면 이 접속 기록은 국외로 이전되어 처리됩니다.</p>
+        <h2>6. This website</h2>
+        <p>This website does not set cookies or use any other tracking technology, and has no analytics. Every file, including fonts, is served from this site. The company that hosts the website may keep access logs (IP address, time of visit, browser details) for security and operations. Hosting provider: <span class="tbd">[to be added at deployment: provider, server country, log retention]</span>. If the servers are outside your country, these logs are processed abroad.</p>
       </section>
 
       <section>
-        <h2>7. 안전성 확보 조치</h2>
-        <p>앱의 모든 데이터는 파일마다 다른 키로 암호화하고, 키는 PIN과 휴대폰 보안칩(Secure Enclave·StrongBox)이 함께 있어야 풀리도록 보관합니다. 앱에는 인터넷 권한이 없어 데이터가 기기 밖으로 나가는 통로가 없습니다. 독립 보안 감사는 아직 진행되지 않았습니다.</p>
+        <h2>7. Security measures</h2>
+        <p>All app data is encrypted with a separate key per file. The keys can be unlocked only when your PIN and your phone’s security chip (Secure Enclave or StrongBox) are both present. The app makes no network connections (the Android app has no internet permission at all), so there is no path for data to leave the device. No independent security audit has been done yet.</p>
       </section>
 
       <section>
-        <h2>8. 이용자의 권리</h2>
-        <p>앱에 저장된 정보는 모두 사용자의 휴대폰에 있으므로, 열람·삭제는 앱 안에서 직접 할 수 있습니다. 운영자는 사용자의 정보를 갖고 있지 않아 대신 열람하거나 복구해 드릴 수 없습니다.</p>
+        <h2>8. Your rights</h2>
+        <p>Everything the app stores is on your phone, so you can view and delete it directly in the app. We hold none of your data, so we can’t view or recover it for you.</p>
       </section>
 
       <section>
-        <h2>9. 아동의 개인정보</h2>
-        <p>앱은 나이와 관계없이 어떤 개인정보도 수집하지 않습니다.</p>
+        <h2>9. Children</h2>
+        <p>The app collects no personal data from anyone, of any age.</p>
       </section>
 
       <section>
-        <h2>10. 개인정보 보호책임자와 문의</h2>
+        <h2>10. Privacy officer and contact</h2>
         <dl class="policy-contact">
-          <div><dt>운영</dt><dd>JellyDock <span class="tbd">[사업자 정보]</span></dd></div>
-          <div><dt>개인정보 보호책임자</dt><dd><span class="tbd">[성명]</span></dd></div>
-          <div><dt>문의</dt><dd><span class="tbd">[연락처 이메일]</span></dd></div>
+          <div><dt>Operator</dt><dd>JellyDock <span class="tbd">[business details]</span></dd></div>
+          <div><dt>Privacy officer</dt><dd><span class="tbd">[name]</span></dd></div>
+          <div><dt>Contact</dt><dd><span class="tbd">[contact email]</span></dd></div>
         </dl>
       </section>
 
       <section>
-        <h2>11. 권익침해 구제 방법</h2>
-        <p>개인정보 침해에 대한 상담이나 신고가 필요하면 아래 기관에 문의할 수 있습니다.</p>
+        <h2>11. Help with privacy complaints (Korea)</h2>
+        <p>Users in Korea can contact these agencies for advice or to report a privacy violation:</p>
         <ul>
-          <li>개인정보분쟁조정위원회: 1833-6972 (www.kopico.go.kr)</li>
-          <li>개인정보침해신고센터: 118 (privacy.kisa.or.kr)</li>
-          <li>대검찰청: 1301 (www.spo.go.kr)</li>
-          <li>경찰청: 182 (ecrm.police.go.kr)</li>
+          <li>Personal Information Dispute Mediation Committee: 1833-6972 (www.kopico.go.kr)</li>
+          <li>Personal Information Infringement Report Center (KISA): 118 (privacy.kisa.or.kr)</li>
+          <li>Supreme Prosecutors’ Office: 1301 (www.spo.go.kr)</li>
+          <li>Korean National Police Agency, Cyber Bureau: 182 (ecrm.police.go.kr)</li>
         </ul>
       </section>
 
       <section>
-        <h2>12. 방침의 변경</h2>
-        <p>이 방침이 바뀌면 시행일 7일 전까지 이 페이지에 알리고, 이전 방침은 이 페이지 아래에 남겨 둡니다.</p>
+        <h2>12. Changes to this policy</h2>
+        <p>If this policy changes, we will post the change on this page at least 7 days before it takes effect, and keep earlier versions at the bottom of this page.</p>
       </section>
     </article>
   </div>
@@ -140,7 +140,7 @@
 <footer class="site-footer">
   <div class="wrap">
     <p>PrivateVault · JellyDock</p>
-    <p><a href="privacy.html" aria-current="page">개인정보처리방침</a></p>
+    <p><a href="privacy.html" aria-current="page">Privacy Policy</a></p>
     <p>© 2026 JellyDock</p>
   </div>
 </footer>

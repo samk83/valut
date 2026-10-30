@@ -40,7 +40,7 @@
   if (play && status) {
     play.addEventListener('click', function () {
       status.textContent = '';
-      setTimeout(function () { status.textContent = '소개 영상은 출시 전에 공개됩니다.'; }, 50);
+      setTimeout(function () { status.textContent = play.dataset.msg || ''; }, 50);
     });
   }
 })();

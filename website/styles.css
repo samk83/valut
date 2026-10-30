@@ -438,5 +438,5 @@ p { margin: 0; }
   .policy-table tr { display: grid; gap: 4px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
   .policy-table tr:last-child { border-bottom: 0; }
   .policy-table th, .policy-table td { padding: 0; border: 0; background: none; }
-  .policy-table td:last-child::before { content: "거부하면: "; color: var(--faint); }
+  .policy-table td[data-label]::before { content: attr(data-label) ": "; color: var(--faint); }
 }
