@@ -14,6 +14,7 @@
    - 백업·기기 이전 제외 검증
    - Android StrongBox 키 사용 횟수 제한 실험
    - 동영상 청크 암호화 + 평문 캐시 없는 스트리밍 재생 (AVAssetResourceLoader / ExoPlayer DataSource)
+   - 앱 내 카메라: 녹화 중 청크 암호화 (평문 임시 파일 없이)
 3. Phase 2 UI/UX 디자인 → Owner 승인
 4. Phase 3 MVP 개발
 5. Phase 4 Security QA + 외부 감사 (예산 승인 후)
