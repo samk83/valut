@@ -179,8 +179,8 @@ class VaultCoreModule : Module() {
 
       /** Decrypts a video to a private temp file for the player. Deleted on close and on lock. */
       AsyncFunction("openVideo") { id: String ->
-        val ticket = playbackTicket.get()
         clearPlayback()
+        val ticket = playbackTicket.get()
         playDir.mkdirs()
         val file = File(playDir, "${java.util.UUID.randomUUID()}.mp4")
         FileOutputStream(file).use { vault.read(id, it) }

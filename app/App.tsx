@@ -42,6 +42,7 @@ export default function App() {
   // System pickers and permission dialogs push the app to the background; do not lock then.
   const suspended = useRef(false);
   const backgroundedAt = useRef<number | null>(null);
+  const suspendTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const toLocked = useCallback(async () => {
     // Hide decrypted content at once; status() may wait behind a long native call.
@@ -57,6 +58,7 @@ export default function App() {
         backgroundedAt.current = null;
         return;
       }
+      clearTimeout(suspendTimer.current);
       // If the user left the app while a picker or dialog was open, lock now on return.
       const since = backgroundedAt.current;
       backgroundedAt.current = null;
@@ -77,7 +79,16 @@ export default function App() {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') return;
       if (suspended.current) {
-        backgroundedAt.current ??= Date.now();
+        if (backgroundedAt.current === null) {
+          backgroundedAt.current = Date.now();
+          // Do not wait for the picker to return: the grace period ends on its own.
+          clearTimeout(suspendTimer.current);
+          suspendTimer.current = setTimeout(() => {
+            if (!suspended.current) return;
+            VaultCore.lock();
+            if (UNLOCKED.includes(routeRef.current.name)) toLocked();
+          }, SUSPEND_GRACE_MS);
+        }
         return;
       }
       VaultCore.lock();
