@@ -13,7 +13,7 @@
 ## 방법 2 — 주소 직접 입력 (iPhone 하나만 있을 때)
 1. 아래 주소를 길게 눌러 복사합니다.
 ```
-exp://u.expo.dev/02a59862-6e9e-457f-8635-b17377c24f4e/group/fe415888-6643-42d8-9dee-327b9ba15f89
+exp://u.expo.dev/02a59862-6e9e-457f-8635-b17377c24f4e?channel-name=preview
 ```
 2. Safari 주소창에 붙여넣고 이동 → **Open in Expo Go**(“Expo Go에서 열기”)를 누릅니다.
    - 안 되면 Expo Go 앱 첫 화면의 **Enter URL manually**에 붙여넣고 **Connect**를 누릅니다.
@@ -24,4 +24,4 @@ exp://u.expo.dev/02a59862-6e9e-457f-8635-b17377c24f4e/group/fe415888-6643-42d8-9
 
 ## 참고 (개발용)
 - Expo 프로젝트: https://expo.dev/accounts/chihunkim/projects/privatevault-test
-- 브랜치 `feature/ios-preview`, EAS 업데이트 그룹 `fe415888-6643-42d8-9dee-327b9ba15f89` (SDK 58)
+- 브랜치 `feature/ios-preview`, EAS Update 채널·브랜치 `preview` (SDK 58). 새로 게시하면 같은 주소로 최신 버전이 열립니다

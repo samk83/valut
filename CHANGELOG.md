@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- iPhone Expo Go 미리보기: EAS 프로젝트 연결(app.json owner·projectId·updates.url, runtimeVersion `exposdk:58.0.0`), EAS Update `preview` 브랜치에 iOS 게시. docs/IOS_PREVIEW.md 한국어 안내. 미리보기 전용(가짜 데이터, 암호화 없음)
+- iPhone Expo Go 미리보기: EAS 프로젝트 연결(app.json owner·projectId·updates.url, runtimeVersion `exposdk:58.0.0`), EAS Update `preview` 채널·브랜치에 iOS 게시. docs/IOS_PREVIEW.md 한국어 안내. 미리보기 전용(가짜 데이터, 암호화 없음)
 - app/: Android 테스트 앱 (Expo SDK 58). PIN 설정·잠금 해제(3회 오류 파기)·최종 시도·파기 화면, 금고 홈, 앱 내 카메라(사진·동영상, 갤러리 저장 안 함), 갤러리 가져오기(원본 삭제 선택), 사진·동영상 보기, 보안 설정·초기화. 화면 캡처 차단, 백그라운드 즉시 잠금, 인터넷 권한 없음, 백업 제외
 - app/modules/vault-core: core/ 보안 코어를 그대로 컴파일하는 Expo 네이티브 모듈, Android Keystore HMAC 키(StrongBox 우선, 없으면 TEE)
 - docs/ANDROID_TEST_APP.md: 한국어 설치·테스트 안내
