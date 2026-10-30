@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 ### Added
+- website/: PrivateVault 소개 웹사이트 (정적 HTML·CSS·JS, Obsidian & Brass 테마, 스크롤 연동 앱 화면 6단계, 보안 기술·한계·기술 사양, 출시 예정 스토어 버튼, 소개 영상 자리)
+- website/privacy.html: 개인정보처리방침 (수집 없음, 권한 설명, 파기, 웹사이트 접속 기록)
+- website/assets/fonts, tools/fetch_fonts.py: 글꼴 직접 호스팅으로 웹사이트 외부 요청 0건
 - docs/PRD.md: PrivateVault PRD v1.0 원문 저장
 - docs/REVIEW.md: 설계 가능성 및 보안 검토 (Owner 추가 요구사항 R1~R5, 위험 G1~G10, 미해결 8개 항목 권고)
 - SPEC.md: 수락 기준 초안 v0.1

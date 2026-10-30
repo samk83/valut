@@ -9,3 +9,4 @@
 - [설계·보안 검토](docs/REVIEW.md)
 - [SPEC](SPEC.md) — 수락 기준 (초안)
 - [STATUS](STATUS.md) · [NEXT_STEPS](NEXT_STEPS.md) · [CHANGELOG](CHANGELOG.md)
+- [소개 웹사이트](website/README.md) — 정적 사이트 (미배포)

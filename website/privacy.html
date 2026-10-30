@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>개인정보처리방침 · PrivateVault</title>
+<meta name="description" content="PrivateVault 앱과 웹사이트의 개인정보처리방침. 앱은 개인정보를 수집하거나 전송하지 않습니다.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="PrivateVault 홈">
+      <img src="assets/favicon.svg" width="28" height="28" alt="">
+      PrivateVault
+    </a>
+    <nav class="nav" aria-label="사이트">
+      <a class="nav-link" href="index.html#how">작동 방식</a>
+      <a class="nav-link" href="index.html#security">보안 기술</a>
+      <a class="nav-link" href="index.html#specs">기술 사양</a>
+      <a class="nav-cta" href="index.html#download">다운로드</a>
+    </nav>
+  </div>
+</header>
+
+<main class="policy">
+  <div class="wrap">
+    <article class="policy-body">
+      <p class="eyebrow" lang="en">Privacy Policy</p>
+      <h1>개인정보처리방침</h1>
+      <p class="policy-meta">시행일: <span class="tbd">[출시일]</span> · 운영: JellyDock</p>
+
+      <section class="policy-summary" aria-labelledby="sum-title">
+        <h2 id="sum-title">요약</h2>
+        <p>PrivateVault 앱은 개인정보를 수집하지 않고, 어디로도 전송하지 않습니다. 서버와 계정이 없으며, 금고에 넣은 사진과 동영상은 이 휴대폰 안에서만 암호화되어 저장됩니다. PIN(또는 패턴)과 이 휴대폰 없이는 저희(JellyDock)를 포함해 누구도 내용을 열 수 없도록 설계했습니다.</p>
+      </section>
+
+      <section>
+        <h2>1. 앱이 다루는 정보</h2>
+        <p>앱은 아래 정보를 휴대폰 안에서만 처리합니다. 이 정보는 운영자에게 전달되지 않습니다.</p>
+        <ul>
+          <li><strong>금고에 넣은 사진·동영상</strong>과 그 파일 이름, 촬영 정보, 썸네일: 파일마다 다른 키로 암호화(AES-256-GCM)해 앱 저장 공간에 보관합니다. 사진첩에서 가져온 파일의 위치 등 촬영 정보는 지우지 않고 암호화된 채로 보관합니다.</li>
+          <li><strong>PIN 또는 패턴</strong>: 원문은 저장하지 않습니다. 금고를 여는 키를 만드는 데에만 쓰고(Argon2id), 휴대폰 보안칩의 키와 함께 있어야 금고가 열립니다.</li>
+          <li><strong>잠금 해제 실패 횟수와 앱 설정</strong>: 3회 오류 시 키 파기 기능과 앱 동작에 필요합니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. 기기 권한</h2>
+        <div class="policy-table" role="region" aria-label="권한 목록" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">권한</th><th scope="col">쓰는 곳</th><th scope="col">거부하면</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">사진</th><td>사진첩에서 고른 사진·동영상을 금고로 가져오고, 가져온 원본의 삭제를 요청합니다.</td><td>가져오기나 원본 삭제 요청이 제한됩니다.</td></tr>
+              <tr><th scope="row">카메라</th><td>금고 카메라로 사진과 동영상을 찍습니다. 찍은 파일은 사진첩에 저장하지 않습니다.</td><td>금고 카메라를 쓸 수 없습니다.</td></tr>
+              <tr><th scope="row">마이크</th><td>금고 카메라로 동영상을 찍을 때 소리를 녹음합니다.</td><td>동영상 소리 녹음이 제한됩니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>위치, 연락처, 인터넷 권한은 쓰지 않습니다. 금고 카메라로 찍은 파일에서는 위치 정보를 지웁니다.</p>
+      </section>
+
+      <section>
+        <h2>3. 수집·이용·제3자 제공</h2>
+        <p>앱은 개인정보를 수집하지 않으므로 운영자가 이용하거나 제3자에게 제공하는 개인정보가 없습니다. 광고, 분석, 오류 보고 도구를 넣지 않았으며, 처리를 맡기는 외부 업체도 없습니다.</p>
+        <p>다만 아래 정보는 운영자가 받을 수 있습니다.</p>
+        <ul>
+          <li><strong>문의 메일</strong>: 사용자가 직접 보낸 이메일 주소와 내용. 답변에만 쓰고, 문의 처리가 끝나면 지체 없이 지웁니다. 단, 관련 법령이 보관을 요구하면 그 기간 동안 보관합니다.</li>
+          <li><strong>스토어가 제공하는 정보</strong>: Apple App Store와 Google Play는 각 회사의 방침에 따라, 사용자가 공유에 동의한 경우 앱 충돌 보고서와 통계를 개발자에게 제공할 수 있습니다. 이 정보는 Apple·Google이 처리하며 개인을 식별하지 않는 형태로 제공됩니다. 유료 결제가 있다면 결제 처리도 각 스토어가 맡습니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. 백업과 기기 이전</h2>
+        <p>금고 데이터와 키는 iCloud·iTunes 백업, Google 백업, 기기 간 이전에 포함되지 않습니다. 그래서 휴대폰을 바꾸거나 잃어버리면 금고를 옮기거나 되살릴 수 없습니다.</p>
+        <p>금고로 옮긴 원본은 사진첩의 '최근 삭제된 항목'(휴지통)이나 iCloud 사진·Google 포토에 이미 올라간 사본으로 남아 있을 수 있습니다. 앱은 이 사본을 지울 수 없으므로 사용자가 직접 지워야 합니다.</p>
+      </section>
+
+      <section>
+        <h2>5. 보관 기간과 파기</h2>
+        <p>금고에 넣은 파일은 사용자가 지울 때까지 휴대폰에만 남습니다. 다음의 경우 데이터나 키가 지워지며, 되살릴 방법은 없습니다.</p>
+        <ul>
+          <li>파일을 영구 삭제할 때: 그 파일의 키, 암호화된 파일, 썸네일을 지웁니다.</li>
+          <li>금고를 초기화하거나 PIN 또는 패턴을 3회 연속 틀렸을 때: 금고를 여는 키를 지웁니다.</li>
+          <li>앱을 삭제할 때: 앱 저장 공간이 지워집니다. 다시 설치하면 남아 있던 키를 지우고 새 금고로 시작합니다.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>6. 이 웹사이트</h2>
+        <p>이 웹사이트는 쿠키 등 자동수집장치를 설치·운영하지 않고 방문 분석 도구도 쓰지 않으며, 글꼴을 포함한 모든 파일을 이 사이트에서 직접 제공합니다. 다만 웹사이트를 호스팅하는 업체는 보안과 운영을 위해 접속 기록(IP 주소, 접속 시각, 브라우저 정보)을 남길 수 있습니다. 호스팅 업체: <span class="tbd">[배포 시 기재: 업체명, 서버 소재 국가, 보관 기간]</span>. 서버가 국외에 있으면 이 접속 기록은 국외로 이전되어 처리됩니다.</p>
+      </section>
+
+      <section>
+        <h2>7. 안전성 확보 조치</h2>
+        <p>앱의 모든 데이터는 파일마다 다른 키로 암호화하고, 키는 PIN과 휴대폰 보안칩(Secure Enclave·StrongBox)이 함께 있어야 풀리도록 보관합니다. 앱에는 인터넷 권한이 없어 데이터가 기기 밖으로 나가는 통로가 없습니다. 독립 보안 감사는 아직 진행되지 않았습니다.</p>
+      </section>
+
+      <section>
+        <h2>8. 이용자의 권리</h2>
+        <p>앱에 저장된 정보는 모두 사용자의 휴대폰에 있으므로, 열람·삭제는 앱 안에서 직접 할 수 있습니다. 운영자는 사용자의 정보를 갖고 있지 않아 대신 열람하거나 복구해 드릴 수 없습니다.</p>
+      </section>
+
+      <section>
+        <h2>9. 아동의 개인정보</h2>
+        <p>앱은 나이와 관계없이 어떤 개인정보도 수집하지 않습니다.</p>
+      </section>
+
+      <section>
+        <h2>10. 개인정보 보호책임자와 문의</h2>
+        <dl class="policy-contact">
+          <div><dt>운영</dt><dd>JellyDock <span class="tbd">[사업자 정보]</span></dd></div>
+          <div><dt>개인정보 보호책임자</dt><dd><span class="tbd">[성명]</span></dd></div>
+          <div><dt>문의</dt><dd><span class="tbd">[연락처 이메일]</span></dd></div>
+        </dl>
+      </section>
+
+      <section>
+        <h2>11. 권익침해 구제 방법</h2>
+        <p>개인정보 침해에 대한 상담이나 신고가 필요하면 아래 기관에 문의할 수 있습니다.</p>
+        <ul>
+          <li>개인정보분쟁조정위원회: 1833-6972 (www.kopico.go.kr)</li>
+          <li>개인정보침해신고센터: 118 (privacy.kisa.or.kr)</li>
+          <li>대검찰청: 1301 (www.spo.go.kr)</li>
+          <li>경찰청: 182 (ecrm.police.go.kr)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>12. 방침의 변경</h2>
+        <p>이 방침이 바뀌면 시행일 7일 전까지 이 페이지에 알리고, 이전 방침은 이 페이지 아래에 남겨 둡니다.</p>
+      </section>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>PrivateVault · JellyDock</p>
+    <p><a href="privacy.html" aria-current="page">개인정보처리방침</a></p>
+    <p>© 2026 JellyDock</p>
+  </div>
+</footer>
+</body>
+</html>
