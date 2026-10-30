@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PrivateVault</title>
+<meta name="description" content="PrivateVault는 사진과 동영상을 휴대폰 안에서만 암호화해 보관하는 금고 앱입니다. 계정도, 클라우드도, 인터넷 연결도 없습니다.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;700&amp;family=Noto+Serif+KR:wght@300;400;600&amp;display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- PV:BODY-START -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pvMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7E6BE"></stop>
+      <stop offset="0.35" stop-color="#C9A66B"></stop>
+      <stop offset="0.55" stop-color="#8A6635"></stop>
+      <stop offset="0.75" stop-color="#C9A66B"></stop>
+      <stop offset="1" stop-color="#F7E6BE"></stop>
+    </linearGradient>
+    <radialGradient id="pvBg" cx="0.3" cy="0.2" r="1">
+      <stop offset="0" stop-color="#262C3A"></stop>
+      <stop offset="0.6" stop-color="#10131A"></stop>
+      <stop offset="1" stop-color="#07080B"></stop>
+    </radialGradient>
+    <radialGradient id="pvFace" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#1B202B"></stop>
+      <stop offset="1" stop-color="#06070A"></stop>
+    </radialGradient>
+    <linearGradient id="pvGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"></stop>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+  <symbol id="dial" viewBox="0 0 360 360">
+    <rect width="360" height="360" rx="80" fill="url(#pvBg)"></rect>
+    <circle cx="180" cy="180" r="118" fill="url(#pvFace)" stroke="url(#pvMetal)" stroke-width="14"></circle>
+    <circle cx="180" cy="166" r="22" fill="url(#pvMetal)"></circle>
+    <path d="M169 178 L160 226 L200 226 L191 178 Z" fill="url(#pvMetal)"></path>
+    <path d="M80 0 H280 A80 80 0 0 1 360 80 V150 C260 120 100 120 0 160 V80 A80 80 0 0 1 80 0 Z" fill="url(#pvGloss)"></path>
+  </symbol>
+</svg>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="PrivateVault 홈">
+      <svg aria-hidden="true"><use href="#dial"></use></svg>
+      PrivateVault
+    </a>
+    <nav class="nav" aria-label="페이지 섹션">
+      <a class="nav-link" href="#how">작동 방식</a>
+      <a class="nav-link" href="#security">보안 기술</a>
+      <a class="nav-link" href="#specs">기술 사양</a>
+      <a class="nav-cta" href="#download">다운로드</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <svg class="hero-dial" viewBox="0 0 360 360" role="img" aria-label="PrivateVault 앱 아이콘: 황동 금고 다이얼과 열쇠 구멍">
+        <rect x="0" y="0" width="360" height="360" rx="80" fill="url(#pvBg)"></rect>
+        <rect x="1.5" y="1.5" width="357" height="357" rx="78.5" fill="none" stroke="url(#pvMetal)" stroke-opacity="0.45" stroke-width="3"></rect>
+        <circle cx="180" cy="186" r="124" fill="#000000" opacity="0.45"></circle>
+        <circle cx="180" cy="180" r="118" fill="url(#pvFace)" stroke="url(#pvMetal)" stroke-width="12"></circle>
+        <g class="dial-ring">
+          <circle cx="180" cy="180" r="92" fill="none" stroke="url(#pvMetal)" stroke-opacity="0.5" stroke-width="1.5"></circle>
+          <circle cx="180" cy="180" r="102" fill="none" stroke="url(#pvMetal)" stroke-width="10" stroke-dasharray="2 24.704"></circle>
+          <circle cx="180" cy="180" r="102" fill="none" stroke="url(#pvMetal)" stroke-width="18" stroke-dasharray="4 156.221"></circle>
+        </g>
+        <circle cx="180" cy="166" r="20" fill="url(#pvMetal)"></circle>
+        <path d="M170 176 L162 222 L198 222 L190 176 Z" fill="url(#pvMetal)"></path>
+        <path d="M80 0 H280 A80 80 0 0 1 360 80 V150 C260 120 100 120 0 160 V80 A80 80 0 0 1 80 0 Z" fill="url(#pvGloss)"></path>
+      </svg>
+      <p class="eyebrow">PrivateVault · iPhone · Android</p>
+      <h1 id="hero-title">당신의 사진은<br><em>당신의 폰 안에만.</em></h1>
+      <p class="hero-lede">사진과 동영상을 휴대폰 안에서 암호화해 보관합니다. 계정도, 클라우드도, 인터넷 연결도 없습니다. PIN(또는 패턴)과 이 휴대폰이 함께 있어야만 열립니다.</p>
+      <div class="stores" role="group" aria-label="앱 다운로드 (출시 예정)">
+        <button class="store" type="button" disabled aria-describedby="store-note-hero">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M10.5 18.5h3"></path></svg>
+          <span><small>출시 예정</small><b>App Store</b></span>
+        </button>
+        <button class="store" type="button" disabled aria-describedby="store-note-hero">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5v17l14-8.5z"></path></svg>
+          <span><small>출시 예정</small><b>Google Play</b></span>
+        </button>
+      </div>
+      <p class="store-note" id="store-note-hero">아직 출시 전입니다. 스토어 링크는 출시와 함께 열립니다.</p>
+      <ul class="chips" aria-label="핵심 원칙">
+        <li class="chip">기기 안에서 암호화</li>
+        <li class="chip">인터넷 연결 없음</li>
+        <li class="chip">계정 없음</li>
+        <li class="chip">광고·추적 없음</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Intro film (placeholder until the real video exists) -->
+  <section class="film" aria-labelledby="film-title">
+    <div class="wrap">
+      <div class="film-frame">
+        <!-- 실제 영상이 준비되면 아래 주석을 풀고 .film-inner 를 지우세요.
+        <video controls playsinline preload="metadata" poster="assets/film-poster.jpg">
+          <source src="assets/privatevault-intro.mp4" type="video/mp4">
+        </video>
+        -->
+        <div class="film-inner">
+          <button class="play" type="button" id="film-play" aria-describedby="film-status">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="#0B0D12"></path></svg>
+            <span class="sr-only">소개 영상 재생</span>
+          </button>
+          <h2 class="film-title" id="film-title">90초로 보는 PrivateVault</h2>
+          <p class="film-sub">금고 만들기부터 사진 이동, 금고 카메라까지</p>
+          <p class="film-status" id="film-status" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scroll story -->
+  <section class="section story" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">작동 방식</p>
+        <h2 id="how-title">들어오기만 하고,<br>나가지 않는 금고.</h2>
+        <p>스크롤을 내리면 금고를 만드는 순간부터 마지막 잠금까지, 앱이 실제로 하는 일을 순서대로 보여드립니다.</p>
+      </div>
+
+      <div class="story-grid">
+        <div class="story-steps">
+          <article class="step is-current" data-step="0">
+            <p class="step-num">01 / 06</p>
+            <h3>금고를 만듭니다.</h3>
+            <p>가입도 이메일도 없습니다. 숫자 PIN이나 패턴 하나로 이 휴대폰 안에 금고가 생깁니다. 대신 복구 방법이 없다는 점에 먼저 동의해야 합니다.</p>
+            <div class="tech"><span>계정 없음</span><span>PIN 10자리 이상 권장</span></div>
+            <div class="step-shot"></div>
+          </article>
+          <article class="step" data-step="1">
+            <p class="step-num">02 / 06</p>
+            <h3>PIN만으로는<br>열리지 않습니다.</h3>
+            <p>입력한 PIN은 Argon2id를 거쳐 키로 바뀐 뒤, 휴대폰 보안칩 안에 있는 키와 합쳐져야 금고가 열립니다. 남은 시도 횟수는 항상 화면에 보입니다.</p>
+            <div class="tech"><span>Argon2id</span><span>Secure Enclave</span><span>StrongBox</span></div>
+            <div class="step-shot"></div>
+          </article>
+          <article class="step" data-step="2">
+            <p class="step-num">03 / 06</p>
+            <h3>사진첩에서<br>금고로 옮깁니다.</h3>
+            <p>고른 사진과 동영상을 파일마다 다른 키로 암호화하고, 다시 풀어서 확인한 뒤에야 원본 삭제를 요청합니다. 중간에 실패하면 원본은 그대로 남습니다.</p>
+            <div class="tech"><span>AES-256-GCM</span><span>파일별 키</span><span>검증 후 삭제</span></div>
+            <div class="step-shot"></div>
+          </article>
+          <article class="step" data-step="3">
+            <p class="step-num">04 / 06</p>
+            <h3>찍는 순간부터<br>금고 안에.</h3>
+            <p>금고 카메라로 찍은 사진과 영상은 사진첩에 저장되지 않습니다. 영상은 녹화하는 동안 조각 단위로 암호화되고, 위치 정보는 지워집니다.</p>
+            <div class="tech"><span>사진첩 저장 안 함</span><span>위치 정보 제거</span></div>
+            <div class="step-shot"></div>
+          </article>
+          <article class="step" data-step="4">
+            <p class="step-num">05 / 06</p>
+            <h3>보는 곳은<br>앱 안뿐입니다.</h3>
+            <p>공유, 내보내기, 저장, 인쇄 버튼이 아예 없습니다. 앱을 벗어나면 바로 잠기고, 앱 전환 화면에도 내용이 보이지 않습니다.</p>
+            <div class="tech"><span>내보내기 없음</span><span>즉시 자동 잠금</span></div>
+            <div class="step-shot"></div>
+          </article>
+          <article class="step" data-step="5">
+            <p class="step-num">06 / 06</p>
+            <h3>세 번 틀리면,<br>열쇠를 녹입니다.</h3>
+            <p>PIN을 세 번 연속 틀리면 금고를 여는 키가 기기에서 지워집니다. 그 뒤에는 올바른 PIN을 입력해도, 앱을 다시 설치해도 파일을 열 수 없습니다.</p>
+            <div class="tech"><span>3회 오류 시 키 파기</span><span>재설치해도 접근 불가</span></div>
+            <div class="step-shot"></div>
+          </article>
+        </div>
+
+        <div class="story-phone" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-screen" id="phone-screen">
+              <!-- 0 Welcome -->
+              <div class="scr scr-welcome is-active" data-screen="0">
+                <svg class="s-icon"><use href="#dial"></use></svg>
+                <p class="s-eyebrow" style="margin-top: calc(30 * var(--u))">Step 1 of 3</p>
+                <h4>Your files.<br>Your device.<br>Your eyes only.</h4>
+                <div class="s-list">
+                  <div class="s-li"><i></i><div><b>Encrypted on this phone</b><span>AES-256, sealed with your PIN and the phone's security chip.</span></div></div>
+                  <div class="s-li"><i></i><div><b>Nothing ever leaves</b><span>No account, no cloud, no sharing, no internet access.</span></div></div>
+                  <div class="s-li"><i class="warn"></i><div><b>No recovery, ever</b><span>Lose your PIN, your phone or the app, and the files are gone.</span></div></div>
+                </div>
+                <div class="s-btn">Create my vault</div>
+              </div>
+              <!-- 1 Unlock -->
+              <div class="scr scr-unlock" data-screen="1">
+                <svg class="s-icon"><use href="#dial"></use></svg>
+                <h4>Enter PIN</h4>
+                <div class="s-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+                <p class="s-attempts"><span class="pips"><i class="used"></i><i></i><i></i></span>2 attempts left</p>
+                <div class="s-keys">
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="blank"></span><span>0</span><span class="del">Delete</span>
+                </div>
+              </div>
+              <!-- 2 Importing -->
+              <div class="scr scr-import" data-screen="2">
+                <p class="s-eyebrow">Moving into vault</p>
+                <h4>8 of 12 items</h4>
+                <div class="s-thumbs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i><i></i><i></i></div>
+                <div class="s-bar"><i></i></div>
+                <div class="s-stages">
+                  <div class="s-stage"><span class="ic ok">✓</span><div>Encrypt<small>AES-256-GCM · per-file key</small></div></div>
+                  <div class="s-stage"><span class="ic ok">✓</span><div>Verify<small>decrypt &amp; compare</small></div></div>
+                  <div class="s-stage"><span class="ic">3</span><div>Ask Photos to delete original<small>only after both steps pass</small></div></div>
+                </div>
+                <p class="s-note">If anything fails, the original stays where it was.</p>
+              </div>
+              <!-- 3 Camera -->
+              <div class="scr scr-camera" data-screen="3">
+                <div class="s-view"><div class="grid"></div><div class="focus"></div><div class="tags"><span>Vault only</span><span>Location removed</span></div></div>
+                <div class="s-camctl">
+                  <div class="s-modes"><b>PHOTO</b><span>VIDEO</span></div>
+                  <div class="s-shutter"><i></i></div>
+                </div>
+              </div>
+              <!-- 4 Home -->
+              <div class="scr scr-home" data-screen="4">
+                <div class="s-top"><p class="s-eyebrow" style="color: var(--faint)">PrivateVault</p><h4>Your Vault</h4></div>
+                <div class="s-pills"><span><span class="dot"></span>Encrypted on device</span><span>Offline · no cloud</span><span>Locks in 1:00</span></div>
+                <div class="s-tabs"><b>All 128</b><span>Photos 112</span><span>Videos 16</span></div>
+                <p class="s-month">October</p>
+                <div class="s-grid"><i></i><i class="v" data-d="0:42"></i><i></i><i></i><i></i><i class="v" data-d="2:10"></i><i></i><i></i><i></i><i class="v" data-d="1:05"></i><i></i><i></i><i></i><i class="v" data-d="0:18"></i><i></i></div>
+                <div class="s-dock"><span>Import from Photos</span><span class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0D12" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span></div>
+              </div>
+              <!-- 5 Destroyed -->
+              <div class="scr scr-destroyed" data-screen="5">
+                <svg class="s-icon" viewBox="0 0 360 360" style="filter: grayscale(1) brightness(0.8)"><use href="#dial"></use><path d="M120 40 L175 150 L150 200 L230 330" fill="none" stroke="#F0996A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <h4>Vault destroyed</h4>
+                <p>Three wrong attempts. The keys were erased from this phone. These files can no longer be opened with any PIN.</p>
+                <span class="s-code">KEYS ERASED · 3/3</span>
+                <div class="s-btn ghost">Create a new vault</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security technology -->
+  <section class="section" id="security" aria-labelledby="security-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">보안 기술</p>
+        <h2 id="security-title">열쇠가 두 개 있어야<br>열리는 문.</h2>
+        <p>금고를 여는 마스터키는 당신의 PIN과 휴대폰 보안칩, 두 가지가 모두 있어야 만들어집니다. 둘 중 하나만으로는 열 수 없고, 풀린 마스터키는 금고가 열려 있는 동안에만 메모리에 두고, 잠기면 지웁니다.</p>
+      </div>
+
+      <div class="keys-wrap" role="region" aria-label="키 구조 도식" tabindex="0">
+        <div class="keychain">
+          <div class="k-col">
+            <div class="k-node"><span class="k-label">당신이 아는 것</span><b>PIN 또는 패턴</b><span>Argon2id로 1회 확인에 약 1초가 걸리도록 설정해(목표치) 대입 공격을 늦춥니다.</span></div>
+            <p class="k-plus">+</p>
+            <div class="k-node"><span class="k-label">휴대폰이 가진 것</span><b>보안칩 키</b><span>iPhone은 Secure Enclave, Android는 StrongBox. 칩 밖으로 꺼낼 수 없습니다.</span></div>
+          </div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node hot"><span class="k-label">MASTER KEY</span><b>마스터키</b><span>두 열쇠가 모두 있을 때만 풀립니다. 잠기면 메모리에서 지웁니다.</span></div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node"><span class="k-label">PER-FILE KEY</span><b>파일별 키</b><span>사진 한 장, 영상 하나마다 서로 다른 키를 씁니다.</span></div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node"><span class="k-label">AES-256-GCM</span><b>암호화된 파일</b><span>사진·영상은 물론 파일 이름, 촬영 정보, 썸네일까지 암호화합니다.</span></div>
+        </div>
+      </div>
+
+      <div class="features">
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="13" width="22" height="15" rx="3"></rect><path d="M10 13V9a6 6 0 0 1 12 0v4"></path><circle cx="16" cy="20" r="2"></circle></svg>
+          <div><h3>세 번 틀리면 키 파기</h3><span class="tag">3 attempts → key destruction</span><p>시도 횟수는 PIN을 확인하기 <em>전에</em> 먼저 기록됩니다. 확인 도중 앱을 강제로 꺼도 횟수가 줄지 않습니다.</p></div>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 12a17 17 0 0 1 24 0"></path><path d="M8.5 16.5a11 11 0 0 1 15 0"></path><path d="M13 21a5 5 0 0 1 6 0"></path><path d="M5 5l22 22"></path></svg>
+          <div><h3>인터넷을 쓰지 않습니다</h3><span class="tag">no network permission</span><p>Android 앱에는 인터넷 권한이 아예 없습니다. 서버, 계정, 클라우드, 광고·분석 도구가 없고 비행기 모드에서도 모든 기능이 작동합니다.</p></div>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4v16"></path><path d="M10 14l6 6 6-6"></path><path d="M5 26h22"></path></svg>
+          <div><h3>들어오기만 하는 금고</h3><span class="tag">one-way import</span><p>공유, 내보내기, 다른 앱으로 열기 기능이 코드에 없습니다. 금고에 들어온 파일은 앱 안에서만 볼 수 있습니다.</p></div>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11h5l3-4h6l3 4h5v15H5z"></path><circle cx="16" cy="18" r="5"></circle></svg>
+          <div><h3>금고 전용 카메라</h3><span class="tag">in-vault camera</span><p>찍은 사진은 사진첩을 거치지 않습니다. 영상은 녹화 중 조각마다 따로 암호화되어, 평문 파일이 저장 공간에 남지 않습니다.</p></div>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M26 16a10 10 0 1 1-3-7.1"></path><path d="M26 5v6h-6"></path></svg>
+          <div><h3>다시 설치해도 열리지 않습니다</h3><span class="tag">device-only keys</span><p>키는 백업과 기기 이전에 포함되지 않는 등급으로 저장됩니다. 앱을 지웠다 다시 깔면 이전 금고가 아닌 새 금고가 만들어집니다.</p></div>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="24" height="16" rx="2"></rect><path d="M11 27h10"></path><path d="M9 12h14M9 17h8"></path></svg>
+          <div><h3>동영상도 조각마다 검증</h3><span class="tag">chunked AES-GCM streaming</span><p>영상은 재생할 부분만 조금씩 풀어 메모리에서 보여줍니다. 조각마다 인증 태그가 있어 순서를 바꾸거나 잘라내면 재생을 멈춥니다.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Honest limits -->
+  <section class="section limits" aria-labelledby="limits-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">알아두실 점</p>
+        <h2 id="limits-title">강한 금고에는<br>분명한 한계도 있습니다.</h2>
+        <p>PrivateVault는 해킹을 원천 차단한다고 말하지 않습니다. 무엇을 지켜 주고, 무엇은 지켜 주지 못하는지 먼저 알려드립니다.</p>
+      </div>
+      <div class="limit-list">
+        <article class="limit"><h3>복구 방법이 없습니다</h3><p>PIN을 잊거나, 휴대폰을 잃어버리거나, 앱을 지우면 파일을 다시 열 수 없습니다. 저희도 열어 드릴 수 없습니다.</p></article>
+        <article class="limit"><h3>탈옥·루팅된 기기</h3><p>3회 제한은 정상 기기에서 지켜집니다. 탈옥·루팅된 기기나 전문 포렌식 장비를 가진 공격자는 이 제한을 우회할 수 있습니다. 그런 환경이 감지되면 금고 열람을 막고, PIN은 10자리 이상을 권장합니다.</p></article>
+        <article class="limit"><h3>금고가 열려 있는 동안</h3><p>금고가 열린 순간 휴대폰 자체를 장악당하면 어떤 앱도 막을 수 없습니다. 다 본 뒤에는 바로 잠그세요.</p></article>
+        <article class="limit"><h3>다른 곳에 남은 사본</h3><p>사진첩의 '최근 삭제된 항목'과 클라우드 사진 백업에 남은 사본은 직접 지워야 합니다. 앱은 가져오기가 끝나면 이 점을 알려 드립니다.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech specs -->
+  <section class="section" id="specs" aria-labelledby="specs-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Tech Specs</p>
+        <h2 id="specs-title">기술 사양</h2>
+      </div>
+      <dl class="specs">
+        <div class="spec-row"><dt>암호화</dt><dd><strong>AES-256-GCM, 파일마다 독립 키</strong><span>파일 이름, 촬영 정보, 썸네일 포함</span><span class="mono">video: chunked, unique nonce + auth tag per chunk</span></dd></div>
+        <div class="spec-row"><dt>키 유도</dt><dd><strong>Argon2id</strong><span>1회 확인 약 1초, 메모리 256 MiB 목표 (실기기 측정 후 확정)</span></dd></div>
+        <div class="spec-row"><dt>키 보관</dt><dd><strong>iPhone: Secure Enclave · Android: StrongBox</strong><span>기기 전용 등급, 백업·기기 이전 불가</span><span>Android는 StrongBox와 롤백 방지 키를 지원하지 않는 기기에서 금고 생성을 거부합니다.</span></dd></div>
+        <div class="spec-row"><dt>잠금 해제</dt><dd><strong>숫자 PIN 4자리 이상 (10자리 이상 권장) 또는 6점 이상 패턴</strong><span>흔한 PIN·단순 패턴은 등록 불가</span><span>Face ID·지문·기기 비밀번호만으로는 열리지 않습니다.</span></dd></div>
+        <div class="spec-row"><dt>오류 제한</dt><dd><strong>연속 3회 오류 시 키 파기</strong><span>이후 올바른 PIN으로도 복구 불가</span></dd></div>
+        <div class="spec-row"><dt>자동 잠금</dt><dd><strong>앱을 벗어나는 즉시</strong><span>앱 전환 화면에서도 내용을 가림</span></dd></div>
+        <div class="spec-row"><dt>보관 가능한 파일</dt><dd><strong>사진, 동영상</strong><span>문서(PDF)와 폴더 관리는 다음 버전에서 지원 예정</span></dd></div>
+        <div class="spec-row"><dt>가져오기</dt><dd><strong>사진첩에서 선택해 이동 · 금고 카메라 촬영</strong><span>암호화와 검증이 끝난 뒤에만 원본 삭제 요청</span></dd></div>
+        <div class="spec-row"><dt>내보내기</dt><dd><strong>없음</strong><span>공유, 저장, 인쇄, 복사, 다른 앱으로 열기 모두 지원하지 않음</span></dd></div>
+        <div class="spec-row"><dt>네트워크 · 계정</dt><dd><strong>사용하지 않음</strong><span>서버, 계정, 클라우드 동기화, 백업 없음 · 비행기 모드에서 모든 기능 작동</span></dd></div>
+        <div class="spec-row"><dt>요청 권한</dt><dd><strong>사진 (가져오기·원본 삭제 요청), 카메라, 마이크 (동영상 소리)</strong><span>위치·연락처·인터넷 권한 없음</span></dd></div>
+        <div class="spec-row"><dt>광고 · 추적</dt><dd><strong>없음</strong><span>로그에 PIN, 파일 이름, 키를 남기지 않음</span></dd></div>
+        <div class="spec-row"><dt>지원 기기</dt><dd><strong>iPhone · Android 스마트폰</strong><span>iPhone: Secure Enclave 탑재 기기, <span class="tbd">[지원 iOS 버전: 출시 때 공개]</span></span><span>Android: StrongBox 지원 기기, <span class="tbd">[지원 Android 버전: 출시 때 공개]</span></span></dd></div>
+        <div class="spec-row"><dt>언어</dt><dd><strong class="tbd">[출시 때 공개]</strong></dd></div>
+        <div class="spec-row"><dt>가격</dt><dd><strong class="tbd">[출시 때 공개]</strong></dd></div>
+      </dl>
+      <p class="spec-foot">출시 전 사양이며 개발과 실기기 측정 결과에 따라 바뀔 수 있습니다. 독립 보안 감사는 아직 진행되지 않았습니다.</p>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="section download" id="download" aria-labelledby="download-title">
+    <div class="wrap">
+      <svg class="hero-dial" viewBox="0 0 360 360" aria-hidden="true"><use href="#dial"></use></svg>
+      <h2 id="download-title">곧 찾아뵙겠습니다.</h2>
+      <p class="hero-lede">iPhone과 Android용으로 준비하고 있습니다.</p>
+      <div class="stores" role="group" aria-label="앱 다운로드 (출시 예정)">
+        <button class="store" type="button" disabled aria-describedby="store-note-dl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M10.5 18.5h3"></path></svg>
+          <span><small>출시 예정</small><b>App Store</b></span>
+        </button>
+        <button class="store" type="button" disabled aria-describedby="store-note-dl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5v17l14-8.5z"></path></svg>
+          <span><small>출시 예정</small><b>Google Play</b></span>
+        </button>
+      </div>
+      <p class="store-note" id="store-note-dl">스토어 링크는 출시와 함께 열립니다.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>PrivateVault · JellyDock</p>
+    <p>앱은 개인정보를 수집하거나 전송하지 않습니다.</p>
+    <p>© 2026 JellyDock</p>
+  </div>
+</footer>
+<!-- PV:BODY-END -->
+<script src="script.js"></script>
+</body>
+</html>
