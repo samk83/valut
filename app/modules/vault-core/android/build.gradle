@@ -1,0 +1,27 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.vaultcore'
+version = '0.1.0'
+
+android {
+  namespace "expo.modules.vaultcore"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+  sourceSets {
+    // The shared security core (repo root /core) is compiled straight into this module,
+    // so the app and the JVM tests run exactly the same code.
+    main.java.srcDirs += "$projectDir/../../../../core/src/main/kotlin"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  implementation "org.bouncycastle:bcprov-jdk18on:1.78.1"
+}
