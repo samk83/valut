@@ -83,7 +83,19 @@ export const DemoVault = {
     await wait(300);
     const id = Math.random().toString(16).slice(2) + Date.now().toString(16);
     items.unshift({ id, kind, mimeType, createdAt: Date.now(), size: 0, uri });
-    return { id, safeToDeleteOriginal: false };
+    return { id, safeToDeleteOriginal: true };
+  },
+  async recoverPending() {
+    return { saved: 0, waiting: 0 };
+  },
+  async importCapture(uri: string, kind: ItemKind) {
+    await DemoVault.importUri(uri, kind, kind === 'VIDEO' ? 'video/mp4' : 'image/jpeg', false);
+    return { saved: true, waiting: 0 };
+  },
+  /** Nothing is re-read in the preview: an item that was imported counts as a match. */
+  async matchesOriginal(id: string, _assetId: string, _kind: ItemKind) {
+    requireUnlocked();
+    return items.some((i) => i.id === id);
   },
   uriOf(id: string) {
     requireUnlocked();

@@ -8,6 +8,47 @@ export function Title({ children }: { children: ReactNode }) {
   return <Text style={s.title}>{children}</Text>;
 }
 
+/** A bullet with a hanging indent: wrapped lines line up with the text, not the dot. */
+export function Bullet({ children }: { children: ReactNode }) {
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      <Text style={[s.body, { width: 18 }]}>•</Text>
+      <Text style={[s.body, { flex: 1 }]}>{children}</Text>
+    </View>
+  );
+}
+
+/** Two or more side-by-side choices, one selected. */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string; icon?: ReactNode }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <View style={s.segment}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(o.value)}
+            style={[s.segmentItem, on && { backgroundColor: C.brass }]}
+          >
+            {o.icon}
+            <Text style={[s.btnText, { fontSize: 14 }, on && { color: C.bg }]}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function Body({ children, style }: { children: ReactNode; style?: object }) {
   return <Text style={[s.body, style]}>{children}</Text>;
 }
@@ -101,7 +142,7 @@ export function PinPad({
             (disabled || (k === 'ok' && value.length < 4)) && { opacity: 0.35 },
           ]}
         >
-          <Text style={[s.keyText, k === 'ok' && { color: value.length >= 4 ? C.bg : C.brass, fontSize: 16 }]}>
+          <Text style={[s.keyText, k === 'ok' && { color: value.length >= 4 ? C.bg : C.brass, fontFamily: F.bold, fontSize: 16, lineHeight: 20 }]}>
             {k === 'del' ? '⌫' : k === 'ok' ? 'OK' : k}
           </Text>
         </Pressable>
@@ -127,11 +168,16 @@ export const s = StyleSheet.create({
   dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: C.brass },
   pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14, marginTop: 8 },
   key: { width: '30%', aspectRatio: 1.45, borderRadius: 40, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center' },
-  keyText: { fontFamily: F.title, fontSize: 28, color: C.ivory },
+  // Inter has even line metrics, so digits sit in the middle of the key on iOS too.
+  keyText: { fontFamily: F.medium, fontSize: 28, lineHeight: 34, color: C.ivory, textAlign: 'center', includeFontPadding: false },
+  segment: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 24, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
+  segmentItem: { flex: 1, height: 40, borderRadius: 20, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
   testBanner: { backgroundColor: '#2A1512', borderColor: C.danger, borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 16 },
 });
 
 export function TestBanner() {
+  // The preview is meant to look like the finished app, so it shows no banner.
+  if (VaultCore.isDemo) return null;
   return (
     <View style={s.testBanner}>
       <Text style={[s.small, { color: '#F3B7AA' }]}>

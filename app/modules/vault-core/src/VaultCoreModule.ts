@@ -75,6 +75,9 @@ const Vault = native
       list: () => native.list(),
       importUri: (uri: string, kind: ItemKind, mimeType: string, deleteSourceFile: boolean) =>
         native.importUri(uri, kind, mimeType, deleteSourceFile),
+      recoverPending: () => native.recoverPending(),
+      importCapture: (uri: string, kind: ItemKind) => native.importCapture(uri, kind),
+      matchesOriginal: (id: string, assetId: string, kind: ItemKind) => native.matchesOriginal(id, assetId, kind),
       /** Displayable URI of the thumbnail, or null. */
       thumbnailUri: async (id: string) => {
         const b64 = await native.thumbnail(id);
