@@ -3,11 +3,11 @@ import * as MediaLibrary from 'expo-media-library/legacy';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
 
-import VaultCore, { VaultItem } from '../../modules/vault-core';
+import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
 import { C } from '../theme';
 import { Body, Busy, Button, s, TestBanner, Title } from '../ui';
 
-type Imported = { assetId?: string | null; safe: boolean };
+type Imported = { id: string; kind: ItemKind; assetId?: string | null; safe: boolean };
 
 export function Home({
   onOpen,
@@ -57,7 +57,7 @@ export function Home({
         // The picker hands us a plaintext copy in the app cache; the native side deletes it.
         const r = await VaultCore.importUri(a.uri, isVideo ? 'VIDEO' : 'PHOTO', a.mimeType ?? (isVideo ? 'video/mp4' : 'image/jpeg'), true);
         ok++;
-        deletable.push({ assetId: a.assetId, safe: r.safeToDeleteOriginal });
+        deletable.push({ id: r.id, kind: isVideo ? 'VIDEO' : 'PHOTO', assetId: a.assetId, safe: r.safeToDeleteOriginal });
       } catch {
         failed++;
       }
@@ -69,16 +69,27 @@ export function Home({
 
   const deleteOriginals = async () => {
     if (!result) return;
-    const ids = result.deletable.filter((d) => d.safe && d.assetId).map((d) => d.assetId as string);
-    if (ids.length === 0) {
+    const candidates = result.deletable.filter((d) => d.safe && d.assetId);
+    if (candidates.length === 0) {
       Alert.alert('Originals kept', 'The gallery did not report which originals these were, so they were left untouched. Delete them yourself in the Gallery app.');
       return setResult(null);
     }
     suspendAutoLock(true);
     try {
       const perm = await MediaLibrary.requestPermissionsAsync();
-      if (perm.granted) await MediaLibrary.deleteAssetsAsync(ids);
-      else Alert.alert('Originals kept', 'Permission was not granted. The originals are still in your gallery.');
+      if (!perm.granted) {
+        Alert.alert('Originals kept', 'Permission was not granted. The originals are still in your gallery.');
+        return;
+      }
+      // Re-read each original and compare it with the vault copy; only exact matches go.
+      const ids: string[] = [];
+      for (const d of candidates) {
+        if (await VaultCore.matchesOriginal(d.id, d.assetId as string, d.kind).catch(() => false)) ids.push(d.assetId as string);
+      }
+      if (ids.length > 0) await MediaLibrary.deleteAssetsAsync(ids);
+      if (ids.length < candidates.length) {
+        Alert.alert('Some originals kept', `${candidates.length - ids.length} original(s) could not be confirmed identical to the vault copy and were left in your gallery.`);
+      }
     } catch {
       Alert.alert('Originals kept', 'The originals could not be deleted. Remove them manually in the Gallery app.');
     } finally {

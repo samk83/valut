@@ -49,6 +49,9 @@ declare class VaultCoreModule extends NativeModule<{}> {
     mimeType: string,
     deleteSourceFile: boolean,
   ): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
+  recoverPending(): Promise<{ saved: number; waiting: number }>;
+  importCapture(uri: string, kind: ItemKind): Promise<{ saved: boolean; waiting: number }>;
+  matchesOriginal(id: string, assetId: string, kind: ItemKind): Promise<boolean>;
   openVideo(id: string): Promise<string>;
   closeVideo(): void;
   delete(id: string): Promise<void>;

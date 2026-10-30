@@ -1,6 +1,16 @@
 # CHANGELOG
 
 ## [Unreleased]
+### Added (자료 무손실, SPEC AC-50)
+- SPEC: '자료 무손실' 필수 제약 AC-50a~j. core/DataLossTest.kt 자동 테스트 20개로 강제
+- 키 envelope·시도 카운터·항목 파일 키·메타데이터를 두 벌 저장, 손상 시 다른 벌로 열고 자동 복구
+- 삭제 표시(tombstone): 삭제 도중 꺼져도 다음 실행 때 마무리, 키 한 벌만 남은 항목은 보존
+- core/PendingImports.kt: 앱 내 카메라 촬영본 대기함. 저장 실패·앱 종료·방전 시 다음 잠금 해제 때 자동 저장
+- 갤러리 원본 삭제 전, 원본을 다시 읽어 금고 사본(복호화)과 SHA-256 완전 일치할 때만 삭제
+- PIN 검사 전 메모리 확인: 부족하면 시도로 세지 않음
+- 앱 v0.2.0 (versionCode 2), 기존 테스트 빌드 위에 업데이트 설치 가능
+### Changed
+- 두 envelope가 모두 읽을 수 없는 형태(저장 장치 손상)면 오답으로 세지 않고 KeysUnavailable 처리
 ### Added
 - iPhone Expo Go 미리보기: EAS 프로젝트 연결(app.json owner·projectId·updates.url, runtimeVersion `exposdk:58.0.0`), EAS Update `preview` 채널·브랜치에 iOS 게시. docs/IOS_PREVIEW.md 한국어 안내. 미리보기 전용(가짜 데이터, 암호화 없음)
 - app/: Android 테스트 앱 (Expo SDK 58). PIN 설정·잠금 해제(3회 오류 파기)·최종 시도·파기 화면, 금고 홈, 앱 내 카메라(사진·동영상, 갤러리 저장 안 함), 갤러리 가져오기(원본 삭제 선택), 사진·동영상 보기, 보안 설정·초기화. 화면 캡처 차단, 백그라운드 즉시 잠금, 인터넷 권한 없음, 백업 제외

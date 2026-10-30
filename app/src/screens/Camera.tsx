@@ -42,10 +42,11 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
   const seal = async (uri: string, kind: 'PHOTO' | 'VIDEO') => {
     setBusy(true);
     try {
-      await VaultCore.importUri(uri, kind, kind === 'VIDEO' ? 'video/mp4' : 'image/jpeg', true);
-      setSaved((n) => n + 1);
+      const r = await VaultCore.importCapture(uri, kind);
+      if (r.saved) setSaved((n) => n + 1);
+      else Alert.alert('Saved for later', 'This capture could not be encrypted right now (for example, the phone is low on space). It is kept safely and will be added to the vault after your next unlock.');
     } catch {
-      Alert.alert('Not saved', 'This capture could not be encrypted (for example, the phone is out of space). It was discarded.');
+      Alert.alert('Saved for later', 'This capture will be added to the vault after your next unlock.');
     } finally {
       setBusy(false);
     }
