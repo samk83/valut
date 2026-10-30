@@ -10,6 +10,8 @@ let pinHash: string | null = null;
 let failures = 0;
 let unlocked = false;
 let items: (VaultItem & { uri: string })[] = [];
+// Bumped by lock(); a create/unlock that was waiting when the vault locked must not succeed.
+let lockGeneration = 0;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -38,7 +40,9 @@ export const DemoVault = {
   },
   checkPin,
   async create(pin: string): Promise<PinResult> {
+    const gen = lockGeneration;
     await wait(600);
+    if (gen !== lockGeneration) return { ok: false, error: 'INTERRUPTED' };
     if (pinHash !== null) return { ok: false, error: 'EXISTS' };
     const c = checkPin(pin);
     if (c.rejection) return { ok: false, error: 'WEAK_PIN', reason: c.rejection };
@@ -49,7 +53,9 @@ export const DemoVault = {
     return { ok: true };
   },
   async unlock(pin: string): Promise<PinResult> {
+    const gen = lockGeneration;
     await wait(900);
+    if (gen !== lockGeneration) return { ok: false, error: 'INTERRUPTED' };
     if (pinHash === null) return { ok: false, error: 'DESTROYED' };
     if (pin.length < 4) return { ok: false, error: 'INCOMPLETE' };
     if (pin === pinHash) {
@@ -65,6 +71,7 @@ export const DemoVault = {
     return { ok: false, error: 'WRONG_PIN', remaining: MAX_ATTEMPTS - failures };
   },
   lock() {
+    lockGeneration++;
     unlocked = false;
   },
   async list(): Promise<VaultItem[]> {
