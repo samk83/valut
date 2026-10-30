@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0B0D12",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0B0D12"
-    },
     "android": {
       "package": "com.jellydock.privatevault.test",
       "allowBackup": false,
@@ -21,7 +16,10 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "blockedPermissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -34,10 +32,31 @@
     "plugins": [
       "expo-video",
       "expo-font",
-      ["expo-camera", { "recordAudioAndroid": true }],
+      [
+        "expo-camera",
+        {
+          "recordAudioAndroid": true
+        }
+      ],
       "expo-image-picker",
-      ["expo-media-library", { "isAccessMediaLocationEnabled": false, "granularPermissions": ["photo", "video"] }],
-      ["expo-build-properties", { "android": { "minSdkVersion": 26 } }],
+      [
+        "expo-media-library",
+        {
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": [
+            "photo",
+            "video"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "./plugins/withLargeHeap"
     ]
   }

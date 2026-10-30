@@ -37,8 +37,8 @@ export function PhotoViewer({ item, onClose, onDeleted }: { item: VaultItem; onC
   const [uri, setUri] = useState<string | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
-    VaultCore.readPhoto(item.id)
-      .then((b64) => setUri(`data:${item.mimeType || 'image/jpeg'};base64,${b64}`))
+    VaultCore.photoUri(item)
+      .then(setUri)
       .catch(() => setError(true));
   }, [item]);
   return (

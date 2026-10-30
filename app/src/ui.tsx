@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
+import VaultCore from '../modules/vault-core';
 import { C, F } from './theme';
 
 export function Title({ children }: { children: ReactNode }) {
@@ -134,7 +135,9 @@ export function TestBanner() {
   return (
     <View style={s.testBanner}>
       <Text style={[s.small, { color: '#F3B7AA' }]}>
-        TEST BUILD — do not store real photos. 3 wrong PINs permanently erase everything.
+        {VaultCore.isDemo
+          ? 'PREVIEW — nothing is encrypted here. Screens only; everything is forgotten when the app closes.'
+          : 'TEST BUILD — do not store real photos. 3 wrong PINs permanently erase everything.'}
       </Text>
     </View>
   );

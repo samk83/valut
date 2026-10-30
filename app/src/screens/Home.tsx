@@ -5,7 +5,7 @@ import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
 
 import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { C } from '../theme';
-import { Body, Busy, Button, s, Title } from '../ui';
+import { Body, Busy, Button, s, TestBanner, Title } from '../ui';
 
 type Imported = { assetId?: string | null; safe: boolean };
 
@@ -89,6 +89,7 @@ export function Home({
 
   return (
     <View style={[s.screen, { paddingHorizontal: 16 }]}>
+      {VaultCore.isDemo && <TestBanner />}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, marginBottom: 12 }}>
         <View style={{ flex: 1 }}>
           <Text style={s.label}>Vault · {items.length} items</Text>
@@ -141,8 +142,8 @@ function Thumb({ item, onPress }: { item: VaultItem; onPress: () => void }) {
   const [uri, setUri] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    VaultCore.thumbnail(item.id)
-      .then((b64) => live && b64 && setUri(`data:image/jpeg;base64,${b64}`))
+    VaultCore.thumbnailUri(item.id)
+      .then((u) => live && u && setUri(u))
       .catch(() => {});
     return () => {
       live = false;
