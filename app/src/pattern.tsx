@@ -66,15 +66,28 @@ export const patternToSecret = (dots: number[]) => dots.map((d) => `0${d}`).join
 
 const GRID = 3;
 
-export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: number[]) => void; disabled?: boolean; hidePath?: boolean }) {
+export function PatternPad({
+  onDone,
+  disabled,
+  hidePath,
+  onProgress,
+  maxSize = 320,
+}: {
+  onDone: (dots: number[]) => void;
+  disabled?: boolean;
+  hidePath?: boolean;
+  /** Called with the number of dots connected so far while drawing (0 when the finger lifts). */
+  onProgress?: (count: number) => void;
+  maxSize?: number;
+}) {
   const [size, setSize] = useState(0);
   const [dots, setDots] = useState<number[]>([]);
   const [finger, setFinger] = useState<{ x: number; y: number } | null>(null);
   // Window position of the grid; null until measured, and moves are ignored until then.
   const origin = useRef<{ x: number; y: number } | null>(null);
   const view = useRef<ComponentRef<typeof View>>(null);
-  const state = useRef({ dots: [] as number[], size: 0, disabled: false, onDone });
-  state.current = { dots, size, disabled: !!disabled, onDone };
+  const state = useRef({ dots: [] as number[], size: 0, disabled: false, onDone, onProgress });
+  state.current = { dots, size, disabled: !!disabled, onDone, onProgress };
 
   const cell = size / GRID;
   const centerOf = (d: number) => ({ x: ((d - 1) % GRID) * cell + cell / 2, y: Math.floor((d - 1) / GRID) * cell + cell / 2 });
@@ -103,6 +116,7 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
       const next = [...state.current.dots, d];
       state.current.dots = next;
       setDots(next);
+      state.current.onProgress?.(next.length);
     }
   };
 
@@ -117,17 +131,21 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
         measure();
       },
       onPanResponderMove: (e) => track(e.nativeEvent.pageX, e.nativeEvent.pageY),
+      // Keep the gesture while drawing, even inside a scrolling screen.
+      onPanResponderTerminationRequest: () => false,
       onPanResponderRelease: () => {
         const done = state.current.dots;
         setFinger(null);
         setDots([]);
         state.current.dots = [];
+        state.current.onProgress?.(0);
         if (done.length > 0) state.current.onDone(done);
       },
       onPanResponderTerminate: () => {
         setFinger(null);
         setDots([]);
         state.current.dots = [];
+        state.current.onProgress?.(0);
       },
     }),
   ).current;
@@ -142,10 +160,10 @@ export function PatternPad({ onDone, disabled, hidePath }: { onDone: (dots: numb
     <View
       ref={view}
       onLayout={(e) => {
-        setSize(Math.min(e.nativeEvent.layout.width, 320));
+        setSize(Math.min(e.nativeEvent.layout.width, maxSize));
         measure();
       }}
-      style={{ width: '100%', maxWidth: 320, aspectRatio: 1, alignSelf: 'center', opacity: disabled ? 0.4 : 1 }}
+      style={{ width: '100%', maxWidth: maxSize, aspectRatio: 1, alignSelf: 'center', opacity: disabled ? 0.4 : 1 }}
       {...responder.panHandlers}
     >
       {segments.map(({ a, b }, i) => {
