@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- website/: 휴대폰 화면 장면을 앱 최종 시안(19개 화면)에 맞춰 갱신 (Welcome, 잠금 해제, 가져오기 진행, 홈 사진·영상 탭)
+- website/: 휴대폰 화면 장면을 앱 최종 시안(19개 화면)에 맞춰 갱신 (Welcome, 잠금 해제, 가져오기 진행, 홈 사진·영상 탭, 금고 카메라, 금고 파기)
 - website/: 영어를 기본 언어로 전환 (index.html, privacy.html), 한국어 페이지는 website/ko/에 보관 (noindex)
 - website/: PrivateVault 소개 웹사이트 (정적 HTML·CSS·JS, Obsidian & Brass 테마, 스크롤 연동 앱 화면 6단계, 보안 기술·한계·기술 사양, 출시 예정 스토어 버튼, 소개 영상 자리)
 - website/privacy.html: 개인정보처리방침 (수집 없음, 권한 설명, 파기, 웹사이트 접속 기록)

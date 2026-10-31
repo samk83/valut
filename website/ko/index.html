@@ -222,11 +222,10 @@
               </div>
               <!-- 3 Camera -->
               <div class="scr scr-camera" data-screen="3">
-                <div class="s-view"><div class="grid"></div><div class="focus"></div><div class="tags"><span>Vault only</span><span>Location removed</span></div></div>
-                <div class="s-camctl">
-                  <div class="s-modes"><b>PHOTO</b><span>VIDEO</span></div>
-                  <div class="s-shutter"><i></i></div>
-                </div>
+                <div class="s-camtop"><span class="s-round">✕</span><span class="s-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#E6CFA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Straight to vault · never to Photos</span><span class="s-spacer"></span></div>
+                <div class="s-view"><i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bc"></i><span class="s-rec"><i></i>00:12</span><span class="s-strip">Location data stripped</span></div>
+                <div class="s-modes"><span>PHOTO</span><b>VIDEO</b></div>
+                <div class="s-camrow"><span class="s-thumb"></span><span class="s-shutter"><i></i></span><span class="s-round"><svg viewBox="0 0 24 24" fill="none" stroke="#F2EEE6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"></path><path d="M20 4v5h-5"></path><path d="M20 12a8 8 0 0 1-14 5.3L4 15"></path><path d="M4 20v-5h5"></path></svg></span></div>
               </div>
               <!-- 4 Home -->
               <div class="scr scr-home" data-screen="4">
@@ -239,11 +238,12 @@
               </div>
               <!-- 5 Destroyed -->
               <div class="scr scr-destroyed" data-screen="5">
-                <svg class="s-icon" viewBox="0 0 360 360" style="filter: grayscale(1) brightness(0.8)"><use href="#dial"></use><path d="M120 40 L175 150 L150 200 L230 330" fill="none" stroke="#F0996A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                <h4>Vault destroyed</h4>
-                <p>Three wrong attempts. The keys were erased from this phone. These files can no longer be opened with any PIN.</p>
-                <span class="s-code">KEYS ERASED · 3/3</span>
-                <div class="s-btn ghost">Create a new vault</div>
+                <svg class="s-icon" viewBox="0 0 360 360"><circle cx="180" cy="180" r="150" fill="none" stroke="#3A3F4A" stroke-width="14" stroke-dasharray="40 22"></circle><path d="M120 120 L240 240 M240 120 L120 240" stroke="#6B7078" stroke-width="16" stroke-linecap="round"></path></svg>
+                <p class="s-eyebrow" style="color: var(--faint); margin-top: calc(30 * var(--u))">Key destroyed</p>
+                <h4>This vault is sealed forever</h4>
+                <p>Three wrong attempts were entered. The encryption key was erased, so the previous files can no longer be opened by anyone.</p>
+                <div class="s-info">You can start over with a new, empty vault. Nothing from the old vault will be carried across.</div>
+                <div class="s-btn">Create a new vault</div>
               </div>
             </div>
           </div>
