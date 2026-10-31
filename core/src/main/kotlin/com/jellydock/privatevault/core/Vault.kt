@@ -61,9 +61,10 @@ class Vault(
         // An interrupted import leaves only ciphertext in staging; discard it (PRD 14).
         SecureFiles.deleteTree(staging)
         keys.sweepTempFiles()
-        // An interrupted delete can leave a folder whose key is already gone; it can never
-        // be opened again, so finish removing it.
-        items.listFiles { f -> f.isDirectory && isValidId(f.name) && !File(f, "key").exists() }
+        // Finish only deletes the user started (marked by a tombstone). Folders without a key
+        // are hidden but never removed here: a missing file may be a passing storage error,
+        // and only the user, 3 wrong PINs or a reset may remove anything (SPEC AC-50).
+        items.listFiles { f -> f.isDirectory && isValidId(f.name) && File(f, DELETED).exists() }
             ?.forEach { SecureFiles.deleteTree(it) }
     }
 
@@ -143,10 +144,16 @@ class Vault(
                 throw ImportVerificationException("Encrypted copy does not match the original")
             }
             val finalMeta = meta.copy(sizeBytes = written.plaintextBytes)
-            SecureFiles.writeAtomic(File(stage, "meta"), Aead.seal(fileKey, encodeMeta(finalMeta), aad("meta", idBytes)))
+            val sealedMeta = Aead.seal(fileKey, encodeMeta(finalMeta), aad("meta", idBytes))
+            val sealedKey = Aead.seal(mk, fileKey, aad("key", idBytes))
+            // Key and metadata are tiny but losing either loses the item, so each has a
+            // second copy (SPEC AC-50).
+            SecureFiles.writeAtomic(File(stage, "meta"), sealedMeta)
+            SecureFiles.writeAtomic(File(stage, "meta.bak"), sealedMeta)
             thumbnail?.let { SecureFiles.writeAtomic(File(stage, "thumb"), Aead.seal(fileKey, it, aad("thumb", idBytes))) }
+            SecureFiles.writeAtomic(File(stage, "key.bak"), sealedKey)
             // The wrapped key is written last: an item without it can never be opened.
-            SecureFiles.writeAtomic(File(stage, "key"), Aead.seal(mk, fileKey, aad("key", idBytes)))
+            SecureFiles.writeAtomic(File(stage, "key"), sealedKey)
             SecureFiles.syncDir(stage)
             // Publish only if this master key is still the vault's key. Another object may
             // have destroyed or recreated the vault; then the original must be kept.
@@ -169,11 +176,11 @@ class Vault(
 
     fun list(): List<VaultItem> {
         requireUnlocked().wipe()
-        val dirs = items.listFiles { f -> f.isDirectory && isValidId(f.name) && File(f, "key").exists() } ?: return emptyList()
+        val dirs = items.listFiles { f -> isLiveItem(f) } ?: return emptyList()
         return dirs.mapNotNull { dir ->
             try {
                 withFileKey(dir.name) { fk, idBytes ->
-                    VaultItem(dir.name, decodeMeta(Aead.open(fk, File(dir, "meta").readBytes(), aad("meta", idBytes))))
+                    VaultItem(dir.name, decodeMeta(openEither(dir, "meta") { Aead.open(fk, it, aad("meta", idBytes)) }))
                 }
             } catch (e: IntegrityException) {
                 null // Damaged items are hidden and blocked, never shown half-decrypted (PRD 10.2).
@@ -214,8 +221,14 @@ class Vault(
     fun delete(id: String) {
         requireUnlocked().wipe()
         val dir = itemDir(id)
+        if (!dir.exists()) return
+        // The tombstone makes an interrupted delete finish on the next start, instead of
+        // leaving a half-deleted item that looks like damage.
+        SecureFiles.writeAtomic(File(dir, DELETED), ByteArray(0))
         SecureFiles.shred(File(dir, "key"))
+        SecureFiles.shred(File(dir, "key.bak"))
         SecureFiles.shred(File(dir, "meta"))
+        SecureFiles.shred(File(dir, "meta.bak"))
         SecureFiles.shred(File(dir, "thumb"))
         SecureFiles.deleteTree(dir)
     }
@@ -236,7 +249,7 @@ class Vault(
         val idBytes = parseId(id)
         val fk =
             try {
-                Aead.open(mk, File(itemDir(id), "key").readBytes(), aad("key", idBytes))
+                openEither(itemDir(id), "key") { Aead.open(mk, it, aad("key", idBytes)) }
             } finally {
                 mk.wipe()
             }
@@ -246,6 +259,43 @@ class Vault(
             fk.wipe()
         }
     }
+
+    /**
+     * Opens [name] in [dir], falling back to its ".bak" copy when the main file is missing,
+     * unreadable or fails authentication. The first error is rethrown if both fail.
+     */
+    private fun <T> openEither(
+        dir: File,
+        name: String,
+        open: (ByteArray) -> T,
+    ): T {
+        val first =
+            try {
+                return open(File(dir, name).readBytes())
+            } catch (e: IntegrityException) {
+                e
+            } catch (e: IOException) {
+                e
+            }
+        val backup = File(dir, "$name.bak")
+        if (!backup.exists()) throw first
+        val bytes: ByteArray
+        val value =
+            try {
+                bytes = backup.readBytes()
+                open(bytes)
+            } catch (e: Exception) {
+                first.addSuppressed(e)
+                throw first
+            }
+        // The backup is good: restore the damaged main copy so the item has two again.
+        runCatching { SecureFiles.writeAtomic(File(dir, name), bytes) }
+        return value
+    }
+
+    private fun isLiveItem(f: File) = f.isDirectory && isValidId(f.name) && hasKey(f) && !File(f, DELETED).exists()
+
+    private fun hasKey(dir: File) = File(dir, "key").exists() || File(dir, "key.bak").exists()
 
     private fun itemDir(id: String): File {
         parseId(id)
@@ -325,5 +375,9 @@ class Vault(
             off: Int,
             len: Int,
         ) = Unit
+    }
+
+    private companion object {
+        const val DELETED = "deleted"
     }
 }

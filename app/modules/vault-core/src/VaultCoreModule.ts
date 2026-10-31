@@ -1,4 +1,6 @@
-import { NativeModule, requireNativeModule } from 'expo';
+import { NativeModule, requireOptionalNativeModule } from 'expo';
+
+import { DemoVault } from './DemoVault';
 
 export type VaultStatus = {
   exists: boolean;
@@ -47,10 +49,55 @@ declare class VaultCoreModule extends NativeModule<{}> {
     mimeType: string,
     deleteSourceFile: boolean,
   ): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
+  recoverPending(): Promise<{ saved: number; waiting: number }>;
+  importCapture(uri: string, kind: ItemKind): Promise<{ saved: boolean; waiting: number }>;
+  matchesOriginal(id: string, assetId: string, kind: ItemKind): Promise<boolean>;
   openVideo(id: string): Promise<string>;
   closeVideo(): void;
   delete(id: string): Promise<void>;
   destroy(): Promise<void>;
 }
 
-export default requireNativeModule<VaultCoreModule>('VaultCore');
+const native = requireOptionalNativeModule<VaultCoreModule>('VaultCore');
+
+/**
+ * The real, encrypted vault on Android builds. Elsewhere (iPhone, Expo Go) a preview
+ * stand-in with no encryption is used; [isDemo] tells the UI to say so.
+ */
+const Vault = native
+  ? {
+      isDemo: false as const,
+      status: () => native.status(),
+      checkPin: (pin: string) => native.checkPin(pin),
+      create: (pin: string) => native.create(pin),
+      unlock: (pin: string) => native.unlock(pin),
+      lock: () => native.lock(),
+      list: () => native.list(),
+      importUri: (uri: string, kind: ItemKind, mimeType: string, deleteSourceFile: boolean) =>
+        native.importUri(uri, kind, mimeType, deleteSourceFile),
+      recoverPending: () => native.recoverPending(),
+      importCapture: (uri: string, kind: ItemKind) => native.importCapture(uri, kind),
+      matchesOriginal: (id: string, assetId: string, kind: ItemKind) => native.matchesOriginal(id, assetId, kind),
+      /** Displayable URI of the thumbnail, or null. */
+      thumbnailUri: async (id: string) => {
+        const b64 = await native.thumbnail(id);
+        return b64 ? `data:image/jpeg;base64,${b64}` : null;
+      },
+      photoUri: async (item: VaultItem) => `data:${item.mimeType || 'image/jpeg'};base64,${await native.readPhoto(item.id)}`,
+      openVideo: (id: string) => native.openVideo(id),
+      closeVideo: () => native.closeVideo(),
+      delete: (id: string) => native.delete(id),
+      destroy: () => native.destroy(),
+    }
+  : {
+      ...DemoVault,
+      thumbnailUri: async (id: string) => {
+        const item = (await DemoVault.list()).find((i) => i.id === id);
+        return item?.kind === 'PHOTO' ? DemoVault.uriOf(id) : null;
+      },
+      photoUri: async (item: VaultItem) => DemoVault.uriOf(item.id),
+      openVideo: async (id: string) => DemoVault.uriOf(id),
+      closeVideo: () => {},
+    };
+
+export default Vault;
