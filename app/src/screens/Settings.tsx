@@ -51,7 +51,7 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
   useEffect(() => {
     if (view !== 'reset') return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setView('main');
+      if (!destroying) setView('main');
       return true;
     });
     return () => sub.remove();
@@ -120,12 +120,17 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
   );
 }
 
+let destroying = false;
+
 function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; onCancel: () => void; onDestroyed: () => void }) {
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
   const ready = confirm.trim().toUpperCase() === 'DESTROY';
 
   const destroy = async () => {
+    // Ignore repeat taps and Back while the keys are being destroyed.
+    if (destroying) return;
+    destroying = true;
     setBusy(true);
     try {
       await VaultCore.destroy();
@@ -133,6 +138,8 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
     } catch {
       setBusy(false);
       Alert.alert('Reset failed', 'The vault could not be destroyed. Try again.');
+    } finally {
+      destroying = false;
     }
   };
 

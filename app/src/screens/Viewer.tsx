@@ -66,7 +66,10 @@ const BLOCKED = 'This item failed its integrity check and is blocked.';
 /** Bottom sheet in place of a system alert. Deletion goes only through VaultCore.delete. */
 function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; visible: boolean; onCancel: () => void; onDone: () => void }) {
   const [working, setWorking] = useState(false);
+  const inFlight = useRef(false);
   const destroy = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setWorking(true);
     try {
       await VaultCore.delete(item.id);
@@ -74,6 +77,8 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
     } catch {
       setWorking(false);
       Alert.alert('Not destroyed', 'The item could not be destroyed. Try again.');
+    } finally {
+      inFlight.current = false;
     }
   };
   const size = sizeLabel(item.size);
@@ -122,7 +127,8 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
 
   useEffect(() => {
     VaultCore.list()
-      .then((all) => setPhotos(all.filter((i) => i.kind === 'PHOTO')))
+      // Same order as the Home grid: newest first.
+      .then((all) => setPhotos(all.filter((i) => i.kind === 'PHOTO').sort((a, b) => b.createdAt - a.createdAt)))
       .catch(() => {});
   }, []);
 

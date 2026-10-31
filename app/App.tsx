@@ -8,6 +8,7 @@ import { usePreventScreenCapture } from 'expo-screen-capture';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, View } from 'react-native';
+import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import VaultCore, { VaultItem } from './modules/vault-core';
 import { CreatePin, Destroyed, Unlock, Welcome } from './src/screens/Auth';
@@ -174,9 +175,17 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar style="light" />
-      {fontsLoaded || fontError ? screen : null}
-    </View>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <BottomInset>
+        <StatusBar style="light" />
+        {fontsLoaded || fontError ? screen : null}
+      </BottomInset>
+    </SafeAreaProvider>
   );
+}
+
+/** Keeps every screen's bottom controls above the Android navigation bar / iPhone home indicator. */
+function BottomInset({ children }: { children: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+  return <View style={{ flex: 1, backgroundColor: C.bg, paddingBottom: insets.bottom }}>{children}</View>;
 }

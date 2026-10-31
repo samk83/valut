@@ -25,6 +25,8 @@ type View_ = 'home' | 'options' | 'importing' | 'deleting' | 'result';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+let lastTab: ItemKind = 'PHOTO';
+
 export function Home({
   onOpen,
   onCamera,
@@ -41,7 +43,13 @@ export function Home({
   refreshKey: number;
 }) {
   const [items, setItems] = useState<VaultItem[]>([]);
-  const [tab, setTab] = useState<ItemKind>('PHOTO');
+  // Remembered across visits so Back from a video lands on the Videos page again.
+  const [tab, setTabState] = useState<ItemKind>(lastTab);
+  const setTab = (t: ItemKind) => {
+    lastTab = t;
+    setTabState(t);
+  };
+  const importing = useRef(false);
   const [view, setView] = useState<View_>('home');
   const [deleteAfter, setDeleteAfter] = useState(true);
   const [progress, setProgress] = useState<Progress>({ index: 0, total: 0, sealed: 0, sealedCurrent: false });
@@ -111,10 +119,23 @@ export function Home({
   };
 
   const importFromGallery = async (deleteChosen: boolean) => {
+    // A second tap while the picker is opening must not start another import.
+    if (importing.current) return;
+    importing.current = true;
+    try {
+      await runImport(deleteChosen);
+    } finally {
+      importing.current = false;
+    }
+  };
+
+  const runImport = async (deleteChosen: boolean) => {
     suspendAutoLock(true);
     let picked: ImagePicker.ImagePickerResult;
     try {
       picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, quality: 1, exif: false, legacy: true });
+    } catch {
+      return;
     } finally {
       suspendAutoLock(false);
     }
@@ -126,8 +147,12 @@ export function Home({
     let ok = 0;
     let failed = 0;
     const imported: Imported[] = [];
+    let stoppedEarly = false;
     for (const [i, a] of picked.assets.entries()) {
-      if (cancelRef.current) break;
+      if (cancelRef.current) {
+        stoppedEarly = true;
+        break;
+      }
       setProgress({ index: i + 1, total, sealed: ok, sealedCurrent: false });
       const isVideo = a.type === 'video';
       try {
@@ -153,7 +178,7 @@ export function Home({
       deleteChosen,
       photos: imported.filter((d) => d.kind === 'PHOTO').length,
       videos: imported.filter((d) => d.kind === 'VIDEO').length,
-      cancelled: cancelRef.current,
+      cancelled: stoppedEarly,
     });
     setView('result');
     load();

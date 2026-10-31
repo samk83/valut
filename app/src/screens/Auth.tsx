@@ -416,7 +416,7 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
         onDestroyed();
         break;
       case 'INCOMPLETE':
-        setMsg('Enter at least 4 digits. Not counted.');
+        setMsg(method === 'pin' ? 'Enter at least 4 digits. Not counted.' : 'Connect at least 4 dots. Not counted.');
         break;
       case 'KEYS_UNAVAILABLE':
         setMsg('Security chip key not available. Nothing was erased.');
