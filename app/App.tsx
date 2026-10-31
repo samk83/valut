@@ -1,3 +1,4 @@
+import { Fraunces_400Regular } from '@expo-google-fonts/fraunces/400Regular';
 import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
@@ -22,7 +23,7 @@ type Route =
   | { name: 'welcome' }
   | { name: 'create' }
   | { name: 'unlock'; remaining: number }
-  | { name: 'destroyed' }
+  | { name: 'destroyed'; cause: 'attempts' | 'reset' }
   | { name: 'home' }
   | { name: 'camera' }
   | { name: 'settings' }
@@ -34,7 +35,7 @@ const SUSPEND_GRACE_MS = 90_000;
 
 export default function App() {
   usePreventScreenCapture();
-  const [fontsLoaded, fontError] = useFonts({ Fraunces_600SemiBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
+  const [fontsLoaded, fontError] = useFonts({ Fraunces_400Regular, Fraunces_600SemiBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
   const [route, setRoute] = useState<Route>({ name: 'loading' });
   const [refreshKey, setRefreshKey] = useState(0);
   const routeRef = useRef(route);
@@ -136,10 +137,10 @@ export default function App() {
       screen = <CreatePin onDone={home} onLocked={toLocked} />;
       break;
     case 'unlock':
-      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed' })} />;
+      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'attempts' })} />;
       break;
     case 'destroyed':
-      screen = <Destroyed onNew={() => setRoute({ name: 'create' })} />;
+      screen = <Destroyed cause={route.cause} onNew={() => setRoute({ name: 'create' })} />;
       break;
     case 'home':
       screen = (
@@ -149,6 +150,10 @@ export default function App() {
           onOpen={(item) => setRoute({ name: 'view', item })}
           onCamera={() => setRoute({ name: 'camera' })}
           onSettings={() => setRoute({ name: 'settings' })}
+          onLock={() => {
+            VaultCore.lock();
+            toLocked();
+          }}
         />
       );
       break;
@@ -156,7 +161,7 @@ export default function App() {
       screen = <VaultCamera suspendAutoLock={suspendAutoLock} onClose={home} />;
       break;
     case 'settings':
-      screen = <Settings onBack={home} onDestroyed={() => setRoute({ name: 'destroyed' })} />;
+      screen = <Settings onBack={home} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'reset' })} />;
       break;
     case 'view':
       screen =

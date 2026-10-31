@@ -252,7 +252,7 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
   );
 }
 
-export function Destroyed({ onNew }: { onNew: () => void }) {
+export function Destroyed({ cause, onNew }: { cause: 'attempts' | 'reset'; onNew: () => void }) {
   return (
     <View style={[s.screen, { justifyContent: 'center' }]}>
       <Text style={[s.label, { color: C.danger }]}>Vault destroyed</Text>

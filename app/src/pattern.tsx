@@ -36,6 +36,26 @@ export function clearLockMethod() {
   } catch {}
 }
 
+// "Hide pattern trail" setting; a plain on/off flag next to the lock kind.
+const trailFile = () => new File(Paths.document, 'hide-trail');
+
+export function readHideTrail(): boolean {
+  try {
+    const f = trailFile();
+    return f.exists && f.textSync().trim() === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function saveHideTrail(on: boolean) {
+  try {
+    const f = trailFile();
+    if (!f.exists) f.create();
+    f.write(on ? '1' : '0');
+  } catch {}
+}
+
 export const MIN_PATTERN_DOTS = 4;
 
 /**

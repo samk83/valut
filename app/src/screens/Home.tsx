@@ -14,12 +14,14 @@ export function Home({
   onOpen,
   onCamera,
   onSettings,
+  onLock,
   suspendAutoLock,
   refreshKey,
 }: {
   onOpen: (item: VaultItem) => void;
   onCamera: () => void;
   onSettings: () => void;
+  onLock: () => void;
   suspendAutoLock: (on: boolean) => void;
   refreshKey: number;
 }) {

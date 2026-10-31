@@ -38,10 +38,10 @@ export function Segmented<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             onPress={() => onChange(o.value)}
-            style={[s.segmentItem, on && { backgroundColor: C.brass }]}
+            style={[s.segmentItem, on && { backgroundColor: C.line }]}
           >
             {o.icon}
-            <Text style={[s.btnText, { fontSize: 14 }, on && { color: C.bg }]}>{o.label}</Text>
+            <Text style={[s.btnText, { fontSize: 14, color: on ? C.ivory : C.faint }]}>{o.label}</Text>
           </Pressable>
         );
       })}
@@ -62,7 +62,7 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  kind?: 'primary' | 'ghost' | 'danger';
+  kind?: 'primary' | 'ghost' | 'danger' | 'light';
   disabled?: boolean;
   style?: ViewStyle;
 }) {
@@ -75,12 +75,13 @@ export function Button({
         s.btn,
         kind === 'primary' && s.btnPrimary,
         kind === 'ghost' && s.btnGhost,
+        kind === 'light' && { backgroundColor: C.ivory },
         kind === 'danger' && s.btnDanger,
         (pressed || disabled) && { opacity: disabled ? 0.4 : 0.75 },
         style,
       ]}
     >
-      <Text style={[s.btnText, kind === 'primary' && { color: C.bg }]}>{label}</Text>
+      <Text style={[s.btnText, (kind === 'primary' || kind === 'light') && { color: C.bg }, kind === 'ghost' && { color: C.muted }, kind === 'danger' && { color: C.danger }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -156,12 +157,12 @@ export const s = StyleSheet.create({
   title: { fontFamily: F.title, fontSize: 30, color: C.ivory, marginBottom: 12 },
   body: { fontFamily: F.body, fontSize: 15, lineHeight: 22, color: C.ivory },
   small: { fontFamily: F.body, fontSize: 13, lineHeight: 19, color: C.muted },
-  label: { fontFamily: F.bold, fontSize: 12, letterSpacing: 1.5, color: C.brass, textTransform: 'uppercase' },
+  label: { fontFamily: F.body, fontSize: 11, letterSpacing: 3, color: C.brass, textTransform: 'uppercase' },
   card: { backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line, padding: 16 },
-  btn: { height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  btn: { height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
   btnPrimary: { backgroundColor: C.brass },
-  btnGhost: { borderWidth: 1, borderColor: C.brassDim },
-  btnDanger: { borderWidth: 1, borderColor: C.danger, backgroundColor: '#2A1512' },
+  btnGhost: { borderWidth: 1, borderColor: C.outline },
+  btnDanger: { borderWidth: 1, borderColor: C.danger, backgroundColor: '#2A1A14' },
   btnText: { fontFamily: F.bold, fontSize: 16, color: C.ivory },
   busy: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,13,18,0.92)', alignItems: 'center', justifyContent: 'center', padding: 32 },
   dots: { height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10 },
@@ -170,8 +171,8 @@ export const s = StyleSheet.create({
   key: { width: '30%', aspectRatio: 1.45, borderRadius: 40, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center' },
   // Inter has even line metrics, so digits sit in the middle of the key on iOS too.
   keyText: { fontFamily: F.medium, fontSize: 28, lineHeight: 34, color: C.ivory, textAlign: 'center', includeFontPadding: false },
-  segment: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 24, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
-  segmentItem: { flex: 1, height: 40, borderRadius: 20, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+  segment: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
+  segmentItem: { flex: 1, height: 44, borderRadius: 10, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
   testBanner: { backgroundColor: '#2A1512', borderColor: C.danger, borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 16 },
 });
 
