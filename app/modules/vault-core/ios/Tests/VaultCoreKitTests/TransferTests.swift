@@ -67,10 +67,11 @@ final class TransferTests: XCTestCase {
     let sender = TransferSender(vault: from)
     let receiver = TransferReceiver(vault: to)
     configure(sender, receiver)
-    var received: Result<TransferProgress, Error> = .failure(TransferFailure(.other, "not run"))
+    final class Box: @unchecked Sendable { var value: Result<TransferProgress, Error> = .failure(TransferFailure(.other, "not run")) }
+    let received = Box()
     let done = DispatchSemaphore(value: 0)
     Thread {
-      received = Result {
+      received.value = Result {
         let stream = try listener.accept(timeoutSeconds: 10)
         let channel = try SecureChannel.server(stream, secret: secret)
         defer { channel.close() }
@@ -87,7 +88,7 @@ final class TransferTests: XCTestCase {
       return try sender.run(channel)
     }
     XCTAssertEqual(done.wait(timeout: .now() + 30), .success)
-    return Outcome(sent: sent, received: received)
+    return Outcome(sent: sent, received: received.value)
   }
 
   private func failure(_ r: Result<TransferProgress, Error>) -> TransferError? {
@@ -255,5 +256,46 @@ final class TransferTests: XCTestCase {
     let secret = (0..<32).map { UInt8($0 * 7 & 0xFF) }
     XCTAssertEqual(TransferCode(host: "192.168.1.5", port: 41234, secret: secret).encode(),
                    "PVT1:192.168.1.5:41234:AAcOFRwjKjE4P0ZNVFtiaXB3foWMk5qhqK-2vcTL0tk")
+  }
+
+  /// The app-facing bridge on both phones: QR text out, events in, cancel stops it.
+  func testBridgeEndToEnd() throws {
+    let old = try makeVault("old", chunk: 4096)
+    try old.create(pin: oldPin)
+    try fill(old)
+    let new = try makeVault("new", chunk: 4096)
+    try new.create(pin: newPin)
+    let events = NSLock()
+    var rxEvents: [[String: Any]] = []
+    var txEvents: [[String: Any]] = []
+    let rxDone = DispatchSemaphore(value: 0)
+    let txDone = DispatchSemaphore(value: 0)
+    let rx = TransferBridge(vault: { new }, localHost: { "127.0.0.1" }) { e in
+      events.lock(); rxEvents.append(e); events.unlock()
+      if ["done", "error"].contains(e["phase"] as? String) { rxDone.signal() }
+    }
+    let tx = TransferBridge(vault: { old }) { e in
+      events.lock(); txEvents.append(e); events.unlock()
+      if ["done", "error"].contains(e["phase"] as? String) { txDone.signal() }
+    }
+    let code = try rx.startReceiving()
+    XCTAssertThrowsError(try tx.startSending("PVT1:8.8.8.8:1:" + TransferCode.base64url(Primitives.randomBytes(32))))
+    try tx.startSending(code)
+    XCTAssertEqual(rxDone.wait(timeout: .now() + 30), .success)
+    XCTAssertEqual(txDone.wait(timeout: .now() + 30), .success)
+    XCTAssertEqual(rxEvents.first?["phase"] as? String, "waiting")
+    XCTAssertEqual(rxEvents.last?["phase"] as? String, "done")
+    XCTAssertEqual(rxEvents.last?["itemsDone"] as? Int, 5)
+    XCTAssertEqual(txEvents.last?["phase"] as? String, "done")
+    XCTAssertEqual(try new.list().count, 5)
+
+    // Cancel while waiting: no events afterwards, and a new start works.
+    _ = try rx.startReceiving()
+    rx.cancel()
+    let count = rxEvents.count
+    Thread.sleep(forTimeInterval: 1.5)
+    XCTAssertEqual(rxEvents.count, count)
+    new.lock()
+    XCTAssertThrowsError(try rx.startReceiving())
   }
 }

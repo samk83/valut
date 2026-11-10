@@ -2,7 +2,7 @@
   "expo": {
     "name": "PrivateVault Test",
     "slug": "privatevault-test",
-    "version": "1.0",
+    "version": "1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -18,17 +18,17 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET"
       ],
       "blockedPermissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_MEDIA_LOCATION",
-        "android.permission.INTERNET",
         "android.permission.SYSTEM_ALERT_WINDOW"
       ],
       "predictiveBackGestureEnabled": false,
-      "versionCode": 2
+      "versionCode": 3
     },
     "plugins": [
       "expo-video",
@@ -100,7 +100,8 @@
               "NSExceptionAllowsInsecureHTTPLoads": true
             }
           }
-        }
+        },
+        "NSLocalNetworkUsageDescription": "Private Vision Vault connects directly to your other phone on the same Wi-Fi to move your encrypted vault. Nothing goes over the internet."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,

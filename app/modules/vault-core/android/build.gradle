@@ -24,4 +24,6 @@ android {
 
 dependencies {
   implementation "org.bouncycastle:bcprov-jdk18on:1.78.1"
+  // Google's own Play Billing library (1.1 Premium). No third-party payment SDK.
+  implementation "com.android.billingclient:billing:8.0.0"
 }

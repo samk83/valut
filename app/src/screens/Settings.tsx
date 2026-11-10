@@ -1,9 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ReactNode, useEffect, useState } from 'react';
-import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
+import { FREE_LIMIT, restorePremium, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { Busy, Button, s, TestBanner } from '../ui';
 import { TermsSheet } from './Terms';
@@ -37,7 +38,34 @@ function Check({ label, ok }: { label: string; ok: boolean }) {
   );
 }
 
-export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestroyed: () => void }) {
+/** A tappable settings row with a chevron. */
+function LinkRow({ label, value, last, onPress }: { label: string; value?: string; last?: boolean; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [st.row, !last && { borderBottomWidth: 1, borderColor: C.line }, pressed && { opacity: 0.7 }]}>
+      <Text style={st.rowLabel}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {!!value && <Text style={st.rowValue}>{value}</Text>}
+        <Ionicons name="chevron-forward" size={16} color={C.faint} />
+      </View>
+    </Pressable>
+  );
+}
+
+export function Settings({
+  onBack,
+  onDestroyed,
+  onPremium,
+  onTransfer,
+  suspendAutoLock,
+}: {
+  onBack: () => void;
+  onDestroyed: () => void;
+  onPremium: () => void;
+  onTransfer: () => void;
+  suspendAutoLock: (on: boolean) => void;
+}) {
+  const plan = usePremium();
+  const [restoring, setRestoring] = useState(false);
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [items, setItems] = useState<VaultItem[] | null>(null);
   const [view, setView] = useState<'main' | 'reset'>('main');
@@ -84,7 +112,7 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 }}>
           <Check label="Hardware key" ok={hardware} />
           <Check label="Backups excluded" ok />
-          <Check label="No network access" ok />
+          <Check label="No cloud, no servers" ok />
           <Check label="Screenshots blocked" ok />
         </View>
       </View>
@@ -111,6 +139,34 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
       <View style={st.group}>
         <Row label="Unlock with" value={method === 'pin' ? 'PIN' : method === 'pattern' ? 'Pattern' : 'Unknown'} />
         <Row label="Attempts left" value={status ? `${status.remainingAttempts} of ${MAX_ATTEMPTS}` : '…'} last />
+      </View>
+
+      <Text style={st.section}>Plan</Text>
+      <View style={st.group}>
+        <LinkRow
+          label={plan.premium ? 'Premium' : 'Free plan'}
+          value={plan.premium ? 'Unlimited' : items ? `${Math.min(items.length, FREE_LIMIT)} of ${FREE_LIMIT} used` : undefined}
+          onPress={onPremium}
+        />
+        <LinkRow
+          label="Restore purchases"
+          value={restoring ? 'Checking…' : undefined}
+          last
+          onPress={async () => {
+            if (restoring) return;
+            setRestoring(true);
+            suspendAutoLock(true);
+            const premium = await restorePremium().finally(() => suspendAutoLock(false));
+            setRestoring(false);
+            const account = Platform.OS === 'ios' ? 'Apple ID' : 'Google account';
+            Alert.alert(premium ? 'Premium restored' : 'Nothing to restore', premium ? 'Unlimited storage is on.' : `No Premium purchase was found for this ${account}.`);
+          }}
+        />
+      </View>
+
+      <Text style={st.section}>New phone</Text>
+      <View style={st.group}>
+        <LinkRow label="Move to a new phone" value="Free" last onPress={onTransfer} />
       </View>
 
       {!!footer && <Text style={st.footer}>{footer}</Text>}

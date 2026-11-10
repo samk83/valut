@@ -12,11 +12,11 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.frameworks = 'AVFoundation', 'CryptoKit', 'ImageIO', 'Photos', 'Security', 'UniformTypeIdentifiers'
+  s.frameworks = 'AVFoundation', 'CryptoKit', 'ImageIO', 'Photos', 'Security', 'StoreKit', 'UniformTypeIdentifiers'
 
-  # Only the app sources: Package.swift, Tests/ and LinuxShims/ exist for running the
+  # Only the app sources: Package.swift, Tests/, Tools/ and LinuxShims/ exist for running the
   # core's unit tests off a Mac and are never part of the app.
-  s.source_files = 'VaultCoreModule.swift', 'IOSHardwareKey.swift', 'Core/*.swift'
+  s.source_files = 'VaultCoreModule.swift', 'StoreModule.swift', 'IOSHardwareKey.swift', 'Core/*.swift'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
