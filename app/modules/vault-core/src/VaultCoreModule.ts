@@ -49,6 +49,8 @@ declare class VaultCoreModule extends NativeModule<{}> {
     mimeType: string,
     deleteSourceFile: boolean,
   ): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
+  /** iPhone only: imports the exact original of a Photos asset; [cacheUri] is the picker copy to remove. */
+  importAsset?(assetId: string, kind: ItemKind, cacheUri: string | null): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
   recoverPending(): Promise<{ saved: number; waiting: number }>;
   importCapture(uri: string, kind: ItemKind): Promise<{ saved: boolean; waiting: number }>;
   matchesOriginal(id: string, assetId: string, kind: ItemKind): Promise<boolean>;
@@ -61,8 +63,8 @@ declare class VaultCoreModule extends NativeModule<{}> {
 const native = requireOptionalNativeModule<VaultCoreModule>('VaultCore');
 
 /**
- * The real, encrypted vault on Android builds. Elsewhere (iPhone, Expo Go) a preview
- * stand-in with no encryption is used; [isDemo] tells the UI to say so.
+ * The real, encrypted vault in Android and iPhone/iPad builds. In Expo Go (no native module)
+ * a preview stand-in with no encryption is used; [isDemo] tells the UI to say so.
  */
 const Vault = native
   ? {
@@ -75,6 +77,10 @@ const Vault = native
       list: () => native.list(),
       importUri: (uri: string, kind: ItemKind, mimeType: string, deleteSourceFile: boolean) =>
         native.importUri(uri, kind, mimeType, deleteSourceFile),
+      /** Present only where the native side supports it (iPhone/iPad). */
+      importAsset: native.importAsset
+        ? (assetId: string, kind: ItemKind, cacheUri: string | null) => native.importAsset!(assetId, kind, cacheUri)
+        : undefined,
       recoverPending: () => native.recoverPending(),
       importCapture: (uri: string, kind: ItemKind) => native.importCapture(uri, kind),
       matchesOriginal: (id: string, assetId: string, kind: ItemKind) => native.matchesOriginal(id, assetId, kind),
@@ -91,6 +97,7 @@ const Vault = native
     }
   : {
       ...DemoVault,
+      importAsset: undefined as undefined | ((assetId: string, kind: ItemKind, cacheUri: string | null) => Promise<{ id: string; safeToDeleteOriginal: boolean }>),
       thumbnailUri: async (id: string) => {
         const item = (await DemoVault.list()).find((i) => i.id === id);
         return item?.kind === 'PHOTO' ? DemoVault.uriOf(id) : null;

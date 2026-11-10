@@ -152,6 +152,9 @@ export function PinPad({
   );
 }
 
+/** Widest a column of text or a form gets on an iPad or unfolded iPhone (phones are narrower). */
+export const READABLE_WIDTH = 640;
+
 export const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 24 },
   title: { fontFamily: F.title, fontSize: 30, color: C.ivory, marginBottom: 12 },
