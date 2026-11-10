@@ -7,6 +7,8 @@ import PackageDescription
 var targets: [Target] = [
   .target(name: "VaultCoreKit", dependencies: [], path: "Core"),
   .testTarget(name: "VaultCoreKitTests", dependencies: ["VaultCoreKit"], path: "Tests/VaultCoreKitTests"),
+  // Test-only peer for the Android <-> iPhone transfer check (core TransferInteropTest).
+  .executableTarget(name: "TransferPeer", dependencies: ["VaultCoreKit"], path: "Tools/TransferPeer"),
 ]
 #if os(Linux)
 targets.append(.systemLibrary(name: "COpenSSL", path: "LinuxShims/COpenSSL"))

@@ -36,6 +36,9 @@ final class Vault {
   private var lockGeneration: UInt64 = 0
 
   private static let deletedMarker = "deleted"
+  private static let receivedFile = "received-sources"
+  private static let receivedRecord = 12 + 16 + 16
+  private static let receivedAad: [UInt8] = Array("PrivateVault received sources v1".utf8)
 
   init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize) throws {
     self.root = root
@@ -105,7 +108,10 @@ final class Vault {
   }
 
   /// Imports one photo or video. [expectedSha256] must come from a separate read of the original.
-  func importItem(content: ByteSource, meta: ItemMeta, thumbnail: [UInt8]? = nil, expectedSha256: [UInt8]? = nil) throws -> ImportResult {
+  /// [receivedFrom] is the item's id on the phone it came from (see TransferReceiver).
+  func importItem(content: ByteSource, meta: ItemMeta, thumbnail: [UInt8]? = nil, expectedSha256: [UInt8]? = nil,
+                  receivedFrom: String? = nil) throws -> ImportResult {
+    let sourceBytes = try receivedFrom.map { try Vault.parseId($0) }
     var mk = try requireUnlocked()
     let idBytes = Primitives.randomBytes(16)
     let id = idBytes.map { String(format: "%02x", $0) }.joined()
@@ -146,6 +152,8 @@ final class Vault {
       try keys.whileKeyIsLive(mk) {
         try SecureFiles.mkdirs(items)
         try SecureFiles.moveAtomic(stage, items.appendingPathComponent(id))
+        // Recorded with the same key copy, so a lock() in between cannot split the two.
+        if let source = sourceBytes { try? appendReceived(mk, source) }
       }
       return ImportResult(item: VaultItem(id: id, meta: finalMeta), safeToDeleteOriginal: expectedSha256 != nil)
     } catch VaultError.integrity(let message) {
@@ -191,6 +199,49 @@ final class Vault {
     try withFileKey(id) { fk, idBytes in
       try ChunkedCipher.Reader(url: try itemDir(id).appendingPathComponent("data"), fileKey: fk, fileId: idBytes).readChunk(index)
     }
+  }
+
+  /// Ids of items already received from another phone, so an interrupted transfer can run
+  /// again without duplicates. Same format as core/Vault.kt: items/received-sources, an
+  /// append-only list of 44-byte records sealed with the master key. Damaged records are skipped.
+  func receivedSources() throws -> Set<String> {
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    let file = items.appendingPathComponent(Vault.receivedFile)
+    guard SecureFiles.exists(file), let bytes = try? SecureFiles.readBytes(file) else { return [] }
+    var out = Set<String>()
+    var i = 0
+    while i + Vault.receivedRecord <= bytes.count {
+      if let id = try? open(mk, Array(bytes[i..<i + Vault.receivedRecord]), Vault.receivedAad) {
+        out.insert(id.map { String(format: "%02x", $0) }.joined())
+      }
+      i += Vault.receivedRecord
+    }
+    return out
+  }
+
+  /// Records that [sourceId] (32 hex characters) was received.
+  func addReceivedSource(_ sourceId: String) throws {
+    let idBytes = try Vault.parseId(sourceId)
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    try keys.whileKeyIsLive(mk) { try appendReceived(mk, idBytes) }
+  }
+
+  private func appendReceived(_ mk: [UInt8], _ idBytes: [UInt8]) throws {
+    let record = try seal(mk, idBytes, Vault.receivedAad)
+    precondition(record.count == Vault.receivedRecord)
+    try SecureFiles.mkdirs(items)
+    let file = items.appendingPathComponent(Vault.receivedFile)
+    let fd = Glue.open(file.path, O_WRONLY | O_CREAT | O_APPEND, 0o600)
+    guard fd >= 0 else { throw VaultError.io("open received-sources errno \(errno)") }
+    defer { _ = Glue.close(fd) }
+    // A record cut short by a crash would shift every later one; pad it out first.
+    let size = Int(Glue.lseek(fd, 0, SEEK_END))
+    let partial = size % Vault.receivedRecord
+    let data = (partial == 0 ? [] : [UInt8](repeating: 0, count: Vault.receivedRecord - partial)) + record
+    try SecureFiles.writeAll(fd, data, count: data.count)
+    try SecureFiles.fullSync(fd)
   }
 
   /// Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2).

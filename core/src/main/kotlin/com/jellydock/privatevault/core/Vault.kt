@@ -124,7 +124,9 @@ class Vault(
         meta: ItemMeta,
         thumbnail: ByteArray? = null,
         expectedSha256: ByteArray? = null,
+        receivedFrom: String? = null,
     ): ImportResult {
+        val sourceBytes = receivedFrom?.let { parseId(it) }
         val mk = requireUnlocked()
         val idBytes = Aead.randomBytes(16)
         val id = idBytes.joinToString("") { "%02x".format(it) }
@@ -160,6 +162,8 @@ class Vault(
             keys.whileKeyIsLive(mk) {
                 items.mkdirs()
                 SecureFiles.moveAtomic(stage, File(items, id))
+                // Recorded with the same key copy, so a lock() in between cannot split the two.
+                sourceBytes?.let { runCatching { appendReceived(mk, it) } }
             }
             return ImportResult(VaultItem(id, finalMeta), safeToDeleteOriginal = expectedSha256 != null)
         } catch (e: IntegrityException) {
@@ -216,6 +220,64 @@ class Vault(
         withFileKey(id) { fk, idBytes ->
             ChunkedCipher.Reader(File(itemDir(id), "data"), fk, idBytes).use { it.readChunk(index) }
         }
+
+    /**
+     * Ids of items this vault has already received from another phone (see [TransferReceiver]),
+     * so a transfer that was interrupted can be run again without making duplicates. Kept in
+     * items/ as an append-only list of records sealed with the master key, so a reset or a new
+     * vault removes it with everything else. A damaged record is skipped: the worst outcome
+     * is that a later transfer sends that item again.
+     */
+    fun receivedSources(): Set<String> {
+        val mk = requireUnlocked()
+        try {
+            val file = File(items, RECEIVED)
+            if (!file.exists()) return emptySet()
+            val bytes = file.readBytes()
+            val out = HashSet<String>()
+            for (i in 0 until bytes.size / RECEIVED_RECORD) {
+                val record = bytes.copyOfRange(i * RECEIVED_RECORD, (i + 1) * RECEIVED_RECORD)
+                try {
+                    out += Aead.open(mk, record, RECEIVED_AAD).toHex()
+                } catch (e: IntegrityException) {
+                    continue
+                }
+            }
+            return out
+        } catch (e: IOException) {
+            return emptySet()
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    /** Records that [sourceId] (32 hex characters) was received. */
+    fun addReceivedSource(sourceId: String) {
+        val idBytes = parseId(sourceId)
+        val mk = requireUnlocked()
+        try {
+            keys.whileKeyIsLive(mk) { appendReceived(mk, idBytes) }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    private fun appendReceived(
+        mk: ByteArray,
+        idBytes: ByteArray,
+    ) {
+        val record = Aead.seal(mk, idBytes, RECEIVED_AAD)
+        check(record.size == RECEIVED_RECORD)
+        items.mkdirs()
+        val file = File(items, RECEIVED)
+        // A record cut short by a crash would shift every later one; pad it out first.
+        val partial = (file.length() % RECEIVED_RECORD).toInt()
+        FileOutputStream(file, true).use { out ->
+            if (partial != 0) out.write(ByteArray(RECEIVED_RECORD - partial))
+            out.write(record)
+            out.fd.sync()
+        }
+    }
 
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
     fun delete(id: String) {
@@ -377,7 +439,12 @@ class Vault(
         ) = Unit
     }
 
+    private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
     private companion object {
         const val DELETED = "deleted"
+        const val RECEIVED = "received-sources"
+        const val RECEIVED_RECORD = Aead.NONCE_BYTES + 16 + Aead.TAG_BYTES
+        val RECEIVED_AAD = "PrivateVault received sources v1".toByteArray(Charsets.US_ASCII)
     }
 }
