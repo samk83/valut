@@ -276,7 +276,7 @@ const tr: Pack = {
   },
   'reset.cannotUndo': 'Bu işlem ne senin ne de bizim tarafımızdan geri alınabilir.',
   'reset.originals': 'Fotoğraflar\'dan zaten kaldırdığın orijinaller geri gelmez.',
-  'reset.word': 'YOKET',
+  'reset.word': 'YOK ET',
   'reset.type': 'Devam etmek için **{word}** yaz',
   'reset.destroy': 'Kasayı yok et',
   'reset.destroying': 'Yok ediliyor…',

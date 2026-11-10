@@ -265,7 +265,7 @@ export function VideoPlayer({ item, onClose, onDeleted }: { item: VaultItem; onC
       <View style={vs.top}>
         <RoundButton icon="chevron-back" label={t('common.back')} onPress={onClose} />
         <View style={vs.streamPill}>
-          <Text style={[s.small, { fontSize: 11, lineHeight: 15, color: C.muted }]} numberOfLines={1}>{t('viewer.streaming')}</Text>
+          <Text style={[s.small, { fontSize: 11, lineHeight: 15, color: C.muted, textAlign: 'center' }]} numberOfLines={2}>{t('viewer.streaming')}</Text>
         </View>
         <View style={{ width: 44 }} />
       </View>

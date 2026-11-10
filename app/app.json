@@ -119,7 +119,8 @@
               "NSExceptionAllowsInsecureHTTPLoads": true
             }
           }
-        }
+        },
+        "CFBundleAllowMixedLocalizations": true
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,

@@ -256,7 +256,7 @@ const ja: Pack = {
   },
   'reset.cannotUndo': 'この操作は、あなたにも私たちにも元に戻せません。',
   'reset.originals': '写真からすでに削除したオリジナルは戻りません。',
-  'reset.word': '削除',
+  'reset.word': '破棄',
   'reset.type': '続行するには **{word}** と入力してください',
   'reset.destroy': '保管庫を破棄',
   'reset.destroying': '破棄しています…',

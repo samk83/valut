@@ -26,11 +26,22 @@ export const LANGUAGES = Object.keys(PACKS);
 function detect(): string {
   try {
     for (const l of getLocales()) {
-      const code = (l.languageCode ?? '').toLowerCase();
-      if (code in PACKS) return code;
+      let code = (l.languageCode ?? '').toLowerCase();
+      // Android may still report the old code "in" for Indonesian.
+      if (code === 'in') code = 'id';
+      // Only Simplified Chinese is translated; Traditional Chinese readers get English.
+      if (code === 'zh' && isTraditional(l.languageTag, l.regionCode)) continue;
+      if (Object.prototype.hasOwnProperty.call(PACKS, code)) return code;
     }
   } catch {}
   return 'en';
+}
+
+function isTraditional(tag: string | null | undefined, region: string | null | undefined): boolean {
+  const t = (tag ?? '').toLowerCase();
+  if (t.includes('hant')) return true;
+  if (t.includes('hans')) return false;
+  return ['TW', 'HK', 'MO'].includes((region ?? '').toUpperCase());
 }
 
 export const lang = detect();
@@ -38,7 +49,7 @@ const pack = PACKS[lang];
 
 type Vars = Record<string, string | number>;
 
-const fill = (text: string, vars?: Vars) => (vars ? text.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : text);
+const fill = (text: string, vars?: Vars) => (vars ? text.replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : m)) : text);
 
 /** Translated text for [key] with {placeholders} filled in. */
 export function t(key: Key, vars?: Vars): string {

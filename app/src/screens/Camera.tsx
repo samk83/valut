@@ -120,7 +120,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
         </Pressable>
         <View style={cs.pill}>
           <Ionicons name="lock-closed-outline" size={12} color="#E6CFA0" />
-          <Text style={cs.pillText} numberOfLines={1}>{t('camera.pill')}</Text>
+          <Text style={cs.pillText} numberOfLines={2}>{t('camera.pill')}</Text>
         </View>
         <View style={{ width: 44 }} />
       </View>

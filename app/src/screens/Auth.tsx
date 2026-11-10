@@ -168,7 +168,7 @@ const REJECTION_KEY: Record<string, Key> = {
   COMMON: 'pin.common',
   NOT_DIGITS: 'pin.notDigits',
 };
-const rejection = (code: string | null | undefined) => (code && REJECTION_KEY[code] ? t(REJECTION_KEY[code]) : code ? t('pin.common') : null);
+const rejection = (code: string | null | undefined) => (code && REJECTION_KEY[code] ? t(REJECTION_KEY[code]) : code ? t('strength.notAllowed') : null);
 
 const STRENGTH: Record<string, { word: Key; bars: number; color: string; note: Key }> = {
   WEAK: { word: 'strength.weak', bars: 1, color: C.danger, note: 'strength.weakNote' },

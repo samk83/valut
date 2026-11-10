@@ -131,12 +131,22 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
 
 let destroying = false;
 
+/**
+ * The user must type the confirmation word: the English DESTROY or the translated one.
+ * Case, spaces and Unicode form do not matter (Hindi candrabindu and anusvara are treated alike).
+ */
+const squash = (v: string) => v.normalize('NFC').replace(/\s+/g, '').replace(/\u0901/g, '\u0902').toLocaleUpperCase();
+export function matchesConfirmWord(input: string): boolean {
+  const typed = squash(input);
+  if (typed.length === 0) return false;
+  const local = squash(t('reset.word'));
+  return typed === 'DESTROY' || (local.length >= 2 && typed === local);
+}
+
 function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; onCancel: () => void; onDestroyed: () => void }) {
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
-  // The localized word or the English one; case and surrounding spaces do not matter.
-  const typed = confirm.trim().toLocaleUpperCase();
-  const ready = typed === 'DESTROY' || typed === t('reset.word').toLocaleUpperCase();
+  const ready = matchesConfirmWord(confirm);
 
   const destroy = async () => {
     // Ignore repeat taps and Back while the keys are being destroyed.
@@ -162,7 +172,7 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
           <Text style={[s.label, { color: C.danger }]}>{t('reset.label')}</Text>
           <Text style={[st.title, { fontSize: 34, lineHeight: 40 }]}>{t('reset.title')}</Text>
           <Text style={st.body}>
-            {count === null ? t('reset.bodyAll') : tn('reset.bodyCount', count)}
+            {count === null || count <= 0 ? t('reset.bodyAll') : tn('reset.bodyCount', count)}
           </Text>
         </View>
         <View style={st.warn}>
@@ -205,7 +215,7 @@ const st = StyleSheet.create({
   sealed: { padding: 16, borderRadius: 16, backgroundColor: '#1E1A12', borderWidth: 1, borderColor: '#4A3E28', gap: 10 },
   sealedTitle: { fontFamily: F.title, fontSize: 18, color: '#E6CFA0' },
   check: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 6 },
-  checkText: { fontFamily: F.body, fontSize: 12, color: '#D9D4CA' },
+  checkText: { fontFamily: F.body, fontSize: 12, color: '#D9D4CA', flexShrink: 1 },
   section: { marginTop: 4, marginBottom: -6, marginLeft: 4, fontFamily: F.body, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.faint },
   group: { borderRadius: 16, backgroundColor: '#13171F', borderWidth: 1, borderColor: C.line },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52, paddingHorizontal: 16, gap: 12 },
