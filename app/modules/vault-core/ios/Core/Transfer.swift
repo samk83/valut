@@ -48,26 +48,48 @@ struct TransferCode: Equatable {
       (b[0] == 169 && b[1] == 254) || b[0] == 127
   }
 
-  /// The phone's own Wi-Fi or hotspot IPv4 address (en0 / bridge100 first), or nil.
-  static func localAddress() -> String? {
+  /// Wi-Fi (en0), hotspot (bridge*) and wired (en*) only. Mobile data (pdp_ip*) and VPN (utun*)
+  /// interfaces often have 10.x addresses too, but they are not the local network.
+  private static func wifiAddresses() -> [(name: String, host: UInt32, mask: UInt32)] {
     var list: UnsafeMutablePointer<ifaddrs>?
-    guard getifaddrs(&list) == 0, let first = list else { return nil }
+    guard getifaddrs(&list) == 0, let first = list else { return [] }
     defer { freeifaddrs(list) }
-    var found: [(name: String, host: String)] = []
+    var found: [(name: String, host: UInt32, mask: UInt32)] = []
     var cursor: UnsafeMutablePointer<ifaddrs>? = first
     while let ifa = cursor {
       defer { cursor = ifa.pointee.ifa_next }
-      guard let addr = ifa.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET) || Int32(addr.pointee.sa_family) == AF_INET else { continue }
+      guard let addr = ifa.pointee.ifa_addr, Int32(addr.pointee.sa_family) == AF_INET else { continue }
+      let name = String(cString: ifa.pointee.ifa_name)
       let flags = Int32(ifa.pointee.ifa_flags)
-      guard flags & Int32(IFF_UP) != 0, flags & Int32(IFF_LOOPBACK) == 0 else { continue }
-      var buf = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
-      var sin = addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee }
-      guard inet_ntop(AF_INET, &sin.sin_addr, &buf, socklen_t(INET_ADDRSTRLEN)) != nil else { continue }
-      let host = String(cString: buf)
-      if isLocalIPv4(host), !host.hasPrefix("127.") { found.append((String(cString: ifa.pointee.ifa_name), host)) }
+      guard flags & Int32(IFF_UP) != 0, flags & Int32(IFF_LOOPBACK) == 0,
+            name.hasPrefix("en") || name.hasPrefix("bridge") || name.hasPrefix("wlan") || name.hasPrefix("eth") else { continue }
+      let host = addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { UInt32(bigEndian: $0.pointee.sin_addr.s_addr) }
+      let mask = ifa.pointee.ifa_netmask.map { m in m.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { UInt32(bigEndian: $0.pointee.sin_addr.s_addr) } } ?? 0xFFFF_FF00
+      if isLocalIPv4(dotted(host)), !dotted(host).hasPrefix("127.") { found.append((name, host, mask)) }
     }
-    func rank(_ name: String) -> Int { name == "en0" ? 0 : name.hasPrefix("bridge") ? 1 : name.hasPrefix("en") ? 2 : 3 }
-    return found.sorted { rank($0.name) < rank($1.name) }.first?.host
+    func rank(_ name: String) -> Int { name == "en0" ? 0 : name.hasPrefix("bridge") ? 1 : 2 }
+    return found.sorted { rank($0.name) < rank($1.name) }
+  }
+
+  private static func dotted(_ v: UInt32) -> String { "\(v >> 24 & 0xFF).\(v >> 16 & 0xFF).\(v >> 8 & 0xFF).\(v & 0xFF)" }
+
+  private static func parseIPv4(_ host: String) -> UInt32? {
+    guard isLocalIPv4(host) || host.split(separator: ".").count == 4 else { return nil }
+    let p = host.split(separator: ".").compactMap { UInt32($0) }
+    guard p.count == 4, p.allSatisfy({ $0 <= 255 }) else { return nil }
+    return p[0] << 24 | p[1] << 16 | p[2] << 8 | p[3]
+  }
+
+  /// The phone's own Wi-Fi or hotspot IPv4 address, or nil.
+  static func localAddress() -> String? { wifiAddresses().first.map { dotted($0.host) } }
+
+  /// True when [host] is on the same Wi-Fi / hotspot subnet as this phone (no router hop, no VPN).
+  static func isOnLocalWifi(_ host: String) -> Bool {
+    guard let target = parseIPv4(host) else { return false }
+    return wifiAddresses().contains { a in
+      let mask = a.mask == 0 ? 0xFFFF_FF00 : (a.mask | 0xFF00_0000)
+      return a.host & mask == target & mask
+    }
   }
 
   static func base64url(_ b: [UInt8]) -> String {
@@ -141,7 +163,7 @@ final class SocketStream: TransferStream {
   private let closeLock = NSLock()
   private var closed = false
 
-  init(fd: Int32, timeoutSeconds: Int = 60) {
+  init(fd: Int32, timeoutSeconds: Int = 180) {
     self.fd = fd
     var tv = timeval(tv_sec: timeoutSeconds, tv_usec: 0)
     _ = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
@@ -271,31 +293,30 @@ final class TransferListener {
 
   deinit { close() }
 
-  /// Waits for the old phone, up to [timeoutSeconds]. Only one connection is ever accepted.
-  func accept(timeoutSeconds: Int) throws -> SocketStream {
+  /// Waits for the next connection, up to [deadline]. The caller decides whether to keep it.
+  func accept(until deadline: Date) throws -> SocketStream {
     var pfd = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
-    var remaining = timeoutSeconds * 1000
     while true {
-      let started = Date()
-      let ready = poll(&pfd, 1, Int32(min(remaining, 1000)))
-      closeLock.lock()
-      let isClosed = closed
-      closeLock.unlock()
-      if isClosed { throw TransferFailure(.cancelled, "Cancelled") }
-      if ready == 1 { break }
-      if ready < 0 && errno != EINTR { throw TransferFailure(.connection, "poll errno \(errno)") }
-      remaining -= max(1, Int(Date().timeIntervalSince(started) * 1000))
+      let remaining = deadline.timeIntervalSinceNow
       if remaining <= 0 { throw TransferFailure(.connection, "No phone connected in time") }
+      let ready = poll(&pfd, 1, Int32(min(remaining * 1000, 1000)))
+      // Holding the lock means close() cannot free (and the OS reuse) this fd mid-accept.
+      closeLock.lock()
+      defer { closeLock.unlock() }
+      if closed { throw TransferFailure(.cancelled, "Cancelled") }
+      if ready < 0 && errno != EINTR { throw TransferFailure(.connection, "poll errno \(errno)") }
+      if ready != 1 { continue }
+      #if canImport(Darwin)
+      let client = Darwin.accept(fd, nil, nil)
+      #else
+      let client = Glibc.accept(fd, nil, nil)
+      #endif
+      if client >= 0 { return SocketStream(fd: client) }
+      if errno != EINTR && errno != EAGAIN && errno != ECONNABORTED { throw TransferFailure(.connection, "accept errno \(errno)") }
     }
-    #if canImport(Darwin)
-    let client = Darwin.accept(fd, nil, nil)
-    #else
-    let client = Glibc.accept(fd, nil, nil)
-    #endif
-    guard client >= 0 else { throw TransferFailure(.connection, "accept errno \(errno)") }
-    close()
-    return SocketStream(fd: client)
   }
+
+  func accept(timeoutSeconds: Int) throws -> SocketStream { try accept(until: Date().addingTimeInterval(TimeInterval(timeoutSeconds))) }
 
   func close() {
     closeLock.lock()

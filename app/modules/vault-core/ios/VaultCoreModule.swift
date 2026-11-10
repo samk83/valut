@@ -258,7 +258,7 @@ public final class VaultCoreModule: Module {
       do {
         try self.transfer.startSending(code)
       } catch let f as TransferFailure {
-        let code = f.error == .locked ? "E_LOCKED" : "E_BAD_CODE"
+        let code = f.error == .locked ? "E_LOCKED" : f.error == .connection ? "E_OTHER_NETWORK" : "E_BAD_CODE"
         throw Exception(name: code, description: "\(code): \(f.message)")
       }
     }.runOnQueue(queue)

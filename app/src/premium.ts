@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { PurchaseOutcome, Store, StoreStatus } from '../modules/vault-core';
 
@@ -25,6 +26,12 @@ export async function refreshPremium(): Promise<StoreStatus> {
 }
 
 Store.onPremiumChanged((e) => publish({ ...current, premium: e.premium }));
+
+// Back in the app: ask again (a refund, Ask to Buy approval, or a purchase that still needs
+// its acknowledgement on Google Play, which refunds unacknowledged purchases after 3 days).
+AppState.addEventListener('change', (state) => {
+  if (state === 'active' && loaded) refreshPremium();
+});
 
 export async function buyPremium(): Promise<PurchaseOutcome> {
   let outcome: PurchaseOutcome = 'error';

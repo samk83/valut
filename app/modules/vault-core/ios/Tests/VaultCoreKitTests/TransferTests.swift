@@ -218,20 +218,18 @@ final class TransferTests: XCTestCase {
     XCTAssertEqual(try new.list().count, 4)
   }
 
-  func testReceivedListSurvivesCutRecord() throws {
-    let v = try makeVault("new", chunk: 4096)
-    try v.create(pin: newPin)
-    let a = "0123456789abcdef0123456789abcdef"
-    let b = "fedcba9876543210fedcba9876543210"
-    try v.addReceivedSource(a)
-    let file = dir.appendingPathComponent("new/items/received-sources")
-    let handle = try FileHandle(forWritingTo: file)
-    handle.seekToEndOfFile()
-    handle.write(Data(count: 10))
-    handle.closeFile()
-    try v.addReceivedSource(b)
-    XCTAssertEqual(try v.receivedSources(), [a, b])
-    try v.destroy()
+  func testReceivedIdsLiveWithItems() throws {
+    let old = try makeVault("old", chunk: 4096)
+    try old.create(pin: oldPin)
+    try fill(old)
+    let new = try makeVault("new", chunk: 4096)
+    try new.create(pin: newPin)
+    _ = try transfer(old, new).received.get()
+    XCTAssertEqual(try new.receivedSources(), Set(try old.list().map { $0.id }))
+    try new.delete(id: try new.list()[0].id)
+    XCTAssertEqual(try transfer(old, new).received.get().itemsDone, 1)
+    XCTAssertEqual(try new.list().count, 5)
+    try new.destroy()
     let fresh = try makeVault("new", chunk: 4096)
     try fresh.create(pin: newPin)
     XCTAssertEqual(try fresh.receivedSources(), [])
@@ -274,12 +272,17 @@ final class TransferTests: XCTestCase {
       events.lock(); rxEvents.append(e); events.unlock()
       if ["done", "error"].contains(e["phase"] as? String) { rxDone.signal() }
     }
-    let tx = TransferBridge(vault: { old }) { e in
+    let tx = TransferBridge(vault: { old }, isLocal: { $0 == "127.0.0.1" }) { e in
       events.lock(); txEvents.append(e); events.unlock()
       if ["done", "error"].contains(e["phase"] as? String) { txDone.signal() }
     }
     let code = try rx.startReceiving()
     XCTAssertThrowsError(try tx.startSending("PVT1:8.8.8.8:1:" + TransferCode.base64url(Primitives.randomBytes(32))))
+    // A stray device connects first and says nothing useful: the code must still work.
+    let parsed = try TransferCode.parse(code)
+    let stray = try SocketStream.connect(host: parsed.host, port: parsed.port)
+    try stray.writeAll(Array("GET / HTTP/1.1\r\n\r\n".utf8) + [UInt8](repeating: 0, count: 40))
+    stray.close()
     try tx.startSending(code)
     XCTAssertEqual(rxDone.wait(timeout: .now() + 30), .success)
     XCTAssertEqual(txDone.wait(timeout: .now() + 30), .success)

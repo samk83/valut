@@ -21,6 +21,7 @@ type Step =
 const ERRORS: Record<string, string> = {
   E_NO_WIFI: 'This phone is not on Wi-Fi. Connect both phones to the same Wi-Fi network (or turn on one phone’s hotspot and join it with the other), then try again.',
   E_BAD_CODE: 'That is not a PrivateVault code. Scan the code shown on your new phone.',
+  E_OTHER_NETWORK: 'The new phone is on a different network. Connect both phones to the same Wi-Fi (or one phone’s hotspot), then show a new code.',
   E_LOCKED: 'The vault locked. Unlock it and start again.',
   E_UNAVAILABLE: 'The preview app has nothing real to move. This works in the installed app.',
   CONNECTION: 'The phones lost each other. Keep both on the same Wi-Fi with the screens on, then start again. Items already moved are kept and will not be sent twice.',
@@ -42,12 +43,27 @@ export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; su
     stepRef.current = step;
   }, [step]);
 
+  // iPhone asks for Local Network access the first time a connection starts; that system
+  // dialog must not lock the vault (which would also stop the transfer). Auto-lock is
+  // suspended from the start until the phones are connected or it ends.
+  const suspended = useRef(false);
+  const holdLock = (on: boolean) => {
+    if (suspended.current === on) return;
+    suspended.current = on;
+    suspendAutoLock(on);
+  };
+  const holdRef = useRef(holdLock);
+  useEffect(() => {
+    holdRef.current = holdLock;
+  });
+
   // Native events: progress, done, error.
   const [event, setEvent] = useState<TransferEvent | null>(null);
   useEffect(() => {
     const sub = VaultCore.onTransfer((e) => {
       const cur = stepRef.current;
       const role = cur.name === 'scan' || (cur.name === 'running' && cur.role === 'send') ? 'send' : 'receive';
+      if (e.phase !== 'waiting') holdRef.current(false);
       if (e.phase === 'connected' || e.phase === 'progress') {
         setEvent(e);
         if (cur.name !== 'running') setStep({ name: 'running', role });
@@ -60,11 +76,13 @@ export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; su
     return () => {
       sub.remove();
       VaultCore.transferCancel();
+      holdRef.current(false);
     };
   }, []);
 
   const back = () => {
     VaultCore.transferCancel();
+    holdLock(false);
     if (step.name === 'choose' || step.name === 'done') onClose();
     else setStep({ name: 'choose' });
   };
@@ -81,10 +99,12 @@ export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; su
   const startReceive = async () => {
     setEvent(null);
     setStep({ name: 'receive', code: null });
+    holdLock(true);
     try {
       const code = await VaultCore.transferReceive();
       setStep((cur) => (cur.name === 'receive' ? { name: 'receive', code } : cur));
     } catch (e) {
+      holdLock(false);
       setStep({ name: 'error', role: 'receive', message: message(codeOf(e)) });
     }
   };
@@ -93,9 +113,11 @@ export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; su
     if (stepRef.current.name !== 'scan') return;
     setEvent(null);
     setStep({ name: 'running', role: 'send' });
+    holdLock(true);
     try {
       await VaultCore.transferSend(data);
     } catch (e) {
+      holdLock(false);
       setStep({ name: 'error', role: 'send', message: message(codeOf(e)) });
     }
   };

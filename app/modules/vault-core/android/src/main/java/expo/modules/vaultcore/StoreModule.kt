@@ -1,6 +1,8 @@
 package expo.modules.vaultcore
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -213,15 +215,26 @@ class StoreModule : Module() {
     val ours = purchases.filter { PRODUCT_ID in it.products }
     val bought = ours.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
     for (p in bought) {
-      if (!p.isAcknowledged) {
-        client?.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.purchaseToken).build()) { }
-      }
+      if (!p.isAcknowledged) acknowledge(p.purchaseToken, attempt = 0)
     }
     if (bought.isNotEmpty()) {
       setPremium(true)
       return "purchased"
     }
     return if (ours.any { it.purchaseState == Purchase.PurchaseState.PENDING }) "pending" else "error"
+  }
+
+  /** Google Play refunds a purchase not acknowledged within 3 days, so failures are retried. */
+  private fun acknowledge(
+    token: String,
+    attempt: Int,
+  ) {
+    val c = client ?: return
+    c.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(token).build()) { result ->
+      if (result.responseCode != BillingClient.BillingResponseCode.OK && attempt < 5) {
+        Handler(Looper.getMainLooper()).postDelayed({ acknowledge(token, attempt + 1) }, 5_000L shl attempt)
+      }
+    }
   }
 
   private fun cachedPremium() = prefs.getBoolean(KEY, false)

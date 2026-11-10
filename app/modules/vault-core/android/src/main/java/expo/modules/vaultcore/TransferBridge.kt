@@ -48,17 +48,37 @@ internal class TransferBridge(
       thread =
         Thread({
           runTransfer {
-            val s =
-              try {
-                ss.accept()
-              } catch (e: SocketTimeoutException) {
-                throw TransferException(TransferError.CONNECTION, "No phone connected in time")
-              } finally {
-                runCatching { ss.close() }
+            // Keep listening until a phone proves it saw the QR code (a stray connection from
+            // another device on the Wi-Fi must not use up the code), for up to 10 minutes.
+            val deadline = System.currentTimeMillis() + WAIT_MS
+            var channel: SecureChannel? = null
+            try {
+              while (channel == null) {
+                val left = deadline - System.currentTimeMillis()
+                if (left <= 0) throw TransferException(TransferError.CONNECTION, "No phone connected in time")
+                ss.soTimeout = left.toInt()
+                val s =
+                  try {
+                    ss.accept()
+                  } catch (e: SocketTimeoutException) {
+                    throw TransferException(TransferError.CONNECTION, "No phone connected in time")
+                  }
+                if (!prepare(s)) return@runTransfer null
+                s.soTimeout = HANDSHAKE_MS
+                channel =
+                  try {
+                    SecureChannel.server(s.getInputStream(), s.getOutputStream(), secret)
+                  } catch (e: IOException) {
+                    runCatching { s.close() }
+                    null
+                  }
+                if (channel != null) s.soTimeout = READ_MS
               }
-            prepare(s)
-            emit(mapOf("phase" to "connected"))
-            SecureChannel.server(s.getInputStream(), s.getOutputStream(), secret).use { ch -> rx.run(ch) { progress(it) } }
+            } finally {
+              runCatching { ss.close() }
+            }
+            if (isCurrent(Thread.currentThread())) emit(mapOf("phase" to "connected"))
+            channel!!.use { ch -> rx.run(ch) { progress(it) } }
           }
           secret.fill(0)
         }, "vault-transfer-rx").apply { start() }
@@ -78,20 +98,25 @@ internal class TransferBridge(
         } catch (e: TransferException) {
           throw CodedException("E_BAD_CODE", "This is not a PrivateVault transfer code", null)
         }
+      // A 10.x address reached through a VPN or mobile data is not "the same Wi-Fi".
+      if (!TransferCode.isOnLocalWifi(code.host)) throw CodedException("E_OTHER_NETWORK", "The other phone is not on this Wi-Fi", null)
       val tx = TransferSender(vault()).also { sender = it }
       thread =
         Thread({
           runTransfer {
             val s = Socket()
-            synchronized(lock) { socket = s }
+            if (!prepare(s)) return@runTransfer null
             try {
               s.connect(InetSocketAddress(code.host, code.port), CONNECT_MS)
             } catch (e: IOException) {
               throw TransferException(TransferError.CONNECTION, "Could not reach the other phone")
             }
-            prepare(s)
-            emit(mapOf("phase" to "connected"))
-            SecureChannel.client(s.getInputStream(), s.getOutputStream(), code.secret).use { ch -> tx.run(ch) { progress(it) } }
+            s.soTimeout = READ_MS
+            s.tcpNoDelay = true
+            SecureChannel.client(s.getInputStream(), s.getOutputStream(), code.secret).use { ch ->
+              if (isCurrent(Thread.currentThread())) emit(mapOf("phase" to "connected"))
+              tx.run(ch) { progress(it) }
+            }
           }
           code.secret.fill(0)
         }, "vault-transfer-tx").apply { start() }
@@ -112,16 +137,23 @@ internal class TransferBridge(
     receiver = null
   }
 
-  private fun prepare(s: Socket) {
-    synchronized(lock) { socket = s }
-    s.soTimeout = READ_MS
+  /** Adopts [s] as the socket cancel() closes, unless this transfer was already replaced. */
+  private fun prepare(s: Socket): Boolean {
+    synchronized(lock) {
+      if (thread !== Thread.currentThread()) {
+        runCatching { s.close() }
+        return false
+      }
+      socket = s
+    }
     s.tcpNoDelay = true
+    return true
   }
 
-  private fun runTransfer(block: () -> TransferProgress) {
+  private fun runTransfer(block: () -> TransferProgress?) {
     val me = Thread.currentThread()
     try {
-      val result = block()
+      val result = block() ?: return
       if (isCurrent(me)) emit(progressMap("done", result))
     } catch (e: TransferException) {
       if (isCurrent(me)) emit(mapOf("phase" to "error", "error" to e.error.name))
@@ -166,6 +198,8 @@ internal class TransferBridge(
   private companion object {
     const val WAIT_MS = 10 * 60 * 1000
     const val CONNECT_MS = 10_000
-    const val READ_MS = 60_000
+    // Long enough for the new phone to verify a large video before it answers.
+    const val READ_MS = 180_000
+    const val HANDSHAKE_MS = 10_000
   }
 }

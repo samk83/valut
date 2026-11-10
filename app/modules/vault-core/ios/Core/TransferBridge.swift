@@ -8,6 +8,7 @@ final class TransferBridge {
   private let vault: () throws -> Vault
   private let emit: ([String: Any]) -> Void
   private let localHost: () -> String?
+  private let isLocal: (String) -> Bool
   private let lock = NSLock()
   private var generation = 0
   private var listener: TransferListener?
@@ -16,10 +17,12 @@ final class TransferBridge {
   private var receiver: TransferReceiver?
 
   /// [localHost] is the address to listen on; tests pass loopback.
+  /// [isLocal] says whether a scanned address is on this phone's own Wi-Fi.
   init(vault: @escaping () throws -> Vault, localHost: @escaping () -> String? = TransferCode.localAddress,
-       emit: @escaping ([String: Any]) -> Void) {
+       isLocal: @escaping (String) -> Bool = TransferCode.isOnLocalWifi, emit: @escaping ([String: Any]) -> Void) {
     self.vault = vault
     self.localHost = localHost
+    self.isLocal = isLocal
     self.emit = emit
   }
 
@@ -41,10 +44,22 @@ final class TransferBridge {
     emit(["phase": "waiting"])
     Thread { [weak self] in
       self?.runTransfer(mine) {
-        let s = try l.accept(timeoutSeconds: 10 * 60)
-        self?.adopt(s, mine)
+        // Keep listening until a phone proves it saw the QR code (a stray connection from
+        // another device on the Wi-Fi must not use up the code), for up to 10 minutes.
+        let deadline = Date().addingTimeInterval(10 * 60)
+        var accepted: SecureChannel?
+        while accepted == nil {
+          let s = try l.accept(until: deadline)
+          self?.adopt(s, mine)
+          do {
+            accepted = try SecureChannel.server(s, secret: secret)
+          } catch let f as TransferFailure where f.error == .wrongPeer || f.error == .connection {
+            s.close()
+          }
+        }
+        l.close()
+        let channel = accepted!
         self?.emitIfCurrent(mine, ["phase": "connected"])
-        let channel = try SecureChannel.server(s, secret: secret)
         defer { channel.close() }
         return try rx.run(channel) { p in self?.emitIfCurrent(mine, TransferBridge.map("progress", p)) }
       }
@@ -60,6 +75,7 @@ final class TransferBridge {
     let v = try vault()
     guard v.isUnlocked else { throw TransferFailure(.locked, "Vault is locked") }
     let code = try TransferCode.parse(text)
+    guard isLocal(code.host) else { throw TransferFailure(.connection, "Not on this phone's Wi-Fi") }
     let tx = TransferSender(vault: v)
     sender = tx
     let mine = generation

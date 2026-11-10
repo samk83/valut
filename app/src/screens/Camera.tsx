@@ -36,14 +36,16 @@ export function VaultCamera({
   const [startCount, setStartCount] = useState<number | null>(null);
 
   useEffect(() => {
+    // Unknown count (list failed) blocks captures rather than allowing past the free limit.
     VaultCore.list()
       .then((l) => setStartCount(l.length))
-      .catch(() => setStartCount(0));
+      .catch(() => setStartCount(null));
   }, []);
 
   /** False (and Premium opens) when the free plan has no room for one more capture. */
   const hasRoom = () => {
-    const count = (startCount ?? 0) + saved;
+    if (startCount === null) return false; // Still counting; the shutter waits a moment.
+    const count = startCount + saved;
     if (freeSlots(count, plan.premium) > 0) return true;
     onLimit(count);
     return false;

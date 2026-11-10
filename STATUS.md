@@ -1,6 +1,6 @@
 # STATUS — JellyDock PrivateVault
 
-Last Updated: 2026-11-10 (iPhone·iPad 출시 준비)
+Last Updated: 2026-11-10 (1.1 프리미엄 + 새 폰 옮기기 개발)
 
 | Task / Thread | Status | Progress | Last Updated | Next Action | Owner Action | Branch |
 |---|---|---|---|---|---|---|
@@ -13,6 +13,7 @@ Last Updated: 2026-11-10 (iPhone·iPad 출시 준비)
 | iPhone Expo Go 미리보기 + 승인 시안(19화면) 적용 | REVIEW | 시안 승인(10-31) 후 전 화면 시안대로 구현, 내부 QA 2회(각 5건·3건) 수정, 재게시. 실기기 확인 전 | 2026-10-31 | Owner iPhone 확인 | Expo Go로 다시 열어 확인, PR #7 → #6 순서로 Merge | feature/ios-preview |
 | 자료 무손실 설계 + 제약 (AC-50) | REVIEW | 이중 저장·자동 복구·촬영본 대기함·원본 일치 확인 구현, 테스트 80개 통과, 내부 QA 8건 수정, APK v0.2.0 | 2026-10-30 | 내부 QA 후 PR | 실기기 확인 | fix/no-data-loss |
 | iPhone·iPad 앱 (App Store 출시 준비) | REVIEW | 보안 코어 Swift 이식(테스트 27개 통과, Argon2 결과 Android와 동일), Secure Enclave 키, iOS 네이티브 모듈, iPad·Duo 화면 대응, app.json·eas.json, 출시 가이드 | 2026-11-10 | EAS 빌드 → TestFlight | 첫 `eas build` 실행(Apple 로그인 1회), TestFlight 실기기 확인, 정식 심사 제출 승인(L3) | feature/ios-release |
+| 1.1 프리미엄(100개 무료 + $9.99 평생) + 새 폰 옮기기 | REVIEW | 전송 코어 Kotlin·Swift(테스트 + Android↔iPhone 상호 전송 통과), StoreKit 2·Play Billing 8 결제, 100개 제한·구매·복원·QR 옮기기 화면, Android 빌드 | 2026-11-10 | 내부 QA 수정 → PR(#8 위에 쌓음) | 옮기기 무료 여부 결정, 스토어에 상품 등록(docs/PREMIUM_SETUP.md), 실기기 확인 | feature/v1.1-premium-transfer |
 | Phase 3 MVP 개발 | TODO | 0 (미착수) | 2026-10-30 | 디자인 승인 후 | 개발 승인 | - |
 | 외부 보안 감사 | TODO | 0 | 2026-10-30 | 견적 조사 | 비용 승인 (L3) | - |
 

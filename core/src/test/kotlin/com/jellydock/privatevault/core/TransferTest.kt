@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TransferTest {
@@ -247,18 +248,36 @@ class TransferTest {
     }
 
     @Test
-    fun `received list ignores a record cut short by a crash`() {
-        val v = newVault().apply { create(pin("731904")) }
-        val a = "0123456789abcdef0123456789abcdef"
-        val b = "fedcba9876543210fedcba9876543210"
-        v.addReceivedSource(a)
-        File(dir, "new/items/received-sources").appendBytes(ByteArray(10))
-        v.addReceivedSource(b)
-        assertEquals(setOf(a, b), v.receivedSources())
-        // A reset clears it with the vault.
-        v.destroy()
+    fun `received ids live with the items themselves`() {
+        val old = oldVault().apply { create(pin("482915")) }
+        fill(old)
+        val new = newVault().apply { create(pin("731904")) }
+        transfer(old, new).received.getOrThrow()
+        assertEquals(old.list().map { it.id }.toSet(), new.receivedSources())
+        // Survives a relock.
+        new.lock()
+        new.unlock(pin("731904"))
+        assertEquals(5, new.receivedSources().size)
+        // An item deleted on the new phone is sent again next time; nothing else is.
+        new.delete(new.list().first().id)
+        assertEquals(1, transfer(old, new).received.getOrThrow().itemsDone)
+        assertEquals(5, new.list().size)
+        // Items imported normally have no source.
+        new.importItem(Aead.randomBytes(10).inputStream(), ItemMeta(ItemKind.PHOTO, "image/jpeg", 1))
+        assertEquals(5, new.receivedSources().size)
+        // A reset clears everything.
+        new.destroy()
         val fresh = newVault().apply { create(pin("731904")) }
         assertEquals(emptySet(), fresh.receivedSources())
+    }
+
+    @Test
+    fun `only the phone's own wifi subnet counts as local`() {
+        for (host in listOf("8.8.8.8", "10.0.0.1", "192.168.255.254", "not-an-ip")) {
+            // This test machine has no Wi-Fi interface, so nothing is on "the same Wi-Fi".
+            if (TransferCode.localAddress() == null) assertFalse(TransferCode.isOnLocalWifi(host))
+        }
+        assertFalse(TransferCode.isOnLocalWifi("8.8.8.8"))
     }
 
     @Test

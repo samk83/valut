@@ -9,6 +9,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.InterfaceAddress
 import java.net.NetworkInterface
 import java.security.MessageDigest
 import java.util.Base64
@@ -70,15 +71,39 @@ data class TransferCode(val host: String, val port: Int, val secret: ByteArray) 
                 b[0] == 127
         }
 
+        /**
+         * Wi-Fi and hotspot interfaces only. Mobile data (rmnet, ccmni) and VPN (tun) interfaces
+         * often have 10.x addresses too, but they are not the local network.
+         */
+        private fun isWifiName(name: String) = WIFI_PREFIXES.any { name.startsWith(it) }
+
+        private val WIFI_PREFIXES = listOf("wlan", "swlan", "ap", "softap", "wifi", "eth")
+
+        private fun wifiAddresses(): List<InterfaceAddress> =
+            runCatching { NetworkInterface.getNetworkInterfaces()?.toList().orEmpty() }.getOrDefault(emptyList())
+                .filter { runCatching { it.isUp && !it.isLoopback && isWifiName(it.name) }.getOrDefault(false) }
+                .flatMap { it.interfaceAddresses }
+                .filter { it.address is Inet4Address && isLocalIPv4(it.address.hostAddress ?: "") }
+
         /** The phone's own Wi-Fi / hotspot IPv4 address, or null when it has none. */
-        fun localAddress(): InetAddress? =
-            NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
-                .filter { runCatching { it.isUp && !it.isLoopback }.getOrDefault(false) }
-                // Wi-Fi and hotspot first; mobile data interfaces (rmnet, ccmni) are skipped by the
-                // private-address filter anyway because carriers rarely hand out 192.168/16.
-                .sortedBy { if (it.name.startsWith("wlan") || it.name.startsWith("ap") || it.name.startsWith("swlan")) 0 else 1 }
-                .flatMap { it.inetAddresses.toList() }
-                .firstOrNull { it is Inet4Address && !it.isLoopbackAddress && isLocalIPv4(it.hostAddress ?: "") }
+        fun localAddress(): InetAddress? = wifiAddresses().firstOrNull()?.address
+
+        /** True when [host] is on the same Wi-Fi / hotspot subnet as this phone (no router hop, no VPN). */
+        fun isOnLocalWifi(host: String): Boolean {
+            val target = ipv4ToInt(host) ?: return false
+            return wifiAddresses().any { a ->
+                val mine = ipv4ToInt(a.address.hostAddress ?: "") ?: return@any false
+                val bits = a.networkPrefixLength.toInt().coerceIn(8, 32)
+                val mask = if (bits == 32) -1 else (-1 shl (32 - bits))
+                (mine and mask) == (target and mask)
+            }
+        }
+
+        private fun ipv4ToInt(host: String): Int? {
+            val p = host.split('.').map { it.toIntOrNull() ?: return null }
+            if (p.size != 4 || p.any { it !in 0..255 }) return null
+            return (p[0] shl 24) or (p[1] shl 16) or (p[2] shl 8) or p[3]
+        }
 
         const val SECRET_BYTES = 32
     }
@@ -520,6 +545,8 @@ class TransferReceiver(private val vault: Vault) {
                         fail(channel, TransferError.LOCKED, "Vault locked")
                     } catch (e: VaultDestroyedException) {
                         fail(channel, TransferError.LOCKED, "Vault gone")
+                    } catch (e: KeysUnavailableException) {
+                        fail(channel, TransferError.LOCKED, "Vault keys unavailable")
                     } catch (e: ImportVerificationException) {
                         fail(channel, TransferError.INTEGRITY, "Item did not verify")
                     } catch (e: IOException) {
@@ -621,6 +648,13 @@ private fun <T> whileVaultOpen(
     } catch (e: VaultDestroyedException) {
         runCatching { channel.send(byteArrayOf(Msg.FAIL, TransferError.LOCKED.code.toByte())) }
         throw TransferException(TransferError.LOCKED, "Vault erased")
+    } catch (e: KeysUnavailableException) {
+        runCatching { channel.send(byteArrayOf(Msg.FAIL, TransferError.LOCKED.code.toByte())) }
+        throw TransferException(TransferError.LOCKED, "Vault keys unavailable")
+    } catch (e: EOFException) {
+        // A message shorter than its own fields says (same as Swift's "Short message").
+        runCatching { channel.send(byteArrayOf(Msg.FAIL, TransferError.INTEGRITY.code.toByte())) }
+        throw TransferException(TransferError.INTEGRITY, "Short message")
     }
 
 private fun expect(

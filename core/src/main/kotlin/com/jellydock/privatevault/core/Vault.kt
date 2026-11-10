@@ -153,6 +153,9 @@ class Vault(
             SecureFiles.writeAtomic(File(stage, "meta"), sealedMeta)
             SecureFiles.writeAtomic(File(stage, "meta.bak"), sealedMeta)
             thumbnail?.let { SecureFiles.writeAtomic(File(stage, "thumb"), Aead.seal(fileKey, it, aad("thumb", idBytes))) }
+            // Where a transferred item came from, published together with the item itself,
+            // so "already received" can never disagree with what is really here.
+            sourceBytes?.let { SecureFiles.writeAtomic(File(stage, SOURCE), Aead.seal(fileKey, it, aad(SOURCE, idBytes))) }
             SecureFiles.writeAtomic(File(stage, "key.bak"), sealedKey)
             // The wrapped key is written last: an item without it can never be opened.
             SecureFiles.writeAtomic(File(stage, "key"), sealedKey)
@@ -162,8 +165,6 @@ class Vault(
             keys.whileKeyIsLive(mk) {
                 items.mkdirs()
                 SecureFiles.moveAtomic(stage, File(items, id))
-                // Recorded with the same key copy, so a lock() in between cannot split the two.
-                sourceBytes?.let { runCatching { appendReceived(mk, it) } }
             }
             return ImportResult(VaultItem(id, finalMeta), safeToDeleteOriginal = expectedSha256 != null)
         } catch (e: IntegrityException) {
@@ -222,61 +223,22 @@ class Vault(
         }
 
     /**
-     * Ids of items this vault has already received from another phone (see [TransferReceiver]),
-     * so a transfer that was interrupted can be run again without making duplicates. Kept in
-     * items/ as an append-only list of records sealed with the master key, so a reset or a new
-     * vault removes it with everything else. A damaged record is skipped: the worst outcome
-     * is that a later transfer sends that item again.
+     * Ids (on the old phone) of items this vault received by transfer, so an interrupted
+     * transfer can be run again without duplicates. Read from each item's sealed "source"
+     * file. An item the user deleted here is no longer counted and would be sent again.
      */
     fun receivedSources(): Set<String> {
-        val mk = requireUnlocked()
-        try {
-            val file = File(items, RECEIVED)
-            if (!file.exists()) return emptySet()
-            val bytes = file.readBytes()
-            val out = HashSet<String>()
-            for (i in 0 until bytes.size / RECEIVED_RECORD) {
-                val record = bytes.copyOfRange(i * RECEIVED_RECORD, (i + 1) * RECEIVED_RECORD)
-                try {
-                    out += Aead.open(mk, record, RECEIVED_AAD).toHex()
-                } catch (e: IntegrityException) {
-                    continue
-                }
+        requireUnlocked().wipe()
+        val dirs = items.listFiles { f -> isLiveItem(f) && File(f, SOURCE).exists() } ?: return emptySet()
+        return dirs.mapNotNull { dir ->
+            try {
+                withFileKey(dir.name) { fk, idBytes -> Aead.open(fk, File(dir, SOURCE).readBytes(), aad(SOURCE, idBytes)).toHex() }
+            } catch (e: IntegrityException) {
+                null // Worst case that item is sent again; nothing is lost.
+            } catch (e: IOException) {
+                null
             }
-            return out
-        } catch (e: IOException) {
-            return emptySet()
-        } finally {
-            mk.wipe()
-        }
-    }
-
-    /** Records that [sourceId] (32 hex characters) was received. */
-    fun addReceivedSource(sourceId: String) {
-        val idBytes = parseId(sourceId)
-        val mk = requireUnlocked()
-        try {
-            keys.whileKeyIsLive(mk) { appendReceived(mk, idBytes) }
-        } finally {
-            mk.wipe()
-        }
-    }
-
-    private fun appendReceived(
-        mk: ByteArray,
-        idBytes: ByteArray,
-    ) {
-        val record = Aead.seal(mk, idBytes, RECEIVED_AAD)
-        check(record.size == RECEIVED_RECORD)
-        items.mkdirs()
-        val file = File(items, RECEIVED)
-        // A record cut short by a crash would shift every later one; pad it out first.
-        val partial = (file.length() % RECEIVED_RECORD).toInt()
-        FileOutputStream(file, true).use { out ->
-            if (partial != 0) out.write(ByteArray(RECEIVED_RECORD - partial))
-            out.write(record)
-            out.fd.sync()
-        }
+        }.toSet()
     }
 
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
@@ -292,6 +254,7 @@ class Vault(
         SecureFiles.shred(File(dir, "meta"))
         SecureFiles.shred(File(dir, "meta.bak"))
         SecureFiles.shred(File(dir, "thumb"))
+        SecureFiles.shred(File(dir, SOURCE))
         SecureFiles.deleteTree(dir)
     }
 
@@ -443,8 +406,6 @@ class Vault(
 
     private companion object {
         const val DELETED = "deleted"
-        const val RECEIVED = "received-sources"
-        const val RECEIVED_RECORD = Aead.NONCE_BYTES + 16 + Aead.TAG_BYTES
-        val RECEIVED_AAD = "PrivateVault received sources v1".toByteArray(Charsets.US_ASCII)
+        const val SOURCE = "source"
     }
 }

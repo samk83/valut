@@ -36,9 +36,7 @@ final class Vault {
   private var lockGeneration: UInt64 = 0
 
   private static let deletedMarker = "deleted"
-  private static let receivedFile = "received-sources"
-  private static let receivedRecord = 12 + 16 + 16
-  private static let receivedAad: [UInt8] = Array("PrivateVault received sources v1".utf8)
+  private static let sourceFile = "source"
 
   init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize) throws {
     self.root = root
@@ -144,6 +142,10 @@ final class Vault {
       if let thumb = thumbnail {
         try SecureFiles.writeAtomic(stage.appendingPathComponent("thumb"), try seal(fileKey, thumb, aad("thumb", idBytes)))
       }
+      // Where a transferred item came from, published together with the item itself.
+      if let source = sourceBytes {
+        try SecureFiles.writeAtomic(stage.appendingPathComponent(Vault.sourceFile), try seal(fileKey, source, aad(Vault.sourceFile, idBytes)))
+      }
       try SecureFiles.writeAtomic(stage.appendingPathComponent("key.bak"), sealedKey)
       // The wrapped key is written last: an item without it can never be opened.
       try SecureFiles.writeAtomic(stage.appendingPathComponent("key"), sealedKey)
@@ -152,8 +154,6 @@ final class Vault {
       try keys.whileKeyIsLive(mk) {
         try SecureFiles.mkdirs(items)
         try SecureFiles.moveAtomic(stage, items.appendingPathComponent(id))
-        // Recorded with the same key copy, so a lock() in between cannot split the two.
-        if let source = sourceBytes { try? appendReceived(mk, source) }
       }
       return ImportResult(item: VaultItem(id: id, meta: finalMeta), safeToDeleteOriginal: expectedSha256 != nil)
     } catch VaultError.integrity(let message) {
@@ -201,47 +201,20 @@ final class Vault {
     }
   }
 
-  /// Ids of items already received from another phone, so an interrupted transfer can run
-  /// again without duplicates. Same format as core/Vault.kt: items/received-sources, an
-  /// append-only list of 44-byte records sealed with the master key. Damaged records are skipped.
+  /// Ids (on the old phone) of items received by transfer, so an interrupted transfer can run
+  /// again without duplicates. Same as core/Vault.kt: each item's sealed "source" file.
   func receivedSources() throws -> Set<String> {
     var mk = try requireUnlocked()
-    defer { mk.wipe() }
-    let file = items.appendingPathComponent(Vault.receivedFile)
-    guard SecureFiles.exists(file), let bytes = try? SecureFiles.readBytes(file) else { return [] }
+    mk.wipe()
     var out = Set<String>()
-    var i = 0
-    while i + Vault.receivedRecord <= bytes.count {
-      if let id = try? open(mk, Array(bytes[i..<i + Vault.receivedRecord]), Vault.receivedAad) {
+    for dir in SecureFiles.list(items) where isLiveItem(dir) && SecureFiles.exists(dir.appendingPathComponent(Vault.sourceFile)) {
+      if let id = try? withFileKey(dir.lastPathComponent, { fk, idBytes in
+        try open(fk, try SecureFiles.readBytes(dir.appendingPathComponent(Vault.sourceFile)), aad(Vault.sourceFile, idBytes))
+      }) {
         out.insert(id.map { String(format: "%02x", $0) }.joined())
       }
-      i += Vault.receivedRecord
     }
     return out
-  }
-
-  /// Records that [sourceId] (32 hex characters) was received.
-  func addReceivedSource(_ sourceId: String) throws {
-    let idBytes = try Vault.parseId(sourceId)
-    var mk = try requireUnlocked()
-    defer { mk.wipe() }
-    try keys.whileKeyIsLive(mk) { try appendReceived(mk, idBytes) }
-  }
-
-  private func appendReceived(_ mk: [UInt8], _ idBytes: [UInt8]) throws {
-    let record = try seal(mk, idBytes, Vault.receivedAad)
-    precondition(record.count == Vault.receivedRecord)
-    try SecureFiles.mkdirs(items)
-    let file = items.appendingPathComponent(Vault.receivedFile)
-    let fd = Glue.open(file.path, O_WRONLY | O_CREAT | O_APPEND, 0o600)
-    guard fd >= 0 else { throw VaultError.io("open received-sources errno \(errno)") }
-    defer { _ = Glue.close(fd) }
-    // A record cut short by a crash would shift every later one; pad it out first.
-    let size = Int(Glue.lseek(fd, 0, SEEK_END))
-    let partial = size % Vault.receivedRecord
-    let data = (partial == 0 ? [] : [UInt8](repeating: 0, count: Vault.receivedRecord - partial)) + record
-    try SecureFiles.writeAll(fd, data, count: data.count)
-    try SecureFiles.fullSync(fd)
   }
 
   /// Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2).
@@ -251,7 +224,7 @@ final class Vault {
     let dir = try itemDir(id)
     guard SecureFiles.exists(dir) else { return }
     try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.deletedMarker), [])
-    for name in ["key", "key.bak", "meta", "meta.bak", "thumb"] { SecureFiles.shred(dir.appendingPathComponent(name)) }
+    for name in ["key", "key.bak", "meta", "meta.bak", "thumb", Vault.sourceFile] { SecureFiles.shred(dir.appendingPathComponent(name)) }
     SecureFiles.deleteTree(dir)
   }
 

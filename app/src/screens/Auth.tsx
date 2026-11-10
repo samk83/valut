@@ -301,7 +301,7 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
         <View style={{ gap: 6, padding: 16, borderRadius: 16, backgroundColor: '#1A1410', borderWidth: 1, borderColor: '#4A3420' }}>
           <Text style={{ fontFamily: F.title, fontSize: 18, color: '#F0B98A' }}>Forget it, lose everything.</Text>
           <Text style={[s.small, { fontSize: 12, color: '#D4C4B5' }]}>
-            Three wrong attempts destroys the vault. There is no password reset, no admin override and no cloud backup. Reinstalling the app will not bring your files back, and the vault does not move to a new phone.
+            Three wrong attempts destroys the vault. There is no password reset, no admin override and no cloud backup. Reinstalling the app will not bring your files back, and backups do not include the vault. To change phones, use Move to a new phone in Settings while you still have the old one.
           </Text>
         </View>
         <Pressable

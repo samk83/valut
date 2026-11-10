@@ -90,3 +90,25 @@ Encryption: AES-256-GCM via Apple CryptoKit, used only to protect the user's own
 - 앱 상단 "TEST BUILD" 경고 문구 제거 여부
 - 외부 보안 감사 전 출시 여부
 - Mac 판매 끄기: Pricing and Availability → **iPhone and iPad Apps on Apple Silicon Macs** 체크 해제 (Mac에서는 Secure Enclave 동작을 확인하지 않음)
+
+## 1.1 변경 (1.1 버전 제출 때 바꿔 넣기)
+1.0 문구는 그대로 두고, 1.1을 제출할 때 아래만 바꿉니다.
+
+**What's New in This Version**:
+```
+• Move to a new phone: send your vault directly from your old phone to your new one over your own Wi-Fi. It stays encrypted the whole way and is never uploaded anywhere. Works between iPhone and Android.
+• Free plan: up to 100 photos and videos with every security feature.
+• Lifetime Premium: unlimited photos and videos for a single payment. No subscription, no ads.
+```
+
+**Description**에서 바꿀 줄:
+- `• Works without an account, a server or a cloud copy.` 다음 줄에 추가: `• Move to a new phone directly over your own Wi-Fi; nothing goes through the internet.`
+- 맨 끝에 추가: `Free: up to 100 photos and videos. Lifetime Premium (one-time purchase): unlimited.`
+
+**쓰지 않는 표현** 표의 "새 폰으로 이전" 줄은 1.1부터 삭제 (기능이 생김). "backup, sync, cloud restore"는 계속 쓰지 않음.
+
+**App Review 메모**에 추가:
+```
+In-App Purchase: one non-consumable product "Lifetime Premium" (com.jellydock.privatevault.premium). The free plan holds 100 photos/videos; at the limit the app shows the purchase screen. "Restore purchases" is in Settings and on the purchase screen.
+Move to a new phone (Settings > Move to a new phone): two devices on the same Wi-Fi; the new device shows a QR code, the old device scans it. The connection is direct on the local network (the app asks for Local Network access), encrypted with a one-time key from the QR code. No server is involved.
+```

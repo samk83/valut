@@ -67,9 +67,14 @@ export function Home({
   const cancelRef = useRef(false);
   const [cancelling, setCancelling] = useState(false);
 
+  // The free-plan check needs the real count, so it waits until the list has loaded.
+  const loadedRef = useRef(false);
   const load = useCallback(async () => {
     try {
-      setItems(await VaultCore.list());
+      const list = await VaultCore.list();
+      itemsRef.current = list;
+      loadedRef.current = true;
+      setItems(list);
     } catch {
       setItems([]);
     }
@@ -130,6 +135,8 @@ export function Home({
 
   /** Free plan full: show Premium instead. Asks the store again first, in case it just changed. */
   const roomLeft = async (): Promise<number> => {
+    if (!loadedRef.current) await load();
+    if (!loadedRef.current) return 0; // Count unknown (vault busy or locked): add nothing.
     let slots = freeSlots(itemsRef.current.length, plan.premium);
     if (slots === 0) slots = freeSlots(itemsRef.current.length, (await refreshPremium()).premium);
     if (slots === 0) onPremium('limit', itemsRef.current.length);

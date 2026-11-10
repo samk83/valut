@@ -15,7 +15,7 @@ export const TERMS: { heading: string; body: string }[] = [
   {
     heading: '2. No recovery, by design',
     body:
-      'Only your PIN or pattern can open the vault. Three wrong attempts in a row permanently destroy the keys, and everything in the vault is lost. Nobody, including JellyDock, can reset your PIN, unlock the vault or recover its contents. Deleting the app, resetting or losing the device has the same result. The vault is never included in iCloud or computer backups or in transfers to a new phone, so it does not move to a new device: it stays on this one.',
+      'Only your PIN or pattern can open the vault. Three wrong attempts in a row permanently destroy the keys, and everything in the vault is lost. Nobody, including JellyDock, can reset your PIN, unlock the vault or recover its contents. Deleting the app, resetting or losing the device has the same result. The vault is never included in iCloud or computer backups or in the phone maker’s transfer to a new phone. The only way to move it is Move to a new phone in the app’s settings, which sends it directly to your other phone over your own Wi-Fi while you hold both phones.',
   },
   {
     heading: '3. Your responsibility',
