@@ -47,6 +47,14 @@ function isTraditional(tag: string | null | undefined, region: string | null | u
 export const lang = detect();
 const pack = PACKS[lang];
 
+/**
+ * Letter spacing breaks joined Devanagari letters, and CSS-style uppercase gets the Turkish
+ * dotted I wrong, so those languages get plain labels.
+ */
+const plainLabels = lang === 'hi' || lang === 'tr';
+export const UPPERCASE = plainLabels ? ('none' as const) : ('uppercase' as const);
+export const spacing = (n: number) => (lang === 'hi' ? 0 : n);
+
 type Vars = Record<string, string | number>;
 
 const fill = (text: string, vars?: Vars) => (vars ? text.replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : m)) : text);

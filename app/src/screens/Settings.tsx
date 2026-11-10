@@ -5,7 +5,7 @@ import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Switch, Text, Te
 import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
 import { C, F } from '../theme';
-import { t, tn } from '../i18n';
+import { spacing, t, tn, UPPERCASE } from '../i18n';
 import { Busy, Button, Rich, s, TestBanner } from '../ui';
 import { TermsSheet } from './Terms';
 
@@ -170,7 +170,7 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
       <ScrollView contentContainerStyle={[st.page, { paddingTop: 64, gap: 18 }]} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 8 }}>
           <Text style={[s.label, { color: C.danger }]}>{t('reset.label')}</Text>
-          <Text style={[st.title, { fontSize: 34, lineHeight: 40 }]}>{t('reset.title')}</Text>
+          <Text style={[st.title, { fontSize: 34, lineHeight: 40 }]} lineBreakStrategyIOS="hangul-word">{t('reset.title')}</Text>
           <Text style={st.body}>
             {count === null || count <= 0 ? t('reset.bodyAll') : tn('reset.bodyCount', count)}
           </Text>
@@ -184,7 +184,7 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
           ))}
         </View>
         <View style={{ gap: 8 }}>
-          <Rich text={t('reset.type', { word: t('reset.word') })} style={[s.small, { fontSize: 12 }]} strongStyle={{ color: C.ivory, fontFamily: F.bold, letterSpacing: 1 }} />
+          <Rich text={t('reset.type', { word: t('reset.word') })} style={[s.small, { fontSize: 12 }]} strongStyle={{ color: C.ivory, fontFamily: F.bold, letterSpacing: spacing(1) }} />
           <TextInput
             value={confirm}
             onChangeText={setConfirm}
@@ -216,7 +216,7 @@ const st = StyleSheet.create({
   sealedTitle: { fontFamily: F.title, fontSize: 18, color: '#E6CFA0' },
   check: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 6 },
   checkText: { fontFamily: F.body, fontSize: 12, color: '#D9D4CA', flexShrink: 1 },
-  section: { marginTop: 4, marginBottom: -6, marginLeft: 4, fontFamily: F.body, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.faint },
+  section: { marginTop: 4, marginBottom: -6, marginLeft: 4, fontFamily: F.body, fontSize: 11, letterSpacing: spacing(2), textTransform: UPPERCASE, color: C.faint },
   group: { borderRadius: 16, backgroundColor: '#13171F', borderWidth: 1, borderColor: C.line },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52, paddingHorizontal: 16, gap: 12 },
   rowLabel: { fontFamily: F.body, fontSize: 14, color: C.ivory, flexShrink: 1 },
@@ -224,5 +224,5 @@ const st = StyleSheet.create({
   footer: { paddingHorizontal: 4, fontFamily: F.body, fontSize: 12, color: C.faint },
   destroyBtn: { height: 52, borderRadius: 14, borderWidth: 1, borderColor: '#6A3A24', backgroundColor: '#1A110C', alignItems: 'center', justifyContent: 'center' },
   warn: { padding: 16, borderRadius: 16, backgroundColor: '#1A110C', borderWidth: 1, borderColor: '#6A3A24', gap: 10 },
-  input: { height: 52, borderRadius: 12, borderWidth: 1, borderColor: C.outline, backgroundColor: '#13171F', color: C.ivory, fontFamily: F.bold, fontSize: 17, letterSpacing: 3, paddingHorizontal: 16 },
+  input: { height: 52, borderRadius: 12, borderWidth: 1, borderColor: C.outline, backgroundColor: '#13171F', color: C.ivory, fontFamily: F.bold, fontSize: 17, letterSpacing: spacing(3), paddingHorizontal: 16 },
 });

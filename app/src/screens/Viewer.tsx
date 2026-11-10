@@ -5,7 +5,7 @@ import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, Vi
 
 import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
-import { month, t } from '../i18n';
+import { month, spacing, t } from '../i18n';
 import { Busy, Button, s } from '../ui';
 
 const dayLabel = (ms: number) => {
@@ -89,7 +89,7 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
       <Pressable style={vs.scrim} onPress={() => !working && onCancel()} accessibilityLabel={t('viewer.keep')} />
       <View style={vs.sheet}>
         <View style={vs.grabber} />
-        <Text style={[s.label, { color: C.danger, letterSpacing: 3, marginTop: 6 }]}>{t('viewer.permanent')}</Text>
+        <Text style={[s.label, { color: C.danger, letterSpacing: spacing(3), marginTop: 6 }]}>{t('viewer.permanent')}</Text>
         <Text style={vs.sheetTitle}>{t('viewer.destroyOne')}</Text>
         <Text style={[s.body, { fontSize: 14, color: C.muted, lineHeight: 23 }]}>
           {t('viewer.destroyBody')}

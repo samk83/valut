@@ -3,10 +3,10 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 
 
 import VaultCore from '../modules/vault-core';
 import { C, F } from './theme';
-import { rich, t } from './i18n';
+import { rich, spacing, t, UPPERCASE } from './i18n';
 
 export function Title({ children }: { children: ReactNode }) {
-  return <Text style={s.title}>{children}</Text>;
+  return <Text style={s.title} lineBreakStrategyIOS="hangul-word">{children}</Text>;
 }
 
 /** A bullet with a hanging indent: wrapped lines line up with the text, not the dot. */
@@ -14,7 +14,7 @@ export function Bullet({ children }: { children: ReactNode }) {
   return (
     <View style={{ flexDirection: 'row' }}>
       <Text style={[s.body, { width: 18 }]}>•</Text>
-      <Text style={[s.body, { flex: 1 }]}>{children}</Text>
+      <Text style={[s.body, { flex: 1 }]} lineBreakStrategyIOS="hangul-word">{children}</Text>
     </View>
   );
 }
@@ -51,7 +51,7 @@ export function Segmented<T extends string>({
 }
 
 export function Body({ children, style }: { children: ReactNode; style?: object }) {
-  return <Text style={[s.body, style]}>{children}</Text>;
+  return <Text style={[s.body, style]} lineBreakStrategyIOS="hangul-word">{children}</Text>;
 }
 
 export function Button({
@@ -161,7 +161,7 @@ export const s = StyleSheet.create({
   title: { fontFamily: F.title, fontSize: 30, color: C.ivory, marginBottom: 12 },
   body: { fontFamily: F.body, fontSize: 15, lineHeight: 22, color: C.ivory },
   small: { fontFamily: F.body, fontSize: 13, lineHeight: 19, color: C.muted },
-  label: { fontFamily: F.body, fontSize: 11, letterSpacing: 3, color: C.brass, textTransform: 'uppercase' },
+  label: { fontFamily: F.body, fontSize: 11, letterSpacing: spacing(3), color: C.brass, textTransform: UPPERCASE },
   card: { backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line, padding: 16 },
   btn: { height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
   btnPrimary: { backgroundColor: C.brass },
@@ -197,7 +197,7 @@ export function TestBanner() {
 /** Translated text with **emphasis** markers: emphasised parts get [strongStyle] and [onStrongPress]. */
 export function Rich({ text, style, strongStyle, onStrongPress, strongRole }: { text: string; style?: object; strongStyle?: object; onStrongPress?: () => void; strongRole?: 'link' }) {
   return (
-    <Text style={style}>
+    <Text style={style} lineBreakStrategyIOS="hangul-word">
       {rich(text).map((p, i) =>
         p.strong ? (
           <Text key={i} style={strongStyle} onPress={onStrongPress} accessibilityRole={strongRole}>

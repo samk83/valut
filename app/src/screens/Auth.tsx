@@ -14,7 +14,7 @@ import {
   readLockMethod,
   saveLockMethod,
 } from '../pattern';
-import { Key, t, tn } from '../i18n';
+import { Key, spacing, t, tn, UPPERCASE } from '../i18n';
 import { Body, Busy, Button, PinDots, Rich, s, Segmented, Title } from '../ui';
 import { TermsSheet } from './Terms';
 
@@ -49,7 +49,7 @@ const Small = ({ children, style }: { children: ReactNode; style?: object }) => 
 );
 
 const Caption = ({ children }: { children: ReactNode }) => (
-  <Text style={[s.small, { fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: C.faint }]}>{children}</Text>
+  <Text style={[s.small, { fontSize: 12, letterSpacing: spacing(1), textTransform: UPPERCASE, color: C.faint }]}>{children}</Text>
 );
 
 /** A dot with a hanging indent: the title and the wrapped sub-line both line up after the dot. */

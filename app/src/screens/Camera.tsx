@@ -5,7 +5,7 @@ import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import VaultCore from '../../modules/vault-core';
 import { C, F } from '../theme';
-import { t } from '../i18n';
+import { spacing, t, UPPERCASE } from '../i18n';
 import { Body, Busy, Button, s, Title } from '../ui';
 
 const REC_RED = '#EF5B5B';
@@ -202,7 +202,7 @@ const cs = StyleSheet.create({
   chipText: { fontFamily: F.body, fontSize: 11, letterSpacing: 0.4, color: C.muted },
   switch: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 999, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
   switchItem: { minWidth: 92, height: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-  switchText: { fontFamily: F.bold, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' },
+  switchText: { fontFamily: F.bold, fontSize: 12, letterSpacing: spacing(2), textTransform: UPPERCASE },
   controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 36, paddingTop: 4, paddingBottom: 36 },
   shutter: { width: 78, height: 78, borderRadius: 39, borderWidth: 4, borderColor: C.ivory, alignItems: 'center', justifyContent: 'center' },
   flip: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: '#2A2F3A', backgroundColor: '#10131A', alignItems: 'center', justifyContent: 'center' },
