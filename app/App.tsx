@@ -68,9 +68,12 @@ export default function App() {
       }
       clearTimeout(suspendTimer.current);
       // If the user left the app while a picker or dialog was open, lock now on return.
+      // Released while still in the background (e.g. a transfer connected with the app
+      // hidden): no later change event would lock it, so lock right away. ("inactive" is
+      // only a system sheet over the app, which closes on its own.)
       const since = backgroundedAt.current;
       backgroundedAt.current = null;
-      if (since !== null && Date.now() - since > SUSPEND_GRACE_MS) {
+      if (AppState.currentState === 'background' || (since !== null && Date.now() - since > SUSPEND_GRACE_MS)) {
         VaultCore.lock();
         toLocked();
       }
