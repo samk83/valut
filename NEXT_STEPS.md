@@ -16,6 +16,12 @@
 - 2027년 4월부터 iOS 27.1 SDK 이상 빌드는 iPhone Duo 스크린샷 필수 (준비됨)
 - 1.1 계획 (Owner 결정 2026-11-10): 새 핸드폰으로 금고 옮기기 = 두 기기를 직접 연결해 암호화된 채로 전송 (클라우드·백업 없음). 1.0은 "새 폰으로 옮겨지지 않음" 안내로 출시. SPEC AC-21/41 수정 필요
 
+## 앱 언어팩 (2026-11-10)
+- 원어민 검토 권장: 특히 이용약관 번역(법률 문구). 번역본에는 "영어판이 우선" 문구가 들어 있음
+- 새 언어 추가: app/src/i18n/en.ts를 기준으로 XX.ts 작성 → index.ts PACKS에 추가 → app.json supportedLocales·locales 추가 → `node scripts/check-i18n.js XX`
+- App Store Connect 스토어 문구도 같은 언어로 추가하면 해당 나라 검색 노출에 유리 (docs/APP_STORE_LISTING.md는 현재 영어·한국어)
+- 아랍어·우르두어 같은 오른쪽→왼쪽 언어는 패턴 잠금 좌우 반전 위험 때문에 제외 (supportsRTL false)
+
 ## Android 테스트 앱 (2026-10-30)
 - Owner: APK 설치 후 docs/ANDROID_TEST_APP.md 표의 10개 항목 확인, 결과(특히 설정 화면의 StrongBox/TEE, PIN 확인 시간) 알려주기
 - 남은 개선: 동영상 임시 파일 없는 스트리밍 재생, 패턴 잠금, 한국어 문구, Argon2 비용 실측 후 조정, 녹화 중 바로 암호화

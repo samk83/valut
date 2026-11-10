@@ -5,7 +5,8 @@ import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Switch, Text, Te
 import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
 import { C, F } from '../theme';
-import { Busy, Button, s, TestBanner } from '../ui';
+import { t, tn } from '../i18n';
+import { Busy, Button, Rich, s, TestBanner } from '../ui';
 import { TermsSheet } from './Terms';
 
 const MAX_ATTEMPTS = 3;
@@ -64,36 +65,36 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
 
   const hardware = !!status && HARDWARE_LEVELS.includes(status.hardware);
   const total = items ? items.reduce((n, i) => n + (i.size || 0), 0) : 0;
-  const footer = items ? `${items.length} ${items.length === 1 ? 'item' : 'items'}${total > 0 ? ` · ${sizeLabel(total)}` : ''}` : '';
+  const footer = items ? `${tn('settings.items', items.length)}${total > 0 ? ` · ${sizeLabel(total)}` : ''}` : '';
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={st.page}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Pressable accessibilityLabel="Back" onPress={onBack} style={({ pressed }) => [st.round, pressed && { opacity: 0.7 }]}>
+        <Pressable accessibilityLabel={t('common.back')} onPress={onBack} style={({ pressed }) => [st.round, pressed && { opacity: 0.7 }]}>
           <Ionicons name="chevron-back" size={20} color={C.ivory} />
         </Pressable>
-        <Text style={st.title}>Security</Text>
+        <Text style={st.title}>{t('settings.title')}</Text>
       </View>
       <TestBanner />
 
       <View style={st.sealed}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <Text style={st.sealedTitle}>Vault sealed</Text>
-          {status && <Text style={{ fontFamily: F.body, fontSize: 12, color: hardware ? OK_GREEN : C.faint }}>{hardware ? 'All checks passed' : 'Software key'}</Text>}
+          <Text style={st.sealedTitle}>{t('settings.sealed')}</Text>
+          {status && <Text style={{ fontFamily: F.body, fontSize: 12, color: hardware ? OK_GREEN : C.faint }}>{hardware ? t('settings.allPassed') : t('settings.softwareKey')}</Text>}
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 8 }}>
-          <Check label="Hardware key" ok={hardware} />
-          <Check label="Backups excluded" ok />
-          <Check label="No network access" ok />
-          <Check label="Screenshots blocked" ok />
+          <Check label={t('settings.hardwareKey')} ok={hardware} />
+          <Check label={t('settings.backupsExcluded')} ok />
+          <Check label={t('settings.noNetwork')} ok />
+          <Check label={t('settings.screenshotsBlocked')} ok />
         </View>
       </View>
 
-      <Text style={st.section}>Locking</Text>
+      <Text style={st.section}>{t('settings.locking')}</Text>
       <View style={st.group}>
-        <Row label="Lock when app leaves screen" value="Always" last={method !== 'pattern'} />
+        <Row label={t('settings.lockWhenLeaves')} value={t('settings.always')} last={method !== 'pattern'} />
         {method === 'pattern' && (
-          <Row label="Hide pattern trail" last>
+          <Row label={t('settings.hideTrail')} last>
             <Switch
               value={hideTrail}
               onValueChange={(v) => {
@@ -107,22 +108,22 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
         )}
       </View>
 
-      <Text style={st.section}>Key</Text>
+      <Text style={st.section}>{t('settings.key')}</Text>
       <View style={st.group}>
-        <Row label="Unlock with" value={method === 'pin' ? 'PIN' : method === 'pattern' ? 'Pattern' : 'Unknown'} />
-        <Row label="Attempts left" value={status ? `${status.remainingAttempts} of ${MAX_ATTEMPTS}` : '…'} last />
+        <Row label={t('settings.unlockWith')} value={method === 'pin' ? t('common.pin') : method === 'pattern' ? t('common.pattern') : t('settings.unknown')} />
+        <Row label={t('settings.attemptsLeft')} value={status ? t('settings.attemptsValue', { left: status.remainingAttempts, max: MAX_ATTEMPTS }) : '…'} last />
       </View>
 
       {!!footer && <Text style={st.footer}>{footer}</Text>}
 
       <Pressable accessibilityRole="link" onPress={() => setShowTerms(true)} style={{ paddingVertical: 12 }}>
-        <Text style={[s.small, { color: C.brass, textDecorationLine: 'underline' }]}>Terms of Use</Text>
+        <Text style={[s.small, { color: C.brass, textDecorationLine: 'underline' }]}>{t('common.termsOfUse')}</Text>
       </Pressable>
       <TermsSheet visible={showTerms} onClose={() => setShowTerms(false)} />
 
       <View style={{ flex: 1, minHeight: 16 }} />
       <Pressable accessibilityRole="button" onPress={() => setView('reset')} style={({ pressed }) => [st.destroyBtn, pressed && { opacity: 0.75 }]}>
-        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.danger }}>Destroy entire vault</Text>
+        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.danger }}>{t('settings.destroyAll')}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -133,7 +134,9 @@ let destroying = false;
 function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; onCancel: () => void; onDestroyed: () => void }) {
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
-  const ready = confirm.trim().toUpperCase() === 'DESTROY';
+  // The localized word or the English one; case and surrounding spaces do not matter.
+  const typed = confirm.trim().toLocaleUpperCase();
+  const ready = typed === 'DESTROY' || typed === t('reset.word').toLocaleUpperCase();
 
   const destroy = async () => {
     // Ignore repeat taps and Back while the keys are being destroyed.
@@ -145,26 +148,25 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
       onDestroyed();
     } catch {
       setBusy(false);
-      Alert.alert('Reset failed', 'The vault could not be destroyed. Try again.');
+      Alert.alert(t('reset.failed'), t('reset.failedBody'));
     } finally {
       destroying = false;
     }
   };
 
-  const all = count === null ? 'all items' : count === 1 ? 'the 1 item' : `all ${count} items`;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={[st.page, { paddingTop: 64, gap: 18 }]} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 8 }}>
-          <Text style={[s.label, { color: C.danger }]}>Destroy vault</Text>
-          <Text style={[st.title, { fontSize: 34, lineHeight: 40 }]}>Erase everything?</Text>
+          <Text style={[s.label, { color: C.danger }]}>{t('reset.label')}</Text>
+          <Text style={[st.title, { fontSize: 34, lineHeight: 40 }]}>{t('reset.title')}</Text>
           <Text style={st.body}>
-            {`The master key is destroyed first, so ${all} become${count === 1 ? 's' : ''} unreadable at once. Then the encrypted files are cleared and a new, empty vault is created.`}
+            {count === null ? t('reset.bodyAll') : tn('reset.bodyCount', count)}
           </Text>
         </View>
         <View style={st.warn}>
-          {['This cannot be undone, by you or by us.', 'Originals you already removed from Photos will not come back.'].map((p) => (
+          {[t('reset.cannotUndo'), t('reset.originals')].map((p) => (
             <View key={p} style={{ flexDirection: 'row', gap: 10 }}>
               <Text style={{ color: C.danger, fontSize: 13, lineHeight: 20 }}>—</Text>
               <Text style={{ flex: 1, fontFamily: F.body, fontSize: 13, lineHeight: 20, color: '#E8D2C4' }}>{p}</Text>
@@ -172,27 +174,25 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
           ))}
         </View>
         <View style={{ gap: 8 }}>
-          <Text style={[s.small, { fontSize: 12 }]}>
-            Type <Text style={{ color: C.ivory, fontFamily: F.bold, letterSpacing: 1 }}>DESTROY</Text> to continue
-          </Text>
+          <Rich text={t('reset.type', { word: t('reset.word') })} style={[s.small, { fontSize: 12 }]} strongStyle={{ color: C.ivory, fontFamily: F.bold, letterSpacing: 1 }} />
           <TextInput
             value={confirm}
             onChangeText={setConfirm}
             autoCapitalize="characters"
             autoCorrect={false}
             autoComplete="off"
-            placeholder="DESTROY"
+            placeholder={t('reset.word')}
             placeholderTextColor={C.outline}
             style={st.input}
           />
         </View>
         <View style={{ flex: 1, minHeight: 12 }} />
         <View style={{ gap: 12 }}>
-          <Button label="Destroy vault" kind="danger" disabled={!ready} onPress={destroy} />
-          <Button label="Cancel" kind="ghost" onPress={onCancel} style={{ height: 48 }} />
+          <Button label={t('reset.destroy')} kind="danger" disabled={!ready} onPress={destroy} />
+          <Button label={t('common.cancel')} kind="ghost" onPress={onCancel} style={{ height: 48 }} />
         </View>
       </ScrollView>
-      {busy && <Busy label="Destroying…" />}
+      {busy && <Busy label={t('reset.destroying')} />}
     </View>
   );
 }

@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 
 
 import VaultCore from '../modules/vault-core';
 import { C, F } from './theme';
+import { rich, t } from './i18n';
 
 export function Title({ children }: { children: ReactNode }) {
   return <Text style={s.title}>{children}</Text>;
@@ -100,7 +101,7 @@ export function PinDots({ count }: { count: number }) {
   return (
     <View style={s.dots}>
       {count === 0 ? (
-        <Text style={[s.body, { color: C.muted }]}>Enter PIN</Text>
+        <Text style={[s.body, { color: C.muted }]}>{t('common.enterPin')}</Text>
       ) : (
         Array.from({ length: count }).map((_, i) => <View key={i} style={s.dot} />)
       )}
@@ -129,7 +130,7 @@ export function PinPad({
         <Pressable
           key={k}
           disabled={disabled || (k === 'ok' && value.length < 4)}
-          accessibilityLabel={k === 'del' ? 'Delete' : k === 'ok' ? 'Confirm' : k}
+          accessibilityLabel={k === 'del' ? t('common.delete') : k === 'ok' ? t('common.confirm') : k}
           onPress={() => {
             if (k === 'del') onChange(value.slice(0, -1));
             else if (k === 'ok') onSubmit();
@@ -186,9 +187,26 @@ export function TestBanner() {
     <View style={s.testBanner}>
       <Text style={[s.small, { color: '#F3B7AA' }]}>
         {VaultCore.isDemo
-          ? 'PREVIEW — nothing is encrypted here. Screens only; everything is forgotten when the app closes.'
-          : 'TEST BUILD — do not store real photos. 3 wrong PINs permanently erase everything.'}
+          ? t('banner.preview')
+          : t('banner.test')}
       </Text>
     </View>
+  );
+}
+
+/** Translated text with **emphasis** markers: emphasised parts get [strongStyle] and [onStrongPress]. */
+export function Rich({ text, style, strongStyle, onStrongPress, strongRole }: { text: string; style?: object; strongStyle?: object; onStrongPress?: () => void; strongRole?: 'link' }) {
+  return (
+    <Text style={style}>
+      {rich(text).map((p, i) =>
+        p.strong ? (
+          <Text key={i} style={strongStyle} onPress={onStrongPress} accessibilityRole={strongRole}>
+            {p.text}
+          </Text>
+        ) : (
+          p.text
+        ),
+      )}
+    </Text>
   );
 }

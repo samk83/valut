@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Private Vision Vault",
+    "NSCameraUsageDescription": "Private Vision Vault は、暗号化された保管庫に直接保存される写真とビデオを撮影するためにカメラを使用します。",
+    "NSMicrophoneUsageDescription": "Private Vision Vault は、保管庫カメラで撮影するビデオの音声を録音するためにマイクを使用します。",
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault では、暗号化された保管庫に移す写真とビデオを選択できます。オリジナルの削除を指示した場合は、まずそれぞれが保管庫のコピーと同一であることを確認します。"
+  }
+}

@@ -1,6 +1,13 @@
 # CHANGELOG
 
 ## [Unreleased]
+### Added (언어팩, 2026-11-10)
+- 앱 화면 문구를 언어팩으로 분리(app/src/i18n). 기기 언어에 맞춰 자동 선택, 없는 언어는 영어
+- 11개 언어: 영어, 중국어(간체), 힌디어, 인도네시아어, 포르투갈어(브라질), 러시아어, 일본어, 스페인어, 독일어, 터키어, 한국어 (스마트폰 사용자 상위 10개국 기준 + 한국어)
+- 아이폰 권한 안내문(카메라·마이크·사진) 번역(app/locales), 이용약관 번역(영어판 우선 문구 포함)
+- 금고 전체 삭제 확인 단어: 각 언어 단어 또는 영어 DESTROY 둘 다 허용
+- scripts/check-i18n.js: 빠진 문구·자리표시자·복수형 검사
+- 홈 화면 상단 이름을 PrivateVault → Private Vision Vault
 ### Added (iPhone·iPad, 2026-11-10)
 - app/modules/vault-core/ios: 보안 코어 Swift 이식 (Argon2id·AES-256-GCM 조각 암호화·3회 오류 키 파기·이중 저장·촬영본 대기함). 파일 형식·규칙은 Android와 동일
 - Argon2id를 Swift로 직접 구현: RFC 9106 시험값, Android(BouncyCastle) 결과와 일치 확인

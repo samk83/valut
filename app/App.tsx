@@ -17,6 +17,7 @@ import { Home } from './src/screens/Home';
 import { Settings } from './src/screens/Settings';
 import { PhotoViewer, VideoPlayer } from './src/screens/Viewer';
 import { C } from './src/theme';
+import { t } from './src/i18n';
 import { Busy, READABLE_WIDTH } from './src/ui';
 
 type Route =
@@ -136,7 +137,7 @@ export default function App() {
   let screen: React.ReactNode;
   switch (route.name) {
     case 'loading':
-      screen = <Busy label="Opening…" />;
+      screen = <Busy label={t('common.opening')} />;
       break;
     case 'welcome':
       screen = <Welcome onNext={() => setRoute({ name: 'create' })} />;
