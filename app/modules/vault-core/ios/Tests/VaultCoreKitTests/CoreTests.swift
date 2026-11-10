@@ -343,3 +343,36 @@ final class VaultTests: XCTestCase {
     XCTAssertEqual(try Vault.decodeMeta(Vault.encodeMeta(m)), m)
   }
 }
+
+final class ReviewFixTests: XCTestCase {
+  func testMemoryNeededFollowsStoredHeaderAndCapIs256MiB() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("vault-mem-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let chip = FakeHardwareKey()
+    let v = try Vault(root: root, hardwareKey: chip, params: try Argon2Params(memoryKiB: 64, iterations: 1, parallelism: 1))
+    XCTAssertEqual(v.memoryNeededForUnlockKiB(), 64)
+    try v.create(pin: Array("8024".utf8))
+    // A header asking for 512 MiB is refused as invalid (not counted, nothing allocated).
+    XCTAssertThrowsError(try Argon2Params(memoryKiB: 512 * 1024, iterations: 1, parallelism: 1))
+    for name in ["vault.key", "vault.key.bak"] {
+      let url = root.appendingPathComponent(name)
+      var b = try SecureFiles.readBytes(url)
+      let m = UInt32(512 * 1024)
+      b[5] = UInt8(m >> 24 & 0xFF); b[6] = UInt8(m >> 16 & 0xFF); b[7] = UInt8(m >> 8 & 0xFF); b[8] = UInt8(m & 0xFF)
+      try Data(b).write(to: url)
+    }
+    v.lock()
+    XCTAssertThrowsError(try v.unlock(pin: Array("8024".utf8))) { XCTAssertEqual($0 as? VaultError, .keysUnavailable) }
+    XCTAssertEqual(v.remainingAttempts(), 3)
+  }
+
+  func testLargeCaptureCopiedInPieces() throws {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent("copy-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: dir) }
+    try SecureFiles.mkdirs(dir)
+    let data = Primitives.randomBytes(3 * 1024 * 1024 + 17)
+    try Data(data).write(to: dir.appendingPathComponent("a"))
+    try SecureFiles.copySynced(from: dir.appendingPathComponent("a"), to: dir.appendingPathComponent("b"))
+    XCTAssertEqual(try SecureFiles.readBytes(dir.appendingPathComponent("b")), data)
+  }
+}

@@ -13,8 +13,18 @@ import UniformTypeIdentifiers
 public final class VaultCoreModule: Module {
   private let queue = DispatchQueue(label: "com.jellydock.privatevault.vaultcore", qos: .userInitiated)
   private let hardwareKey = IOSHardwareKey()
-  private var vault: Vault?
-  private var inbox: PendingImports?
+  private let stateLock = NSLock()
+  private var _vault: Vault?
+  private var _inbox: PendingImports?
+  // Read from the JS thread (lock) and the work queue, so access is guarded.
+  private var vault: Vault? {
+    get { stateLock.lock(); defer { stateLock.unlock() }; return _vault }
+    set { stateLock.lock(); _vault = newValue; stateLock.unlock() }
+  }
+  private var inbox: PendingImports? {
+    get { stateLock.lock(); defer { stateLock.unlock() }; return _inbox }
+    set { stateLock.lock(); _inbox = newValue; stateLock.unlock() }
+  }
   private var playbackTicket = 0
   private let ticketLock = NSLock()
 
@@ -76,7 +86,7 @@ public final class VaultCoreModule: Module {
       let v = try self.requireVault()
       return self.withPin(pin) { bytes in
         // Check memory before the core records the attempt (SPEC AC-50g).
-        if !self.enoughMemoryForPinCheck() { return ["ok": false, "error": "OUT_OF_MEMORY"] }
+        if !self.enoughMemoryForPinCheck(v) { return ["ok": false, "error": "OUT_OF_MEMORY"] }
         do {
           try v.unlock(pin: bytes)
           return ["ok": true]
@@ -131,7 +141,7 @@ public final class VaultCoreModule: Module {
     /// decrypted vault copy. Only an exact match may be deleted (SPEC AC-50e).
     AsyncFunction("matchesOriginal") { (id: String, assetId: String, kind: String) -> Bool in
       let v = try self.requireVault()
-      guard let itemKind = ItemKind(rawValue: kind), let resource = self.originalResource(assetId, itemKind) else { return false }
+      guard let itemKind = ItemKind(rawValue: kind), let resource = self.originalResource(assetId, itemKind, requireSingle: true) else { return false }
       guard let originalSha = self.sha256(of: resource) else { return false }
       let sink = DigestSink()
       try v.read(id: id, output: sink)
@@ -360,42 +370,47 @@ public final class VaultCoreModule: Module {
     }
   }
 
-  private func enoughMemoryForPinCheck() -> Bool {
-    let needed = Argon2Params.phone.memoryKiB * 1024 * 3 / 2
-    return os_proc_available_memory() >= needed
+  /// Checked BEFORE the attempt is counted: an iPhone app that runs out of memory is killed
+  /// with the attempt already used. Uses the largest setting any stored envelope asks for.
+  private func enoughMemoryForPinCheck(_ v: Vault) -> Bool {
+    let available = os_proc_available_memory()
+    // 0 means "no limit known" (simulator, iPad app on a Mac): nothing to check.
+    if available == 0 { return true }
+    return available >= v.memoryNeededForUnlockKiB() * 1024 * 3 / 2
   }
 
   // MARK: - Photos originals
 
-  /// The resource that is the asset as the user sees it (edited version first).
-  private func originalResource(_ assetId: String, _ kind: ItemKind) -> PHAssetResource? {
+  /// The asset's original photo or video file. With [requireSingle] (before deleting it),
+  /// only assets made of that one file qualify: a Live Photo's video, an edit or a RAW pair
+  /// would be deleted along with it but is not in the vault, so such assets are kept.
+  private func originalResource(_ assetId: String, _ kind: ItemKind, requireSingle: Bool = false) -> PHAssetResource? {
     let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
     guard status == .authorized || status == .limited else { return nil }
     guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else { return nil }
     let resources = PHAssetResource.assetResources(for: asset)
-    let preferred: [PHAssetResourceType] = kind == .VIDEO ? [.fullSizeVideo, .video] : [.fullSizePhoto, .photo]
-    for type in preferred {
-      if let r = resources.first(where: { $0.type == type }) { return r }
-    }
-    return nil
+    if requireSingle && resources.count != 1 { return nil }
+    return resources.first(where: { $0.type == (kind == .VIDEO ? .video : .photo) })
   }
 
   private func writeResource(_ resource: PHAssetResource, to url: URL) throws {
     let options = PHAssetResourceRequestOptions()
-    options.isNetworkAccessAllowed = true // originals kept only in iCloud Photos
+    // Offline app: originals stored only in iCloud are not downloaded; the picker copy is
+    // imported instead (and that original is then kept, not deleted).
+    options.isNetworkAccessAllowed = false
     let done = DispatchSemaphore(value: 0)
     var failure: Error?
     PHAssetResourceManager.default().writeData(for: resource, toFile: url, options: options) { error in
       failure = error
       done.signal()
     }
-    done.wait()
+    if done.wait(timeout: .now() + 120) == .timedOut { throw Exception(name: "E_NO_ASSET", description: "Photos did not answer") }
     if let e = failure { throw Exception(name: "E_NO_ASSET", description: e.localizedDescription) }
   }
 
   private func sha256(of resource: PHAssetResource) -> [UInt8]? {
     let options = PHAssetResourceRequestOptions()
-    options.isNetworkAccessAllowed = true
+    options.isNetworkAccessAllowed = false
     let hasher = Sha256()
     let done = DispatchSemaphore(value: 0)
     var ok = false
@@ -405,7 +420,8 @@ public final class VaultCoreModule: Module {
       ok = error == nil
       done.signal()
     })
-    done.wait()
+    // Never block the vault queue for long; a timeout just keeps the original.
+    if done.wait(timeout: .now() + 120) == .timedOut { return nil }
     return ok ? hasher.finish() : nil
   }
 

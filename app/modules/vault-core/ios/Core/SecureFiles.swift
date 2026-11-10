@@ -72,6 +72,26 @@ enum SecureFiles {
     guard fsync(fd) == 0 else { throw VaultError.io("fsync errno \(errno)") }
   }
 
+  /// Copies a file in 1 MiB pieces (a long video never has to fit in memory) and flushes it.
+  static func copySynced(from source: URL, to target: URL) throws {
+    let src = try FileSource(source)
+    let sink = try FileSink(target)
+    var buffer = [UInt8](repeating: 0, count: 1024 * 1024)
+    while true {
+      let n = try src.read(into: &buffer, offset: 0, max: buffer.count)
+      if n <= 0 { break }
+      try writeAll(sink.fd, buffer, count: n)
+    }
+    try sink.sync()
+  }
+
+  /// iPhone/iPad: strongest data protection (file unreadable while the device is locked).
+  static func protectComplete(_ url: URL) {
+    #if os(iOS)
+    try? FileManager.default.setAttributes([.protectionKey: FileProtectionType.complete], ofItemAtPath: url.path)
+    #endif
+  }
+
   /// Moves [source] to [target] atomically and makes the rename survive a power cut.
   static func moveAtomic(_ source: URL, _ target: URL) throws {
     guard rename(source.path, target.path) == 0 else { throw VaultError.io("move errno \(errno)") }

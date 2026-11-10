@@ -46,6 +46,13 @@ final class VaultKeyManager {
 
   func remainingAttempts() -> Int { max(VaultKeyManager.maxAttempts - counter.read(), 0) }
 
+  /// Largest Argon2 memory any stored envelope copy asks for, so the app can check free
+  /// memory BEFORE an attempt is counted (running out of memory kills an iPhone app).
+  func memoryNeededKiB() -> Int {
+    let stored = try? exclusive { readEnvelopeCopies().compactMap { try? decodeHeader($0).0.memoryKiB }.max() }
+    return max((stored ?? nil) ?? params.memoryKiB, params.memoryKiB)
+  }
+
   /// Creates a new vault and returns its master key. The caller must wipe it when done.
   func create(pin: [UInt8]) throws -> [UInt8] {
     try exclusive {
@@ -98,7 +105,7 @@ final class VaultKeyManager {
   /// on iPhone, so leftovers are deleted here (SPEC AC-20).
   func wipeLeftoversForFreshInstall() throws {
     try exclusive {
-      if hardwareKey.exists() { try hardwareKey.destroy() }
+      try hardwareKey.destroy()
       SecureFiles.shred(envelopeFile)
       SecureFiles.shred(backupFile)
       SecureFiles.shred(checkFile)
@@ -179,7 +186,8 @@ final class VaultKeyManager {
   private func destroyLocked() throws {
     // The count is set first so an interruption still leaves the vault refusing entry.
     try counter.write(VaultKeyManager.maxAttempts)
-    if hardwareKey.exists() { try hardwareKey.destroy() }
+    // Always asked to delete: "not found" may also mean "Keychain unreadable right now".
+    try hardwareKey.destroy()
     SecureFiles.shred(envelopeFile)
     SecureFiles.shred(backupFile)
     SecureFiles.shred(checkFile)

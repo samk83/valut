@@ -190,7 +190,9 @@ struct Argon2Params: Equatable {
   let iterations: Int
   let parallelism: Int
 
-  static let maxMemoryKiB = 1024 * 1024
+  // Lower than Android's 1 GiB: an iPhone app is killed (not given an error) when it runs out
+  // of memory, so an edited header must not be able to ask for more than a phone can give.
+  static let maxMemoryKiB = 256 * 1024
   static let maxIterations = 16
 
   init(memoryKiB: Int, iterations: Int, parallelism: Int) throws {

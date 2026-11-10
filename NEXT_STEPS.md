@@ -7,6 +7,14 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## iPhone·iPad 출시 (2026-11-10)
+- 출시 가이드: https://claude.ai/artifact/Y2XDe2fSG5gnmMCyQgZrcU (App Store Connect 앱 등록 완료, 앱 번호 6832844680)
+- Owner: PC에서 `cd valut\app` → `npm install` → `npx eas-cli build --platform ios --profile production` (Apple 로그인 1회) → `npx eas-cli submit --platform ios --latest` → TestFlight로 아이폰·아이패드 확인
+- 실기기 확인: Secure Enclave 표시, PIN 확인 시간(Argon2 64 MiB), 사진 앱 원본 가져오기·삭제, 카메라, 아이패드 회전·분할 화면
+- 정식 심사 제출 전 결정: 화면 상단 "TEST BUILD" 경고 문구 제거 여부, 외부 보안 감사(Phase 4) 전 출시 여부 (Owner 결정)
+- 개인정보처리방침 URL: 소개 웹사이트(PR #3) 공개 필요 (GitHub Pages, Owner 승인)
+- 2027년 4월부터 iOS 27.1 SDK 이상 빌드는 iPhone Duo 스크린샷 필수 (준비됨)
+
 ## Android 테스트 앱 (2026-10-30)
 - Owner: APK 설치 후 docs/ANDROID_TEST_APP.md 표의 10개 항목 확인, 결과(특히 설정 화면의 StrongBox/TEE, PIN 확인 시간) 알려주기
 - 남은 개선: 동영상 임시 파일 없는 스트리밍 재생, 패턴 잠금, 한국어 문구, Argon2 비용 실측 후 조정, 녹화 중 바로 암호화

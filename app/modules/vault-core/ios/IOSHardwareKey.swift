@@ -26,7 +26,23 @@ final class IOSHardwareKey: HardwareKey {
   func exists() -> Bool {
     lock.lock()
     defer { lock.unlock() }
+    // A Keychain that cannot be read right now (device locked) is NOT a missing key: saying
+    // "missing" could let a destroyed-vault path skip the delete. Only "not found" counts.
+    if [Self.peerAccount, Self.enclaveAccount, Self.softwareAccount].contains(where: { status($0) == .unreadable }) { return true }
     return loadPeer() != nil && (load(Self.enclaveAccount) != nil || load(Self.softwareAccount) != nil)
+  }
+
+  private enum ItemStatus { case present, missing, unreadable }
+
+  private func status(_ account: String) -> ItemStatus {
+    var q = query(account)
+    q[kSecReturnData as String] = false
+    q[kSecMatchLimit as String] = kSecMatchLimitOne
+    switch SecItemCopyMatching(q as CFDictionary, nil) {
+    case errSecSuccess: return .present
+    case errSecItemNotFound: return .missing
+    default: return .unreadable
+    }
   }
 
   /// "SECURE_ENCLAVE", "SOFTWARE" or "NONE" for the key that exists now.
@@ -78,7 +94,9 @@ final class IOSHardwareKey: HardwareKey {
     lock.lock()
     defer { lock.unlock() }
     deleteAll()
-    if loadPeer() != nil || load(Self.enclaveAccount) != nil || load(Self.softwareAccount) != nil {
+    // Must be gone for sure; anything else (still there, or unreadable) is an error so the
+    // destruction is retried on the next unlock.
+    if [Self.peerAccount, Self.enclaveAccount, Self.softwareAccount].contains(where: { status($0) != .missing }) {
       throw VaultError.io("Keychain delete failed")
     }
   }

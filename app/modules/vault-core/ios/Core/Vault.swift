@@ -66,6 +66,8 @@ final class Vault {
 
   func remainingAttempts() -> Int { keys.remainingAttempts() }
 
+  func memoryNeededForUnlockKiB() -> Int { keys.memoryNeededKiB() }
+
   func wipeLeftoversForFreshInstall() throws {
     lock()
     try keys.wipeLeftoversForFreshInstall()
@@ -381,10 +383,13 @@ final class PendingImports {
       // Different volumes: copy durably to a temp name, publish with a rename, then remove.
       let tmp = dir.appendingPathComponent(target.lastPathComponent + ".tmp")
       defer { SecureFiles.deleteTree(tmp) }
-      try SecureFiles.writeSynced(tmp, try SecureFiles.readBytes(source))
+      try SecureFiles.copySynced(from: source, to: tmp)
       try SecureFiles.moveAtomic(tmp, target)
       SecureFiles.deleteTree(source)
     }
+    // A rename keeps the camera cache's weaker protection; captures wait here in plain
+    // form, so they get the strongest class (unreadable while the phone is locked).
+    SecureFiles.protectComplete(target)
     return target
   }
 
