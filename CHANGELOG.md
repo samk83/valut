@@ -64,6 +64,12 @@
 ### Changed
 - 두 envelope가 모두 읽을 수 없는 형태(저장 장치 손상)면 오답으로 세지 않고 KeysUnavailable 처리
 ### Added
+- website/: 1.1 내용 반영 — 새 핸드폰으로 옮기기(같은 Wi-Fi 직접 연결), 네트워크 권한 설명, 100개 무료 + 평생 프리미엄 가격, 11개 언어, iPhone·iPad 먼저 출시. 개인정보처리방침에 로컬 네트워크 권한·구매·옮기기 항목 추가 (영어·한국어)
+- website/: 휴대폰 화면 장면을 앱 최종 시안(19개 화면)에 맞춰 갱신 (Welcome, 잠금 해제, 가져오기 진행, 홈 사진·영상 탭, 금고 카메라, 금고 파기)
+- website/: 영어를 기본 언어로 전환 (index.html, privacy.html), 한국어 페이지는 website/ko/에 보관 (noindex)
+- website/: PrivateVault 소개 웹사이트 (정적 HTML·CSS·JS, Obsidian & Brass 테마, 스크롤 연동 앱 화면 6단계, 보안 기술·한계·기술 사양, 출시 예정 스토어 버튼, 소개 영상 자리)
+- website/privacy.html: 개인정보처리방침 (수집 없음, 권한 설명, 파기, 웹사이트 접속 기록)
+- website/assets/fonts, tools/fetch_fonts.py: 글꼴 직접 호스팅으로 웹사이트 외부 요청 0건
 - iPhone Expo Go 미리보기: EAS 프로젝트 연결(app.json owner·projectId·updates.url, runtimeVersion `exposdk:58.0.0`), EAS Update `preview` 채널·브랜치에 iOS 게시. docs/IOS_PREVIEW.md 한국어 안내. 미리보기 전용(가짜 데이터, 암호화 없음)
 - app/: Android 테스트 앱 (Expo SDK 58). PIN 설정·잠금 해제(3회 오류 파기)·최종 시도·파기 화면, 금고 홈, 앱 내 카메라(사진·동영상, 갤러리 저장 안 함), 갤러리 가져오기(원본 삭제 선택), 사진·동영상 보기, 보안 설정·초기화. 화면 캡처 차단, 백그라운드 즉시 잠금, 인터넷 권한 없음, 백업 제외
 - app/modules/vault-core: core/ 보안 코어를 그대로 컴파일하는 Expo 네이티브 모듈, Android Keystore HMAC 키(StrongBox 우선, 없으면 TEE)
