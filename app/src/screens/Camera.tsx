@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import VaultCore from '../../modules/vault-core';
+import { freeSlots, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { spacing, t, UPPERCASE } from '../i18n';
 import { Body, Busy, Button, s, Title } from '../ui';
@@ -13,7 +14,16 @@ const REC_RED = '#EF5B5B';
 const clock = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
 
 /** Captures straight into the vault. Nothing is saved to the gallery and no location is added. */
-export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boolean) => void; suspendAutoLock: (on: boolean) => void }) {
+export function VaultCamera({
+  onClose,
+  suspendAutoLock,
+  onLimit,
+}: {
+  onClose: (saved: boolean) => void;
+  suspendAutoLock: (on: boolean) => void;
+  /** Free plan full: open Premium instead of taking another picture. */
+  onLimit: (itemCount: number) => void;
+}) {
   const ref = useRef<CameraView>(null);
   const [cam, requestCam] = useCameraPermissions();
   const [mic, requestMic] = useMicrophonePermissions();
@@ -23,6 +33,24 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
   const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(0);
+  const plan = usePremium();
+  const [startCount, setStartCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Unknown count (list failed) blocks captures rather than allowing past the free limit.
+    VaultCore.list()
+      .then((l) => setStartCount(l.length))
+      .catch(() => setStartCount(null));
+  }, []);
+
+  /** False (and Premium opens) when the free plan has no room for one more capture. */
+  const hasRoom = () => {
+    if (startCount === null) return false; // Still counting; the shutter waits a moment.
+    const count = startCount + saved;
+    if (freeSlots(count, plan.premium) > 0) return true;
+    onLimit(count);
+    return false;
+  };
 
   useEffect(() => {
     if (!recording) return;
@@ -69,6 +97,8 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
 
   const shutter = async () => {
     if (!ref.current || busy) return;
+    // Stopping a recording is always allowed; starting a new capture needs room.
+    if (!(mode === 'video' && recording) && !hasRoom()) return;
     if (mode === 'picture') {
       let pic;
       try {

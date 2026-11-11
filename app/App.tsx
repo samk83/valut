@@ -14,7 +14,9 @@ import VaultCore, { VaultItem } from './modules/vault-core';
 import { CreatePin, Destroyed, Unlock, Welcome } from './src/screens/Auth';
 import { VaultCamera } from './src/screens/Camera';
 import { Home } from './src/screens/Home';
+import { Premium } from './src/screens/Premium';
 import { Settings } from './src/screens/Settings';
+import { Transfer } from './src/screens/Transfer';
 import { PhotoViewer, VideoPlayer } from './src/screens/Viewer';
 import { C } from './src/theme';
 import { t } from './src/i18n';
@@ -29,9 +31,11 @@ type Route =
   | { name: 'home' }
   | { name: 'camera' }
   | { name: 'settings' }
+  | { name: 'premium'; reason?: 'limit'; itemCount?: number; back: 'home' | 'settings' }
+  | { name: 'transfer' }
   | { name: 'view'; item: VaultItem };
 
-const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'view'];
+const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'premium', 'transfer', 'view'];
 // Screens that use the whole width on an iPad; the rest are centred in a readable column.
 const FULL_WIDTH: Route['name'][] = ['home', 'camera', 'view'];
 // A system picker or dialog may keep the app in the background this long before it locks.
@@ -65,9 +69,12 @@ export default function App() {
       }
       clearTimeout(suspendTimer.current);
       // If the user left the app while a picker or dialog was open, lock now on return.
+      // Released while still in the background (e.g. a transfer connected with the app
+      // hidden): no later change event would lock it, so lock right away. ("inactive" is
+      // only a system sheet over the app, which closes on its own.)
       const since = backgroundedAt.current;
       backgroundedAt.current = null;
-      if (since !== null && Date.now() - since > SUSPEND_GRACE_MS) {
+      if (AppState.currentState === 'background' || (since !== null && Date.now() - since > SUSPEND_GRACE_MS)) {
         VaultCore.lock();
         toLocked();
       }
@@ -114,6 +121,13 @@ export default function App() {
         setRoute({ name: 'home' });
         return true;
       }
+      if (r === 'premium') {
+        const cur = routeRef.current;
+        setRoute(cur.name === 'premium' && cur.back === 'settings' ? { name: 'settings' } : { name: 'home' });
+        return true;
+      }
+      // The transfer screen handles Back itself (it may need to stop a transfer first).
+      if (r === 'transfer') return true;
       return false;
     });
     return () => sub.remove();
@@ -159,6 +173,7 @@ export default function App() {
           onOpen={(item) => setRoute({ name: 'view', item })}
           onCamera={() => setRoute({ name: 'camera' })}
           onSettings={() => setRoute({ name: 'settings' })}
+          onPremium={(reason, itemCount) => setRoute({ name: 'premium', reason, itemCount, back: 'home' })}
           onLock={() => {
             VaultCore.lock();
             toLocked();
@@ -167,10 +182,33 @@ export default function App() {
       );
       break;
     case 'camera':
-      screen = <VaultCamera suspendAutoLock={suspendAutoLock} onClose={home} />;
+      screen = <VaultCamera suspendAutoLock={suspendAutoLock} onClose={home} onLimit={(itemCount) => setRoute({ name: 'premium', reason: 'limit', itemCount, back: 'home' })} />;
       break;
     case 'settings':
-      screen = <Settings onBack={home} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'reset' })} />;
+      screen = (
+        <Settings
+          onBack={home}
+          onDestroyed={() => setRoute({ name: 'destroyed', cause: 'reset' })}
+          onPremium={() => setRoute({ name: 'premium', back: 'settings' })}
+          onTransfer={() => setRoute({ name: 'transfer' })}
+          suspendAutoLock={suspendAutoLock}
+        />
+      );
+      break;
+    case 'premium': {
+      const back = route.back;
+      screen = (
+        <Premium
+          reason={route.reason}
+          itemCount={route.itemCount}
+          suspendAutoLock={suspendAutoLock}
+          onClose={() => (back === 'settings' ? setRoute({ name: 'settings' }) : home())}
+        />
+      );
+      break;
+    }
+    case 'transfer':
+      screen = <Transfer suspendAutoLock={suspendAutoLock} onClose={home} />;
       break;
     case 'view':
       screen =

@@ -124,7 +124,9 @@ class Vault(
         meta: ItemMeta,
         thumbnail: ByteArray? = null,
         expectedSha256: ByteArray? = null,
+        receivedFrom: String? = null,
     ): ImportResult {
+        val sourceBytes = receivedFrom?.let { parseId(it) }
         val mk = requireUnlocked()
         val idBytes = Aead.randomBytes(16)
         val id = idBytes.joinToString("") { "%02x".format(it) }
@@ -151,6 +153,9 @@ class Vault(
             SecureFiles.writeAtomic(File(stage, "meta"), sealedMeta)
             SecureFiles.writeAtomic(File(stage, "meta.bak"), sealedMeta)
             thumbnail?.let { SecureFiles.writeAtomic(File(stage, "thumb"), Aead.seal(fileKey, it, aad("thumb", idBytes))) }
+            // Where a transferred item came from, published together with the item itself,
+            // so "already received" can never disagree with what is really here.
+            sourceBytes?.let { SecureFiles.writeAtomic(File(stage, SOURCE), Aead.seal(fileKey, it, aad(SOURCE, idBytes))) }
             SecureFiles.writeAtomic(File(stage, "key.bak"), sealedKey)
             // The wrapped key is written last: an item without it can never be opened.
             SecureFiles.writeAtomic(File(stage, "key"), sealedKey)
@@ -217,6 +222,25 @@ class Vault(
             ChunkedCipher.Reader(File(itemDir(id), "data"), fk, idBytes).use { it.readChunk(index) }
         }
 
+    /**
+     * Ids (on the old phone) of items this vault received by transfer, so an interrupted
+     * transfer can be run again without duplicates. Read from each item's sealed "source"
+     * file. An item the user deleted here is no longer counted and would be sent again.
+     */
+    fun receivedSources(): Set<String> {
+        requireUnlocked().wipe()
+        val dirs = items.listFiles { f -> isLiveItem(f) && File(f, SOURCE).exists() } ?: return emptySet()
+        return dirs.mapNotNull { dir ->
+            try {
+                withFileKey(dir.name) { fk, idBytes -> Aead.open(fk, File(dir, SOURCE).readBytes(), aad(SOURCE, idBytes)).toHex() }
+            } catch (e: IntegrityException) {
+                null // Worst case that item is sent again; nothing is lost.
+            } catch (e: IOException) {
+                null
+            }
+        }.toSet()
+    }
+
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
     fun delete(id: String) {
         requireUnlocked().wipe()
@@ -230,6 +254,7 @@ class Vault(
         SecureFiles.shred(File(dir, "meta"))
         SecureFiles.shred(File(dir, "meta.bak"))
         SecureFiles.shred(File(dir, "thumb"))
+        SecureFiles.shred(File(dir, SOURCE))
         SecureFiles.deleteTree(dir)
     }
 
@@ -385,7 +410,10 @@ class Vault(
         ) = Unit
     }
 
+    private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
     private companion object {
         const val DELETED = "deleted"
+        const val SOURCE = "source"
     }
 }

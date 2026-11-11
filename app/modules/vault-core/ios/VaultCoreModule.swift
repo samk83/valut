@@ -26,6 +26,8 @@ public final class VaultCoreModule: Module {
     set { stateLock.lock(); _inbox = newValue; stateLock.unlock() }
   }
   private var playbackTicket = 0
+  // Set in OnCreate, before any function can be called.
+  private var transfer: TransferBridge!
   private let ticketLock = NSLock()
 
   private static let thumbPx: CGFloat = 360
@@ -42,7 +44,12 @@ public final class VaultCoreModule: Module {
   public func definition() -> ModuleDefinition {
     Name("VaultCore")
 
+    Events("onTransfer")
+
     OnCreate {
+      self.transfer = TransferBridge(vault: { [unowned self] in try self.requireVault() }) { [weak self] event in
+        self?.sendEvent("onTransfer", event)
+      }
       self.queue.sync { self.setUp() }
     }
 
@@ -110,6 +117,7 @@ public final class VaultCoreModule: Module {
 
     // Synchronous on purpose: the key is dropped the moment the app leaves the screen.
     Function("lock") {
+      self.transfer.cancel()
       self.vault?.lock()
       self.clearPlayback()
       self.queue.async { self.clearPickerCaches() }
@@ -236,11 +244,33 @@ public final class VaultCoreModule: Module {
 
     Function("closeVideo") { self.clearPlayback() }
 
+    // 1.1 new-phone transfer. Same functions and events as the Android module.
+    AsyncFunction("transferReceive") { () -> String in
+      do {
+        return try self.transfer.startReceiving()
+      } catch let f as TransferFailure {
+        let code = f.error == .locked ? "E_LOCKED" : "E_NO_WIFI"
+        throw Exception(name: code, description: "\(code): \(f.message)")
+      }
+    }.runOnQueue(queue)
+
+    AsyncFunction("transferSend") { (code: String) in
+      do {
+        try self.transfer.startSending(code)
+      } catch let f as TransferFailure {
+        let code = f.error == .locked ? "E_LOCKED" : f.error == .connection ? "E_OTHER_NETWORK" : "E_BAD_CODE"
+        throw Exception(name: code, description: "\(code): \(f.message)")
+      }
+    }.runOnQueue(queue)
+
+    Function("transferCancel") { self.transfer.cancel() }
+
     AsyncFunction("delete") { (id: String) in
       try self.requireVault().delete(id: id)
     }.runOnQueue(queue)
 
     AsyncFunction("destroy") { () -> Void in
+      self.transfer.cancel()
       try self.requireVault().destroy()
       self.destroyWaitingCaptures()
       self.clearPlayback()

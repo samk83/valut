@@ -48,6 +48,7 @@ class VaultCoreModule : Module() {
   private lateinit var inbox: PendingImports
   private val inboxLock = Any()
   private val playbackTicket = java.util.concurrent.atomic.AtomicInteger()
+  private val transfer by lazy { TransferBridge({ vault }) { sendEvent("onTransfer", it) } }
 
   private val root: File get() = File(context.noBackupFilesDir, "vault")
   private val playDir: File get() = File(context.noBackupFilesDir, "play")
@@ -55,6 +56,8 @@ class VaultCoreModule : Module() {
   override fun definition() =
     ModuleDefinition {
       Name("VaultCore")
+
+      Events("onTransfer")
 
       OnCreate {
         hardwareKey = AndroidHardwareKey(AndroidHardwareKey.strongBoxFeature(context.packageManager))
@@ -146,6 +149,7 @@ class VaultCoreModule : Module() {
       }
 
       Function("lock") {
+        transfer.cancel()
         vault.lock()
         clearPlayback()
         clearPickerCaches()
@@ -260,7 +264,16 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("delete") { id: String -> vault.delete(id) }
 
+      /** 1.1 new-phone transfer: this phone receives. Returns the QR code text. */
+      AsyncFunction("transferReceive") { transfer.startReceiving() }
+
+      /** 1.1 new-phone transfer: this phone sends everything to the scanned code. */
+      AsyncFunction("transferSend") { code: String -> transfer.startSending(code) }
+
+      Function("transferCancel") { transfer.cancel() }
+
       AsyncFunction("destroy") {
+        transfer.cancel()
         vault.destroy()
         destroyWaitingCaptures()
         clearPlayback()

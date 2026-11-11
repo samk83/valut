@@ -1,9 +1,18 @@
 {
-  "platforms": ["android", "apple"],
+  "platforms": [
+    "android",
+    "apple"
+  ],
   "android": {
-    "modules": ["expo.modules.vaultcore.VaultCoreModule"]
+    "modules": [
+      "expo.modules.vaultcore.VaultCoreModule",
+      "expo.modules.vaultcore.StoreModule"
+    ]
   },
   "apple": {
-    "modules": ["VaultCoreModule"]
+    "modules": [
+      "VaultCoreModule",
+      "StoreModule"
+    ]
   }
 }

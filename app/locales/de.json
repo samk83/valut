@@ -3,6 +3,7 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault verwendet die Kamera, um Fotos und Videos aufzunehmen, die direkt in deinen verschlüsselten Tresor gelangen.",
     "NSMicrophoneUsageDescription": "Private Vision Vault verwendet das Mikrofon, um bei Videos, die du mit der Tresorkamera aufnimmst, Ton aufzuzeichnen.",
-    "NSPhotoLibraryUsageDescription": "Mit Private Vision Vault kannst du Fotos und Videos auswählen, die in deinen verschlüsselten Tresor verschoben werden. Wenn du die Originale entfernen lässt, prüft die App zuerst, ob jedes Original mit der Kopie im Tresor identisch ist."
+    "NSPhotoLibraryUsageDescription": "Mit Private Vision Vault kannst du Fotos und Videos auswählen, die in deinen verschlüsselten Tresor verschoben werden. Wenn du die Originale entfernen lässt, prüft die App zuerst, ob jedes Original mit der Kopie im Tresor identisch ist.",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault verbindet sich direkt mit deinem anderen Telefon im selben WLAN, um deinen verschlüsselten Tresor umzuziehen. Nichts läuft über das Internet."
   }
 }

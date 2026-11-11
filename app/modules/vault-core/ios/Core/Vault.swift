@@ -36,6 +36,7 @@ final class Vault {
   private var lockGeneration: UInt64 = 0
 
   private static let deletedMarker = "deleted"
+  private static let sourceFile = "source"
 
   init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize) throws {
     self.root = root
@@ -105,7 +106,10 @@ final class Vault {
   }
 
   /// Imports one photo or video. [expectedSha256] must come from a separate read of the original.
-  func importItem(content: ByteSource, meta: ItemMeta, thumbnail: [UInt8]? = nil, expectedSha256: [UInt8]? = nil) throws -> ImportResult {
+  /// [receivedFrom] is the item's id on the phone it came from (see TransferReceiver).
+  func importItem(content: ByteSource, meta: ItemMeta, thumbnail: [UInt8]? = nil, expectedSha256: [UInt8]? = nil,
+                  receivedFrom: String? = nil) throws -> ImportResult {
+    let sourceBytes = try receivedFrom.map { try Vault.parseId($0) }
     var mk = try requireUnlocked()
     let idBytes = Primitives.randomBytes(16)
     let id = idBytes.map { String(format: "%02x", $0) }.joined()
@@ -137,6 +141,10 @@ final class Vault {
       try SecureFiles.writeAtomic(stage.appendingPathComponent("meta.bak"), sealedMeta)
       if let thumb = thumbnail {
         try SecureFiles.writeAtomic(stage.appendingPathComponent("thumb"), try seal(fileKey, thumb, aad("thumb", idBytes)))
+      }
+      // Where a transferred item came from, published together with the item itself.
+      if let source = sourceBytes {
+        try SecureFiles.writeAtomic(stage.appendingPathComponent(Vault.sourceFile), try seal(fileKey, source, aad(Vault.sourceFile, idBytes)))
       }
       try SecureFiles.writeAtomic(stage.appendingPathComponent("key.bak"), sealedKey)
       // The wrapped key is written last: an item without it can never be opened.
@@ -193,6 +201,22 @@ final class Vault {
     }
   }
 
+  /// Ids (on the old phone) of items received by transfer, so an interrupted transfer can run
+  /// again without duplicates. Same as core/Vault.kt: each item's sealed "source" file.
+  func receivedSources() throws -> Set<String> {
+    var mk = try requireUnlocked()
+    mk.wipe()
+    var out = Set<String>()
+    for dir in SecureFiles.list(items) where isLiveItem(dir) && SecureFiles.exists(dir.appendingPathComponent(Vault.sourceFile)) {
+      if let id = try? withFileKey(dir.lastPathComponent, { fk, idBytes in
+        try open(fk, try SecureFiles.readBytes(dir.appendingPathComponent(Vault.sourceFile)), aad(Vault.sourceFile, idBytes))
+      }) {
+        out.insert(id.map { String(format: "%02x", $0) }.joined())
+      }
+    }
+    return out
+  }
+
   /// Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2).
   func delete(id: String) throws {
     var mk = try requireUnlocked()
@@ -200,7 +224,7 @@ final class Vault {
     let dir = try itemDir(id)
     guard SecureFiles.exists(dir) else { return }
     try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.deletedMarker), [])
-    for name in ["key", "key.bak", "meta", "meta.bak", "thumb"] { SecureFiles.shred(dir.appendingPathComponent(name)) }
+    for name in ["key", "key.bak", "meta", "meta.bak", "thumb", Vault.sourceFile] { SecureFiles.shred(dir.appendingPathComponent(name)) }
     SecureFiles.deleteTree(dir)
   }
 

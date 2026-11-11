@@ -5,6 +5,7 @@ import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { BackHandler, Image, Platform, Pressable, ScrollView, SectionList, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
+import { fitToSlots, FREE_LIMIT, freeSlots, refreshPremium, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { monthStandalone, t, tn } from '../i18n';
 import { Body, Bullet, Button, READABLE_WIDTH, Rich, s, Segmented, TestBanner, Title } from '../ui';
@@ -20,6 +21,8 @@ type Result = {
   photos: number;
   videos: number;
   cancelled: boolean;
+  /** Picked but not added because the free plan was full. Their originals are untouched. */
+  leftOut: number;
 };
 type Progress = { index: number; total: number; sealed: number; sealedCurrent: boolean };
 type View_ = 'home' | 'options' | 'importing' | 'deleting' | 'result';
@@ -30,6 +33,7 @@ export function Home({
   onOpen,
   onCamera,
   onSettings,
+  onPremium,
   onLock,
   suspendAutoLock,
   refreshKey,
@@ -37,11 +41,17 @@ export function Home({
   onOpen: (item: VaultItem) => void;
   onCamera: () => void;
   onSettings: () => void;
+  onPremium: (reason?: 'limit', itemCount?: number) => void;
   onLock: () => void;
   suspendAutoLock: (on: boolean) => void;
   refreshKey: number;
 }) {
   const [items, setItems] = useState<VaultItem[]>([]);
+  const plan = usePremium();
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
   // Remembered across visits so Back from a video lands on the Videos page again.
   const [tab, setTabState] = useState<ItemKind>(lastTab);
   const setTab = (t: ItemKind) => {
@@ -56,9 +66,14 @@ export function Home({
   const cancelRef = useRef(false);
   const [cancelling, setCancelling] = useState(false);
 
+  // The free-plan check needs the real count, so it waits until the list has loaded.
+  const loadedRef = useRef(false);
   const load = useCallback(async () => {
     try {
-      setItems(await VaultCore.list());
+      const list = await VaultCore.list();
+      itemsRef.current = list;
+      loadedRef.current = true;
+      setItems(list);
     } catch {
       setItems([]);
     }
@@ -117,6 +132,16 @@ export function Home({
     }
   };
 
+  /** Free plan full: show Premium instead. Asks the store again first, in case it just changed. */
+  const roomLeft = async (): Promise<number> => {
+    if (!loadedRef.current) await load();
+    if (!loadedRef.current) return 0; // Count unknown (vault busy or locked): add nothing.
+    let slots = freeSlots(itemsRef.current.length, plan.premium);
+    if (slots === 0) slots = freeSlots(itemsRef.current.length, (await refreshPremium()).premium);
+    if (slots === 0) onPremium('limit', itemsRef.current.length);
+    return slots;
+  };
+
   const importFromGallery = async (deleteChosen: boolean) => {
     // A second tap while the picker is opening must not start another import.
     if (importing.current) return;
@@ -129,6 +154,8 @@ export function Home({
   };
 
   const runImport = async (deleteChosen: boolean) => {
+    const slots = await roomLeft();
+    if (slots === 0) return;
     suspendAutoLock(true);
     let picked: ImagePicker.ImagePickerResult;
     // iPhone: the exact original is imported straight from Photos (so it can be verified and
@@ -138,22 +165,32 @@ export function Home({
       if (Platform.OS === 'ios' && deleteChosen && VaultCore.importAsset) {
         fromAsset = (await MediaLibrary.requestPermissionsAsync().catch(() => ({ granted: false }))).granted;
       }
-      picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, quality: 1, exif: false, legacy: true });
+      picked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'],
+        allowsMultipleSelection: true,
+        // Free plan: the picker stops at the space left (0 means no limit). Some pickers
+        // ignore it, so the selection is also cut below.
+        selectionLimit: Number.isFinite(slots) ? slots : 0,
+        quality: 1,
+        exif: false,
+        legacy: true,
+      });
     } catch {
       return;
     } finally {
       suspendAutoLock(false);
     }
     if (picked.canceled || picked.assets.length === 0) return;
+    const { take: assets, leftOut } = fitToSlots(picked.assets, slots);
     cancelRef.current = false;
     setCancelling(false);
     setView('importing');
-    const total = picked.assets.length;
+    const total = assets.length;
     let ok = 0;
     let failed = 0;
     const imported: Imported[] = [];
     let stoppedEarly = false;
-    for (const [i, a] of picked.assets.entries()) {
+    for (const [i, a] of assets.entries()) {
       if (cancelRef.current) {
         stoppedEarly = true;
         break;
@@ -189,6 +226,7 @@ export function Home({
       photos: imported.filter((d) => d.kind === 'PHOTO').length,
       videos: imported.filter((d) => d.kind === 'VIDEO').length,
       cancelled: stoppedEarly,
+      leftOut,
     });
     setView('result');
     load();
@@ -267,6 +305,15 @@ export function Home({
         <Chip>
           <Text style={chipText}>{t('home.chipOffline')}</Text>
         </Chip>
+        {plan.loaded && !plan.premium && (
+          <Pressable accessibilityRole="button" accessibilityLabel={t('plan.chipA11y', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })} onPress={() => onPremium()}>
+            <Chip>
+              <Text style={[chipText, items.length >= FREE_LIMIT && { color: C.brass }]}>
+                {t('plan.chip', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })}
+              </Text>
+            </Chip>
+          </Pressable>
+        )}
       </View>
       <View style={{ paddingHorizontal: 22, paddingTop: 18 }}>
         <Segmented
@@ -330,7 +377,9 @@ export function Home({
       >
         <Pressable
           accessibilityRole="button"
-          onPress={() => setView('options')}
+          onPress={async () => {
+            if ((await roomLeft()) > 0) setView('options');
+          }}
           style={({ pressed }) => [{ flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderRadius: 16 }, pressed && { backgroundColor: C.surface2 }]}
         >
           <Ionicons name="download-outline" size={20} color={C.ivory} />
@@ -339,7 +388,9 @@ export function Home({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('common.camera')}
-          onPress={onCamera}
+          onPress={async () => {
+            if ((await roomLeft()) > 0) onCamera();
+          }}
           style={({ pressed }) => [
             { width: 52, height: 52, borderRadius: 26, backgroundColor: C.brass, alignItems: 'center', justifyContent: 'center' },
             pressed && { opacity: 0.8 },
@@ -589,6 +640,14 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
         {r.note && (
           <InfoRow icon="information-circle-outline" color={C.faint}>
             <Text style={s.small}>{r.note}</Text>
+          </InfoRow>
+        )}
+        {r.leftOut > 0 && (
+          <InfoRow icon="information-circle-outline" color={C.brass}>
+            <Text style={[s.body, { fontFamily: F.bold }]}>
+              {tn('plan.leftOut', r.leftOut)}
+            </Text>
+            <Text style={s.small}>{t('plan.leftOutBody', { max: FREE_LIMIT })}</Text>
           </InfoRow>
         )}
         {!r.deleteChosen && (
