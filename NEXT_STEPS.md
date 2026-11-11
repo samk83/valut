@@ -20,7 +20,7 @@
 - Owner 결정 (2026-11-11): 새 폰 옮기기 무료 확정. iPhone·iPad 먼저 출시, Android 출시는 나중
 - Owner: App Store Connect에 상품 등록 — docs/PREMIUM_SETUP.md 1장 (유료 앱 계약·상품). Play Console 상품 등록은 Android 출시 때
 - 실기기 확인: 100개 제한, 샌드박스 구매·복원, 두 폰 옮기기(iPhone→iPhone, Android→iPhone, iPhone→Android), 옮기는 중 Wi-Fi 끊김 후 이어 받기
-- 출시 순서: PR #7 → #6 → #8 → #9 Merge 완료(2026-11-11) → #10 Merge → iPhone 빌드·심사 제출 (L3 승인)
+- 출시 순서: PR #7 → #6 → #8 → #9 Merge 완료(2026-11-11) → #10 Merge 완료(2026-11-11) → iPhone 빌드·심사 제출 (L3 승인)
 - 언어팩 통합 완료 (2026-11-11): 1.1 문구 98개를 11개 언어로 번역(AI 번역, 원어민 검토 권장)
 - 남은 개선: Android 17 로컬 네트워크 권한 대응(대상 SDK 37 올릴 때), 구매 영수증 서명 확인(현재 스토어 앱 결과 신뢰), 대용량(수천 개) 옮기기 실측
 
