@@ -2,11 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library/legacy';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, Image, Pressable, ScrollView, SectionList, Switch, Text, View } from 'react-native';
+import { BackHandler, Image, Platform, Pressable, ScrollView, SectionList, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
-import { Body, Bullet, Button, s, Segmented, TestBanner, Title } from '../ui';
+import { Body, Bullet, Button, READABLE_WIDTH, s, Segmented, TestBanner, Title } from '../ui';
 
 type Imported = { id: string; kind: ItemKind; assetId?: string | null; safe: boolean };
 type Result = {
@@ -132,7 +132,13 @@ export function Home({
   const runImport = async (deleteChosen: boolean) => {
     suspendAutoLock(true);
     let picked: ImagePicker.ImagePickerResult;
+    // iPhone: the exact original is imported straight from Photos (so it can be verified and
+    // deleted later), which needs Photos access. Asked before the picker opens.
+    let fromAsset = false;
     try {
+      if (Platform.OS === 'ios' && deleteChosen && VaultCore.importAsset) {
+        fromAsset = (await MediaLibrary.requestPermissionsAsync().catch(() => ({ granted: false }))).granted;
+      }
       picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, quality: 1, exif: false, legacy: true });
     } catch {
       return;
@@ -156,8 +162,13 @@ export function Home({
       setProgress({ index: i + 1, total, sealed: ok, sealedCurrent: false });
       const isVideo = a.type === 'video';
       try {
+        const kind: ItemKind = isVideo ? 'VIDEO' : 'PHOTO';
+        let r: { id: string; safeToDeleteOriginal: boolean } | null = null;
+        if (fromAsset && a.assetId && VaultCore.importAsset) {
+          r = await VaultCore.importAsset(a.assetId, kind, a.uri).catch(() => null);
+        }
         // The picker hands us a plaintext copy in the app cache; the native side deletes it.
-        const r = await VaultCore.importUri(a.uri, isVideo ? 'VIDEO' : 'PHOTO', a.mimeType ?? (isVideo ? 'video/mp4' : 'image/jpeg'), true);
+        if (!r) r = await VaultCore.importUri(a.uri, kind, a.mimeType ?? (isVideo ? 'video/mp4' : 'image/jpeg'), true);
         ok++;
         imported.push({ id: r.id, kind: isVideo ? 'VIDEO' : 'PHOTO', assetId: a.assetId, safe: r.safeToDeleteOriginal });
         setProgress({ index: i + 1, total, sealed: ok, sealedCurrent: true });
@@ -187,7 +198,10 @@ export function Home({
   const photos = useMemo(() => items.filter((i) => i.kind === 'PHOTO'), [items]);
   const videos = useMemo(() => items.filter((i) => i.kind === 'VIDEO'), [items]);
   const shown = tab === 'PHOTO' ? photos : videos;
-  const sections = useMemo(() => byMonth(shown), [shown]);
+  // 3 columns on a phone; more on an iPad or an unfolded iPhone (about 130 pt per tile).
+  const { width } = useWindowDimensions();
+  const cols = Math.max(3, Math.min(8, Math.floor(width / 130)));
+  const sections = useMemo(() => byMonth(shown, cols), [shown, cols]);
 
   if (view === 'options') {
     return <ImportOptions deleteAfter={deleteAfter} setDeleteAfter={setDeleteAfter} onBack={() => setView('home')} onChoose={() => importFromGallery(deleteAfter)} />;
@@ -266,7 +280,7 @@ export function Home({
         />
       </View>
       <SectionList
-        key={tab}
+        key={`${tab}-${cols}`}
         sections={sections}
         keyExtractor={(row) => row.map((i) => i.id).join('|')}
         style={{ flex: 1 }}
@@ -280,7 +294,7 @@ export function Home({
             {row.map((it) => (
               <Thumb key={it.id} item={it} onPress={() => onOpen(it)} />
             ))}
-            {Array.from({ length: 3 - row.length }).map((_, i) => (
+            {Array.from({ length: cols - row.length }).map((_, i) => (
               <View key={`pad${i}`} style={{ flex: 1 }} />
             ))}
           </View>
@@ -295,8 +309,9 @@ export function Home({
       <View
         style={{
           position: 'absolute',
-          left: 22,
-          right: 22,
+          // Phone: 22 pt from each edge. iPad / unfolded: a centred bar at most 560 pt wide.
+          left: Math.max(22, (width - 560) / 2),
+          right: Math.max(22, (width - 560) / 2),
           bottom: 30,
           height: 72,
           borderRadius: 24,
@@ -339,7 +354,7 @@ export function Home({
 }
 
 /** Newest first, grouped by month, three tiles per row. */
-function byMonth(list: VaultItem[]): { title: string; data: VaultItem[][] }[] {
+function byMonth(list: VaultItem[], cols: number): { title: string; data: VaultItem[][] }[] {
   const sorted = [...list].sort((a, b) => b.createdAt - a.createdAt);
   const out: { title: string; data: VaultItem[][] }[] = [];
   let current: { title: string; items: VaultItem[] } | null = null;
@@ -355,7 +370,7 @@ function byMonth(list: VaultItem[]): { title: string; data: VaultItem[][] }[] {
   }
   for (const g of groups) {
     const rows: VaultItem[][] = [];
-    for (let i = 0; i < g.items.length; i += 3) rows.push(g.items.slice(i, i + 3));
+    for (let i = 0; i < g.items.length; i += cols) rows.push(g.items.slice(i, i + cols));
     out.push({ title: g.title, data: rows });
   }
   return out;
@@ -374,10 +389,10 @@ function Chip({ children }: { children: ReactNode }) {
 function Page({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   return (
     <View style={[s.screen, { paddingHorizontal: 0, paddingBottom: 0 }]}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24, width: '100%', maxWidth: READABLE_WIDTH, alignSelf: 'center' }}>
         {children}
       </ScrollView>
-      {footer && <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 30 }}>{footer}</View>}
+      {footer && <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 30, width: '100%', maxWidth: READABLE_WIDTH, alignSelf: 'center' }}>{footer}</View>}
     </View>
   );
 }

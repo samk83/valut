@@ -15,6 +15,7 @@ import {
   saveLockMethod,
 } from '../pattern';
 import { Body, Busy, Button, PinDots, s, Segmented, Title } from '../ui';
+import { TermsSheet } from './Terms';
 
 /** Lock mark: a brass ring with a lock inside. */
 function Logo({ size = 72, tile }: { size?: number; tile?: boolean }) {
@@ -199,6 +200,7 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
   const [first, setFirst] = useState<string | null>(null);
   const [pin, setPin] = useState('');
   const [agree, setAgree] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [drawing, setDrawing] = useState(0);
@@ -225,7 +227,7 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
       setPin('');
       return setError(`${method === 'pin' ? 'PINs' : 'Patterns'} didn't match. Start again.`);
     }
-    if (!agree) return setError('Please confirm you understand there is no recovery.');
+    if (!agree) return setError('Please tick the box: 3 wrong attempts erase everything for good, and you accept the Terms of Use.');
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
@@ -299,7 +301,7 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
         <View style={{ gap: 6, padding: 16, borderRadius: 16, backgroundColor: '#1A1410', borderWidth: 1, borderColor: '#4A3420' }}>
           <Text style={{ fontFamily: F.title, fontSize: 18, color: '#F0B98A' }}>Forget it, lose everything.</Text>
           <Text style={[s.small, { fontSize: 12, color: '#D4C4B5' }]}>
-            Three wrong attempts destroys the vault. There is no password reset, no admin override and no cloud backup. Reinstalling the app will not bring your files back.
+            Three wrong attempts destroys the vault. There is no password reset, no admin override and no cloud backup. Reinstalling the app will not bring your files back, and the vault does not move to a new phone.
           </Text>
         </View>
         <Pressable
@@ -311,8 +313,15 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
           <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1, borderColor: C.brass, backgroundColor: agree ? C.brass : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
             {agree && <Ionicons name="checkmark" size={16} color={C.bg} />}
           </View>
-          <Text style={[s.small, { flex: 1, color: C.ivory }]}>I understand my files cannot be recovered.</Text>
+          <Text style={[s.small, { flex: 1, color: C.ivory }]}>
+            I understand that 3 wrong attempts permanently erase everything and nothing can be recovered, and I agree to the{' '}
+            <Text accessibilityRole="link" onPress={() => setShowTerms(true)} style={{ color: C.brass, textDecorationLine: 'underline' }}>
+              Terms of Use
+            </Text>
+            .
+          </Text>
         </Pressable>
+        <TermsSheet visible={showTerms} onClose={() => setShowTerms(false)} />
       </ScrollView>
       <View style={{ paddingTop: 8 }}>
         {method === 'pin' ? (

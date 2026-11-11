@@ -1,6 +1,28 @@
 # CHANGELOG
 
 ## [Unreleased]
+### Added (iPhone·iPad, 2026-11-10)
+- app/modules/vault-core/ios: 보안 코어 Swift 이식 (Argon2id·AES-256-GCM 조각 암호화·3회 오류 키 파기·이중 저장·촬영본 대기함). 파일 형식·규칙은 Android와 동일
+- Argon2id를 Swift로 직접 구현: RFC 9106 시험값, Android(BouncyCastle) 결과와 일치 확인
+- IOSHardwareKey: Secure Enclave P-256 키(이 기기 전용, 백업 제외), 시뮬레이터는 소프트웨어 키
+- VaultCoreModule.swift: Android와 같은 JS 함수. 재설치 시 Keychain 잔여 키 삭제, 금고 폴더 백업 제외·잠금 중 읽기 불가 보호
+- importAsset: 아이폰에서 사진 앱 원본을 그대로 가져와, 원본 삭제 전 SHA-256 일치 확인이 가능
+- iPad·iPhone Duo: 화면 너비에 따라 사진 칸 수 조절(3~8칸), 입력 화면은 가운데 정렬, iPad 모든 방향 회전
+- 앱 전환기 화면 흐림(iOS)
+- app.json: 번들 ID `com.jellydock.privatevault`, 표시 이름 Private Vision Vault, 권한 안내 문구, 개인정보 매니페스트, 암호화 수출 규정 면제 표시. eas.json: 시뮬레이터·미리보기·출시 빌드, App Store 제출(앱 번호 6832844680)
+- Swift 코어 단위 테스트 29개 (ios/Package.swift, Mac 없이 실행)
+- 첫 설정 동의 체크박스: "3회 오류 = 영구 삭제, 복구 불가" + 이용약관 동의 (Owner 요청). 이용약관 화면(설정에서도 열람), docs/TERMS.md (책임 제한 조항, 변호사 검토 권장)
+- docs/APP_STORE_LISTING.md: 사실만 쓴 스토어 문구(영어·한국어), 쓰지 않는 표현 목록, 심사 메모
+- 경고문·약관에 "새 핸드폰으로 옮겨지지 않음" 안내 (백업·기기 이전 제외는 SPEC AC-21 설계)
+- 스토어 스크린샷 32장: iPhone 6.9형·iPad 13형·iPhone Duo 바깥/안쪽 화면 (프로젝트 파일 privatevault/appstore-screenshots)
+### Fixed (iPhone 내부 QA)
+- 설정 화면이 아이폰 Secure Enclave를 "Software key"로 잘못 표시하던 문제
+- 시뮬레이터·Mac에서 메모리 확인값 0 때문에 잠금 해제가 항상 실패하던 문제
+- 손상된 envelope가 큰 메모리를 요구해 앱이 죽으며 시도가 소모될 수 있던 문제 (iOS 상한 256 MiB, 저장된 설정 기준으로 시도 전 메모리 확인)
+- 라이브 포토·편집된 사진의 원본 삭제 시 일부가 금고에 없던 문제 (파일 1개짜리 원본만 삭제, 원본 파일 그대로 가져오기)
+- iCloud 전용 원본 내려받기 대기로 금고가 멈출 수 있던 문제 (네트워크 사용 안 함, 120초 제한)
+- 기기 잠금 중 Keychain을 "키 없음"으로 착각하던 문제, 키 삭제를 항상 시도
+- 대기 중인 촬영본에 최강 파일 보호 적용, 큰 촬영본 복사를 조각 단위로
 ### Added (자료 무손실, SPEC AC-50)
 - SPEC: '자료 무손실' 필수 제약 AC-50a~j. core/DataLossTest.kt 자동 테스트 20개로 강제
 - 키 envelope·시도 카운터·항목 파일 키·메타데이터를 두 벌 저장, 손상 시 다른 벌로 열고 자동 복구

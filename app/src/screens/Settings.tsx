@@ -6,10 +6,12 @@ import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
 import { C, F } from '../theme';
 import { Busy, Button, s, TestBanner } from '../ui';
+import { TermsSheet } from './Terms';
 
 const MAX_ATTEMPTS = 3;
 const OK_GREEN = '#9FD3A8';
-const HARDWARE_LEVELS = ['StrongBox', 'TEE', 'Secure hardware'];
+// Android: StrongBox or TEE (Keystore). iPhone/iPad: the Secure Enclave.
+const HARDWARE_LEVELS = ['StrongBox', 'TEE', 'Secure hardware', 'SECURE_ENCLAVE'];
 
 const sizeLabel = (bytes: number) => {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -41,6 +43,7 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
   const [view, setView] = useState<'main' | 'reset'>('main');
   const method = readLockMethod();
   const [hideTrail, setHideTrail] = useState(() => readHideTrail());
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     VaultCore.status().then(setStatus).catch(() => {});
@@ -111,6 +114,11 @@ export function Settings({ onBack, onDestroyed }: { onBack: () => void; onDestro
       </View>
 
       {!!footer && <Text style={st.footer}>{footer}</Text>}
+
+      <Pressable accessibilityRole="link" onPress={() => setShowTerms(true)} style={{ paddingVertical: 12 }}>
+        <Text style={[s.small, { color: C.brass, textDecorationLine: 'underline' }]}>Terms of Use</Text>
+      </Pressable>
+      <TermsSheet visible={showTerms} onClose={() => setShowTerms(false)} />
 
       <View style={{ flex: 1, minHeight: 16 }} />
       <Pressable accessibilityRole="button" onPress={() => setView('reset')} style={({ pressed }) => [st.destroyBtn, pressed && { opacity: 0.75 }]}>

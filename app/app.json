@@ -2,7 +2,7 @@
   "expo": {
     "name": "PrivateVault Test",
     "slug": "privatevault-test",
-    "version": "0.2.0",
+    "version": "1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -36,10 +36,19 @@
       [
         "expo-camera",
         {
-          "recordAudioAndroid": true
+          "recordAudioAndroid": true,
+          "cameraPermission": "Private Vision Vault uses the camera to take photos and videos that go straight into your encrypted vault.",
+          "microphonePermission": "Private Vision Vault uses the microphone to record sound with videos you take in the vault camera."
         }
       ],
-      "expo-image-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Private Vision Vault lets you choose photos and videos to move into your encrypted vault. If you ask it to remove the originals, it first checks each one is identical to the vault copy.",
+          "cameraPermission": "Private Vision Vault uses the camera to take photos and videos that go straight into your encrypted vault.",
+          "microphonePermission": "Private Vision Vault uses the microphone to record sound with videos you take in the vault camera."
+        }
+      ],
       [
         "expo-media-library",
         {
@@ -47,7 +56,9 @@
           "granularPermissions": [
             "photo",
             "video"
-          ]
+          ],
+          "photosPermission": "Private Vision Vault lets you choose photos and videos to move into your encrypted vault. If you ask it to remove the originals, it first checks each one is identical to the vault copy.",
+          "savePhotosPermission": false
         }
       ],
       [
@@ -58,7 +69,8 @@
           }
         }
       ],
-      "./plugins/withLargeHeap"
+      "./plugins/withLargeHeap",
+      "./plugins/withIosOrientations"
     ],
     "owner": "chihunkim",
     "runtimeVersion": "exposdk:58.0.0",
@@ -68,6 +80,58 @@
     "extra": {
       "eas": {
         "projectId": "02a59862-6e9e-457f-8635-b17377c24f4e"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.jellydock.privatevault",
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDisplayName": "Private Vision Vault",
+        "CFBundleName": "Private Vision Vault",
+        "UIRequiresFullScreen": false,
+        "LSApplicationQueriesSchemes": [],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "localhost": {
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            }
+          }
+        }
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
+          }
+        ]
       }
     }
   }

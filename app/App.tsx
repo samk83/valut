@@ -4,10 +4,10 @@ import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { useFonts } from 'expo-font';
-import { usePreventScreenCapture } from 'expo-screen-capture';
+import { enableAppSwitcherProtectionAsync, usePreventScreenCapture } from 'expo-screen-capture';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, BackHandler, View } from 'react-native';
+import { AppState, BackHandler, Platform, View } from 'react-native';
 import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import VaultCore, { VaultItem } from './modules/vault-core';
@@ -17,7 +17,7 @@ import { Home } from './src/screens/Home';
 import { Settings } from './src/screens/Settings';
 import { PhotoViewer, VideoPlayer } from './src/screens/Viewer';
 import { C } from './src/theme';
-import { Busy } from './src/ui';
+import { Busy, READABLE_WIDTH } from './src/ui';
 
 type Route =
   | { name: 'loading' }
@@ -31,6 +31,8 @@ type Route =
   | { name: 'view'; item: VaultItem };
 
 const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'view'];
+// Screens that use the whole width on an iPad; the rest are centred in a readable column.
+const FULL_WIDTH: Route['name'][] = ['home', 'camera', 'view'];
 // A system picker or dialog may keep the app in the background this long before it locks.
 const SUSPEND_GRACE_MS = 90_000;
 
@@ -75,6 +77,11 @@ export default function App() {
   useEffect(() => {
     toLocked();
   }, [toLocked]);
+
+  // iPhone/iPad: blur the app switcher snapshot so vault content never shows there.
+  useEffect(() => {
+    if (Platform.OS === 'ios') enableAppSwitcherProtectionAsync(1).catch(() => {});
+  }, []);
 
   // Auto-lock: drop the master key the moment the app leaves the screen (SPEC AC-07).
   useEffect(() => {
@@ -178,7 +185,9 @@ export default function App() {
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <BottomInset>
         <StatusBar style="light" />
-        {fontsLoaded || fontError ? screen : null}
+        {fontsLoaded || fontError ? (
+          <View style={{ flex: 1, width: '100%', maxWidth: FULL_WIDTH.includes(route.name) ? undefined : READABLE_WIDTH, alignSelf: 'center' }}>{screen}</View>
+        ) : null}
       </BottomInset>
     </SafeAreaProvider>
   );
