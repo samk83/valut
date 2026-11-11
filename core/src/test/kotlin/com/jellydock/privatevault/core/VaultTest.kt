@@ -199,7 +199,9 @@ class VaultTest {
         File(noMeta, "key").writeBytes(Aead.randomBytes(60))
         assertEquals(1, v.list().size)
         newVault()
-        assertFalse(orphan.exists())
+        // Never removed automatically (AC-50): hidden, but kept on disk.
+        assertTrue(orphan.exists())
+        assertEquals(1, v.list().size)
     }
 
     @Test

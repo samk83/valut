@@ -58,6 +58,7 @@ class VaultKeyManagerTest {
         repeat(3) { runCatching { m.unlock(pin("00000$it")) } }
         File(dir, "vault.key").writeBytes(snapshot)
         File(dir, "attempts").delete()
+        File(dir, "attempts.bak").delete()
         // The hardware key is gone (on Android, rollback resistance guarantees it stays gone).
         assertFailsWith<KeysUnavailableException> { m.unlock(pin("482915")) }
         assertFailsWith<KeysUnavailableException> { m.unlock(pin("482915")) }
@@ -252,13 +253,16 @@ class VaultKeyManagerTest {
         m.create(pin("482915"))
         val file = File(dir, "vault.key")
         val bytes = file.readBytes()
-        // memory cost field (bytes 5..8) set to 0x7FFFFFFF KiB
+        // memory cost field (bytes 5..8) set to 0x7FFFFFFF KiB, in both envelope copies
         bytes[5] = 0x7F
         bytes[6] = -1
         bytes[7] = -1
         bytes[8] = -1
         file.writeBytes(bytes)
-        assertFailsWith<WrongPinException> { m.unlock(pin("482915")) }
+        File(dir, "vault.key.bak").writeBytes(bytes)
+        // Unreadable envelopes are storage damage, not a guess: refused and not counted.
+        assertFailsWith<KeysUnavailableException> { m.unlock(pin("482915")) }
+        assertEquals(3, m.remainingAttempts())
     }
 
     @Test
@@ -290,6 +294,7 @@ class VaultKeyManagerTest {
         val bytes = file.readBytes()
         bytes[8] = (bytes[8] + 1).toByte() // memory cost field
         file.writeBytes(bytes)
+        File(dir, "vault.key.bak").writeBytes(bytes)
         assertFailsWith<WrongPinException> { m.unlock(pin("482915")) }
     }
 
@@ -298,6 +303,7 @@ class VaultKeyManagerTest {
         val m = manager()
         m.create(pin("482915"))
         File(dir, "attempts").delete()
+        File(dir, "attempts.bak").delete()
         assertEquals(1, m.remainingAttempts())
         m.unlock(pin("482915"))
         assertEquals(3, m.remainingAttempts())

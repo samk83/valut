@@ -10,6 +10,7 @@ Last Updated: 2026-10-30 (Android 테스트 앱)
 | Phase 1 Security PoC — 실기기 (Android/iOS 보안칩) | BLOCKED | 0 | 2026-10-30 | Android SDK 받기 / iOS 빌드 경로 결정 | `dl.google.com` 허용, Mac 여부 결정 | - |
 | Phase 2 UI/UX 디자인 | DONE | 최종 시안 16개 화면 승인 (docs/DESIGN.md) | 2026-10-30 | 잠금 화면 점 표시를 입력 자릿수만큼으로 수정 | - | - |
 | Android 테스트 앱 (APK) | DONE (실기기 검증 대기) | Expo 앱 + 보안 코어 연결, APK 빌드, 내부 QA 11건·PR 리뷰 2건 수정, PR #5 Merge | 2026-10-30 | Owner 실기기 설치·확인 | 실기기 테스트 결과 알려주기 | main |
+| 자료 무손실 설계 + 제약 (AC-50) | REVIEW | 이중 저장·자동 복구·촬영본 대기함·원본 일치 확인 구현, 테스트 80개 통과, 내부 QA 8건 수정, APK v0.2.0 | 2026-10-30 | 내부 QA 후 PR | 실기기 확인 | fix/no-data-loss |
 | Phase 3 MVP 개발 | TODO | 0 (미착수) | 2026-10-30 | 디자인 승인 후 | 개발 승인 | - |
 | 외부 보안 감사 | TODO | 0 | 2026-10-30 | 견적 조사 | 비용 승인 (L3) | - |
 

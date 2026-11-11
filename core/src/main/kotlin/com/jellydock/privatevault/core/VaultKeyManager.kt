@@ -32,14 +32,20 @@ class VaultKeyManager(
     // key can tell whether the vault was destroyed or recreated by someone else meanwhile.
     private val checkFile = File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".check")
 
-    fun exists(): Boolean = envelopeFile.exists() && hardwareKey.exists()
+    // Second copy of the envelope (SPEC AC-50). Losing or damaging one file on flash must not
+    // lose the vault: either copy opens it with the right PIN.
+    private val backupFile = File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".bak")
+
+    private fun hasEnvelope() = envelopeFile.exists() || backupFile.exists()
+
+    fun exists(): Boolean = hasEnvelope() && hardwareKey.exists()
 
     fun remainingAttempts(): Int = (MAX_ATTEMPTS - counter.read()).coerceAtLeast(0)
 
     /** Creates a new vault and returns its master key. The caller must wipe it when done. */
     fun create(pin: CharArray): ByteArray =
         exclusive {
-            if (envelopeFile.exists()) throw VaultStateException("Vault already exists")
+            if (hasEnvelope()) throw VaultStateException("Vault already exists")
             PinPolicy.check(pin)?.let { throw WeakPinException(it) }
             // The counter goes first: an envelope must never exist next to a stale count.
             counter.write(0)
@@ -71,7 +77,7 @@ class VaultKeyManager(
     ): T =
         exclusive {
             val live =
-                envelopeFile.exists() && hardwareKey.exists() && checkFile.exists() &&
+                hasEnvelope() && hardwareKey.exists() && checkFile.exists() &&
                     MessageDigest.isEqual(checkFile.readBytes(), keyCheck(mk))
             if (!live) throw VaultDestroyedException()
             block()
@@ -102,6 +108,7 @@ class VaultKeyManager(
         exclusive {
             if (hardwareKey.exists()) hardwareKey.destroy()
             SecureFiles.shred(envelopeFile)
+            SecureFiles.shred(backupFile)
             SecureFiles.shred(checkFile)
             counter.write(0)
         }
@@ -128,18 +135,22 @@ class VaultKeyManager(
             destroyLocked()
             throw VaultDestroyedException()
         }
-        val hasEnvelope = envelopeFile.exists()
+        val hasEnvelope = hasEnvelope()
         val hasChipKey = hardwareKey.exists()
         if (!hasEnvelope && !hasChipKey) throw VaultDestroyedException()
         // Half the key material is missing: nothing can open the vault, but this is not a
         // completed wrong guess, so nothing is destroyed or counted.
         if (!hasEnvelope || !hasChipKey) throw KeysUnavailableException()
+        // Both envelope copies are unreadable as envelopes (storage damage, not a PIN
+        // question): no PIN could open them, so this must not use up an attempt (AC-50).
+        val copies = readEnvelopeCopies()
+        if (copies.isEmpty()) throw KeysUnavailableException()
         // Count first, check second (SPEC AC-03). If the process is killed during the check,
         // the attempt stays counted.
         counter.write(used + 1)
         val mk =
             try {
-                openEnvelope(pin)
+                openEnvelope(pin, copies)
             } catch (e: IntegrityException) {
                 if (used + 1 >= MAX_ATTEMPTS) {
                     destroyLocked()
@@ -154,6 +165,7 @@ class VaultKeyManager(
             }
         try {
             counter.write(0)
+            repairCopies(mk)
         } catch (e: Throwable) {
             mk.wipe()
             throw e
@@ -161,11 +173,36 @@ class VaultKeyManager(
         return mk
     }
 
+    /**
+     * After a successful unlock the opened envelope is known good: rewrite a missing or
+     * damaged copy from it, and the key check if it is missing or stale (AC-50).
+     */
+    private fun repairCopies(mk: ByteArray) {
+        val good = lastOpened ?: return
+        lastOpened = null
+        runCatching {
+            if (!envelopeFile.exists() || !envelopeFile.readBytes().contentEquals(good)) SecureFiles.writeAtomic(envelopeFile, good)
+            if (!backupFile.exists() || !backupFile.readBytes().contentEquals(good)) SecureFiles.writeAtomic(backupFile, good)
+            val check = keyCheck(mk)
+            if (!checkFile.exists() || !MessageDigest.isEqual(checkFile.readBytes(), check)) SecureFiles.writeAtomic(checkFile, check)
+        }
+    }
+
+    // Bytes of the envelope copy that opened in the current unlock; used only by repairCopies.
+    private var lastOpened: ByteArray? = null
+
+    /** Structurally valid envelope copies, primary first, duplicates removed. */
+    private fun readEnvelopeCopies(): List<ByteArray> =
+        listOf(envelopeFile, backupFile)
+            .mapNotNull { f -> runCatching { f.readBytes() }.getOrNull()?.takeIf { runCatching { decodeHeader(it) }.isSuccess } }
+            .distinctBy { it.toList() }
+
     private fun destroyLocked() {
         // The count is set first so an interruption still leaves the vault refusing entry.
         counter.write(MAX_ATTEMPTS)
         if (hardwareKey.exists()) hardwareKey.destroy()
         SecureFiles.shred(envelopeFile)
+        SecureFiles.shred(backupFile)
         SecureFiles.shred(checkFile)
         // Temp copies of an envelope (left by a crash during a write) open with the same keys.
         envelopeFile.absoluteFile.parentFile?.listFiles { f -> f.name.startsWith(envelopeFile.name + ".") && f.name.endsWith(".tmp") }
@@ -192,23 +229,45 @@ class VaultKeyManager(
         val header = encodeHeader(params, salt)
         val kek = deriveKek(pin, salt, params)
         try {
-            SecureFiles.writeAtomic(envelopeFile, header + Aead.seal(kek, mk, header))
+            val envelope = header + Aead.seal(kek, mk, header)
+            // Backup first: if the app dies between the two writes, the primary still holds
+            // the previous envelope and one of the two always opens (AC-50).
+            SecureFiles.writeAtomic(backupFile, envelope)
+            SecureFiles.writeAtomic(envelopeFile, envelope)
         } finally {
             kek.wipe()
         }
     }
 
-    private fun openEnvelope(pin: CharArray): ByteArray {
-        val bytes = envelopeFile.readBytes()
-        // The header (including Argon2 params) is the AEAD's associated data, so editing it
-        // to cheapen guesses only makes the envelope fail to open.
-        val (storedParams, salt, headerLength) = decodeHeader(bytes)
-        val header = bytes.copyOfRange(0, headerLength)
-        val kek = deriveKek(pin, salt, storedParams)
+    /**
+     * Tries each envelope copy. Copies with the same header share one Argon2 run, so the
+     * usual case (two identical copies) costs no extra time. One unlock call is one attempt,
+     * however many copies are tried.
+     */
+    private fun openEnvelope(
+        pin: CharArray,
+        copies: List<ByteArray>,
+    ): ByteArray {
+        var lastError: IntegrityException? = null
+        val keks = HashMap<List<Byte>, ByteArray>()
         try {
-            return Aead.open(kek, bytes.copyOfRange(headerLength, bytes.size), header)
+            for (bytes in copies) {
+                // The header (including Argon2 params) is the AEAD's associated data, so
+                // editing it to cheapen guesses only makes the envelope fail to open.
+                val (storedParams, salt, headerLength) = decodeHeader(bytes)
+                val header = bytes.copyOfRange(0, headerLength)
+                val kek = keks.getOrPut(header.toList()) { deriveKek(pin, salt, storedParams) }
+                try {
+                    val mk = Aead.open(kek, bytes.copyOfRange(headerLength, bytes.size), header)
+                    lastOpened = bytes
+                    return mk
+                } catch (e: IntegrityException) {
+                    lastError = e
+                }
+            }
+            throw lastError ?: IntegrityException("No envelope copy")
         } finally {
-            kek.wipe()
+            keks.values.forEach { it.wipe() }
         }
     }
 
