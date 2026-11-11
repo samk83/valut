@@ -34,7 +34,21 @@ export type PinCheck = {
   strength: 'WEAK' | 'FAIR' | 'STRONG' | 'FORTRESS';
 };
 
-declare class VaultCoreModule extends NativeModule<{}> {
+/** 1.1 new-phone transfer progress, from the native side. */
+export type TransferEvent = {
+  phase: 'waiting' | 'connected' | 'progress' | 'done' | 'error';
+  itemsDone?: number;
+  itemsTotal?: number;
+  bytesDone?: number;
+  bytesTotal?: number;
+  skipped?: number;
+  alreadyThere?: number;
+  error?: 'BAD_CODE' | 'STORAGE_FULL' | 'LOCKED' | 'INTEGRITY' | 'CANCELLED' | 'OTHER' | 'WRONG_PEER' | 'CONNECTION';
+};
+
+type Events = { onTransfer: (event: TransferEvent) => void };
+
+declare class VaultCoreModule extends NativeModule<Events> {
   status(): Promise<VaultStatus>;
   checkPin(pin: string): PinCheck;
   create(pin: string): Promise<PinResult>;
@@ -58,6 +72,11 @@ declare class VaultCoreModule extends NativeModule<{}> {
   closeVideo(): void;
   delete(id: string): Promise<void>;
   destroy(): Promise<void>;
+  /** New phone: starts listening and returns the text for the QR code. */
+  transferReceive(): Promise<string>;
+  /** Old phone: connects to a scanned code and sends every item. */
+  transferSend(code: string): Promise<void>;
+  transferCancel(): void;
 }
 
 const native = requireOptionalNativeModule<VaultCoreModule>('VaultCore');
@@ -94,6 +113,10 @@ const Vault = native
       closeVideo: () => native.closeVideo(),
       delete: (id: string) => native.delete(id),
       destroy: () => native.destroy(),
+      transferReceive: () => native.transferReceive(),
+      transferSend: (code: string) => native.transferSend(code),
+      transferCancel: () => native.transferCancel(),
+      onTransfer: (fn: (e: TransferEvent) => void) => native.addListener('onTransfer', fn),
     }
   : {
       ...DemoVault,
@@ -105,6 +128,15 @@ const Vault = native
       photoUri: async (item: VaultItem) => DemoVault.uriOf(item.id),
       openVideo: async (id: string) => DemoVault.uriOf(id),
       closeVideo: () => {},
+      // The preview has nothing real to move, so the transfer screens explain that instead.
+      transferReceive: async (): Promise<string> => {
+        throw new Error('E_UNAVAILABLE');
+      },
+      transferSend: async (_code: string): Promise<void> => {
+        throw new Error('E_UNAVAILABLE');
+      },
+      transferCancel: () => {},
+      onTransfer: (_fn: (e: TransferEvent) => void) => ({ remove: () => {} }),
     };
 
 export default Vault;

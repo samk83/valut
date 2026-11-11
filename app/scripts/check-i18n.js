@@ -70,7 +70,7 @@ for (const lang of langs) {
   if (!fs.existsSync(loc)) err(lang, `missing locales/${lang}.json`);
   else {
     const j = JSON.parse(fs.readFileSync(loc, 'utf8'));
-    for (const k of ['NSCameraUsageDescription', 'NSMicrophoneUsageDescription', 'NSPhotoLibraryUsageDescription', 'CFBundleDisplayName'])
+    for (const k of ['NSCameraUsageDescription', 'NSMicrophoneUsageDescription', 'NSPhotoLibraryUsageDescription', 'NSLocalNetworkUsageDescription', 'CFBundleDisplayName'])
       if (!(j.ios && typeof j.ios[k] === 'string' && j.ios[k].trim())) err(lang, `locales/${lang}.json ios.${k} missing`);
   }
 }

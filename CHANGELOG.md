@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## [1.1] — 개발 중
+### Added (2026-11-10)
+- 새 핸드폰으로 옮기기: 같은 Wi-Fi(또는 핫스팟)에서 두 폰을 QR 코드로 직접 연결, 암호화 전송. 서버·클라우드 없음. iPhone ↔ Android 가능 (docs/TRANSFER_PROTOCOL.md)
+  - core/Transfer.kt + ios/Core/Transfer.swift: QR 1회용 비밀값 → 방향별 AES-256-GCM 키, 순번 nonce 프레임, 항목마다 SHA-256 확인 후 다음 항목
+  - 보내는 폰은 아무것도 지우지 않음. 끊기면 다시 시작해 빠진 것만 받음 (항목마다 봉인된 `source` 기록, 새 폰에서 지운 사진은 다시 받음)
+  - 사설 주소(10/172.16/192.168/169.254)만 허용. 손상 항목은 건너뛰고 개수 표시
+  - 테스트: Kotlin 전송 10개 + Swift 전송 11개 (Swift 전체 40개) + Kotlin↔Swift 실제 소켓 상호 전송 2개
+- 무료 플랜 100개 + 평생 프리미엄 $9.99 (비소모성 `com.jellydock.privatevault.premium`)
+  - Apple StoreKit 2 / Google Play Billing 8 직접 사용, 외부 SDK·서버 없음. 구매 복원 버튼(설정·프리미엄 화면)
+  - 100개 초과 시 보기·삭제는 그대로, 추가만 막음. 갤러리에서 남은 칸보다 많이 고르면 남은 칸만큼만 가져오고 결과에 표시
+  - 결제 창이 떠도 금고가 잠기지 않음 (자동 잠금 예외)
+- 화면: 프리미엄, 새 폰 옮기기(QR 표시·스캔·진행·완료), 홈 "N of 100 free" 표시, 설정 Plan·Restore purchases·Move to a new phone
+- `npm test` (무료 한도 규칙), ESLint 설정 (`npx expo lint`)
+- docs/PREMIUM_SETUP.md (스토어 상품 등록 안내), APP_STORE_LISTING.md 1.1 문구, SPEC AC-70~79·AC-80~86
+### Changed (2026-11-11)
+- 1.1 새 화면 문구 98개를 언어팩으로 옮기고 10개 언어 번역 (AI 번역), iOS 로컬 네트워크 권한 안내문 번역. 이용약관·첫 화면 경고·설정 문구 변경도 11개 언어에 반영
+- Owner 결정: 새 폰 옮기기 무료 확정, iPhone 먼저 출시 (Android는 나중)
+### Changed
+- Android: INTERNET 권한 사용 (같은 Wi-Fi 직접 연결용). iOS: 로컬 네트워크 권한 안내 문구
+- 이용약관·첫 화면 경고: "새 폰으로 옮겨지지 않음" → "설정의 Move to a new phone으로만 옮길 수 있음"
+- 설정 보안 표시 "No network access" → "No cloud, no servers"
+- 앱 버전 1.1 (Android versionCode 3)
+
 ## [Unreleased]
 ### Added (언어팩, 2026-11-10)
 - 앱 화면 문구를 언어팩으로 분리(app/src/i18n). 기기 언어에 맞춰 자동 선택, 없는 언어는 영어
