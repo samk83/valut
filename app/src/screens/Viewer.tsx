@@ -5,21 +5,21 @@ import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, Vi
 
 import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
+import { month, spacing, t } from '../i18n';
 import { Busy, Button, s } from '../ui';
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const dayLabel = (ms: number) => {
   const d = new Date(ms);
   const sameYear = d.getFullYear() === new Date().getFullYear();
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}${sameYear ? '' : `, ${d.getFullYear()}`}`;
+  const parts = { month: month(d.getMonth()), day: d.getDate(), year: d.getFullYear() };
+  return sameYear ? t('date.day', parts) : t('date.dayYear', parts);
 };
 
 const fullDate = (ms: number) => {
   const d = new Date(ms);
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · ${hh}:${mm}`;
+  return t('date.full', { month: month(d.getMonth()), day: d.getDate(), year: d.getFullYear(), time: `${hh}:${mm}` });
 };
 
 const sizeLabel = (bytes: number) => {
@@ -32,7 +32,7 @@ const sizeLabel = (bytes: number) => {
 
 const typeLabel = (item: VaultItem) => {
   const sub = item.mimeType?.split('/')[1]?.toUpperCase();
-  const kind = item.kind === 'VIDEO' ? 'Video' : 'Photo';
+  const kind = item.kind === 'VIDEO' ? t('common.video') : t('common.photo');
   return sub ? `${kind} · ${sub}` : kind;
 };
 
@@ -61,7 +61,7 @@ function ToolButton({ icon, label, color = '#D9D4CA', onPress, active }: { icon:
   );
 }
 
-const BLOCKED = 'This item failed its integrity check and is blocked.';
+const blocked = () => t('viewer.blocked');
 
 /** Bottom sheet in place of a system alert. Deletion goes only through VaultCore.delete. */
 function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; visible: boolean; onCancel: () => void; onDone: () => void }) {
@@ -76,7 +76,7 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
       onDone();
     } catch {
       setWorking(false);
-      Alert.alert('Not destroyed', 'The item could not be destroyed. Try again.');
+      Alert.alert(t('viewer.notDestroyed'), t('viewer.notDestroyedBody'));
     } finally {
       inFlight.current = false;
     }
@@ -86,13 +86,13 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => {
         if (!working) onCancel();
       }} statusBarTranslucent>
-      <Pressable style={vs.scrim} onPress={() => !working && onCancel()} accessibilityLabel="Keep it" />
+      <Pressable style={vs.scrim} onPress={() => !working && onCancel()} accessibilityLabel={t('viewer.keep')} />
       <View style={vs.sheet}>
         <View style={vs.grabber} />
-        <Text style={[s.label, { color: C.danger, letterSpacing: 3, marginTop: 6 }]}>Permanent</Text>
-        <Text style={vs.sheetTitle}>Destroy 1 item?</Text>
+        <Text style={[s.label, { color: C.danger, letterSpacing: spacing(3), marginTop: 6 }]}>{t('viewer.permanent')}</Text>
+        <Text style={vs.sheetTitle}>{t('viewer.destroyOne')}</Text>
         <Text style={[s.body, { fontSize: 14, color: C.muted, lineHeight: 23 }]}>
-          Its encryption key will be erased. Not even you will be able to open it again, and there is no trash to restore from.
+          {t('viewer.destroyBody')}
         </Text>
         <View style={vs.meta}>
           <Text style={[s.small, { color: '#D9D4CA' }]}>{typeLabel(item)}</Text>
@@ -104,8 +104,8 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
           </View>
         ) : (
           <>
-            <Button label="Destroy" kind="danger" onPress={destroy} style={{ marginTop: 6 }} />
-            <Button label="Keep it" kind="ghost" onPress={onCancel} style={{ height: 48 }} />
+            <Button label={t('viewer.destroy')} kind="danger" onPress={destroy} style={{ marginTop: 6 }} />
+            <Button label={t('viewer.keep')} kind="ghost" onPress={onCancel} style={{ height: 48 }} />
           </>
         )}
       </View>
@@ -158,10 +158,10 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <View style={vs.top}>
-        <RoundButton icon="chevron-back" label="Back" onPress={onClose} />
+        <RoundButton icon="chevron-back" label={t('common.back')} onPress={onClose} />
         <View style={{ alignItems: 'center', gap: 2, flex: 1 }}>
           <Text style={vs.date}>{dayLabel(item.createdAt)}</Text>
-          {index >= 0 && <Text style={vs.count}>{`${index + 1} of ${photos.length}`}</Text>}
+          {index >= 0 && <Text style={vs.count}>{t('viewer.position', { index: index + 1, total: photos.length })}</Text>}
         </View>
         <View style={{ width: 44 }} />
       </View>
@@ -180,15 +180,15 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
         }}
       >
         {uri && <Image source={{ uri }} style={imgStyle} resizeMode="contain" />}
-        {error && <Text style={[s.body, { margin: 24, color: C.danger, textAlign: 'center' }]}>{BLOCKED}</Text>}
+        {error && <Text style={[s.body, { margin: 24, color: C.danger, textAlign: 'center' }]}>{blocked()}</Text>}
         {!uri && !error && <ActivityIndicator color={C.brass} size="large" />}
         {index > 0 && (
-          <Pressable accessibilityLabel="Previous photo" onPress={() => go(-1)} style={[vs.arrow, { left: 8 }]}>
+          <Pressable accessibilityLabel={t('viewer.previous')} onPress={() => go(-1)} style={[vs.arrow, { left: 8 }]}>
             <Ionicons name="chevron-back" size={22} color={C.ivory} />
           </Pressable>
         )}
         {index >= 0 && index < photos.length - 1 && (
-          <Pressable accessibilityLabel="Next photo" onPress={() => go(1)} style={[vs.arrow, { right: 8 }]}>
+          <Pressable accessibilityLabel={t('viewer.next')} onPress={() => go(1)} style={[vs.arrow, { right: 8 }]}>
             <Ionicons name="chevron-forward" size={22} color={C.ivory} />
           </Pressable>
         )}
@@ -197,9 +197,9 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
       {info && (
         <View style={vs.info}>
           {[
-            ['Date', fullDate(item.createdAt)],
-            ['Size', sizeLabel(item.size) || '—'],
-            ['Type', typeLabel(item)],
+            [t('viewer.date'), fullDate(item.createdAt)],
+            [t('viewer.size'), sizeLabel(item.size) || '—'],
+            [t('viewer.type'), typeLabel(item)],
           ].map(([k, v]) => (
             <View key={k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 }}>
               <Text style={[s.small, { color: C.faint }]}>{k}</Text>
@@ -210,9 +210,9 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
       )}
 
       <View style={vs.toolbar}>
-        <ToolButton icon="sync-outline" label="Rotate" onPress={() => setRotation((r) => (r + 90) % 360)} />
-        <ToolButton icon="information-circle-outline" label="Info" active={info} onPress={() => setInfo((v) => !v)} />
-        <ToolButton icon="trash-outline" label="Destroy" color={C.danger} onPress={() => setConfirm(true)} />
+        <ToolButton icon="sync-outline" label={t('viewer.rotate')} onPress={() => setRotation((r) => (r + 90) % 360)} />
+        <ToolButton icon="information-circle-outline" label={t('viewer.info')} active={info} onPress={() => setInfo((v) => !v)} />
+        <ToolButton icon="trash-outline" label={t('viewer.destroy')} color={C.danger} onPress={() => setConfirm(true)} />
       </View>
       <DestroySheet item={item} visible={confirm} onCancel={() => setConfirm(false)} onDone={onDeleted} />
     </View>
@@ -263,21 +263,21 @@ export function VideoPlayer({ item, onClose, onDeleted }: { item: VaultItem; onC
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <View style={vs.top}>
-        <RoundButton icon="chevron-back" label="Back" onPress={onClose} />
+        <RoundButton icon="chevron-back" label={t('common.back')} onPress={onClose} />
         <View style={vs.streamPill}>
-          <Text style={[s.small, { fontSize: 11, lineHeight: 15, color: C.muted }]}>Streaming from vault · nothing cached</Text>
+          <Text style={[s.small, { fontSize: 11, lineHeight: 15, color: C.muted, textAlign: 'center' }]} numberOfLines={2}>{t('viewer.streaming')}</Text>
         </View>
         <View style={{ width: 44 }} />
       </View>
 
-      <Pressable style={{ flex: 1, justifyContent: 'center' }} onPress={uri ? toggle : undefined} accessibilityLabel={time.playing ? 'Pause' : 'Play'}>
+      <Pressable style={{ flex: 1, justifyContent: 'center' }} onPress={uri ? toggle : undefined} accessibilityLabel={time.playing ? t('viewer.pause') : t('viewer.play')}>
         {uri && <VideoView player={player} style={{ flex: 1 }} nativeControls={false} contentFit="contain" />}
-        {error && <Text style={[s.body, { margin: 24, color: C.danger, textAlign: 'center' }]}>{BLOCKED}</Text>}
+        {error && <Text style={[s.body, { margin: 24, color: C.danger, textAlign: 'center' }]}>{blocked()}</Text>}
       </Pressable>
 
       <View style={{ paddingHorizontal: 22, gap: 10, paddingTop: 12 }}>
         <Pressable
-          accessibilityLabel="Seek"
+          accessibilityLabel={t('viewer.seek')}
           onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
           onPress={(e) => {
             if (barWidth > 0 && time.total > 0) player.currentTime = Math.max(0, Math.min(1, e.nativeEvent.locationX / barWidth)) * time.total;
@@ -296,33 +296,33 @@ export function VideoPlayer({ item, onClose, onDeleted }: { item: VaultItem; onC
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 40, paddingTop: 18, paddingBottom: 10 }}>
-        <Pressable accessibilityLabel="Back 10 seconds" onPress={() => player.seekBy(-10)} style={vs.skip}>
+        <Pressable accessibilityLabel={t('viewer.back10')} onPress={() => player.seekBy(-10)} style={vs.skip}>
           <Text style={vs.skipText}>−10</Text>
         </Pressable>
-        <Pressable accessibilityLabel={time.playing ? 'Pause' : 'Play'} onPress={toggle} style={({ pressed }) => [vs.play, pressed && { opacity: 0.8 }]}>
+        <Pressable accessibilityLabel={time.playing ? t('viewer.pause') : t('viewer.play')} onPress={toggle} style={({ pressed }) => [vs.play, pressed && { opacity: 0.8 }]}>
           <Ionicons name={time.playing ? 'pause' : 'play'} size={26} color={C.bg} style={time.playing ? undefined : { marginLeft: 3 }} />
         </Pressable>
-        <Pressable accessibilityLabel="Forward 10 seconds" onPress={() => player.seekBy(10)} style={vs.skip}>
+        <Pressable accessibilityLabel={t('viewer.forward10')} onPress={() => player.seekBy(10)} style={vs.skip}>
           <Text style={vs.skipText}>+10</Text>
         </Pressable>
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, paddingTop: 6, paddingBottom: 36 }}>
         <Pressable
-          accessibilityLabel={time.muted ? 'Unmute' : 'Mute'}
+          accessibilityLabel={time.muted ? t('viewer.unmute') : t('viewer.mute')}
           onPress={() => (player.muted = !player.muted)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 6 }}
         >
           <Ionicons name={time.muted ? 'volume-mute-outline' : 'volume-medium-outline'} size={20} color={C.muted} />
-          <Text style={[s.small, { fontSize: 12 }]}>{time.muted ? 'Muted' : 'Sound on'}</Text>
+          <Text style={[s.small, { fontSize: 12 }]}>{time.muted ? t('viewer.muted') : t('viewer.soundOn')}</Text>
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Pressable accessibilityLabel="Destroy video" onPress={askDestroy} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 6 }}>
+        <Pressable accessibilityLabel={t('viewer.destroyVideo')} onPress={askDestroy} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 6 }}>
           <Ionicons name="trash-outline" size={20} color={C.danger} />
-          <Text style={[s.small, { fontSize: 12, color: C.danger }]}>Destroy</Text>
+          <Text style={[s.small, { fontSize: 12, color: C.danger }]}>{t('viewer.destroy')}</Text>
         </Pressable>
       </View>
-      {!uri && !error && <Busy label="Decrypting…" />}
+      {!uri && !error && <Busy label={t('viewer.decrypting')} />}
       <DestroySheet item={item} visible={confirm} onCancel={() => setConfirm(false)} onDone={onDeleted} />
     </View>
   );

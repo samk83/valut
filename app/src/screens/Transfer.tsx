@@ -7,6 +7,7 @@ import { BackHandler, Pressable, ScrollView, Text, useWindowDimensions, View } f
 
 import VaultCore, { TransferEvent } from '../../modules/vault-core';
 import { FREE_LIMIT, usePremium } from '../premium';
+import { Key, t, tn } from '../i18n';
 import { C, F } from '../theme';
 import { Body, Bullet, Button, s, Title } from '../ui';
 
@@ -18,22 +19,22 @@ type Step =
   | { name: 'done'; role: 'send' | 'receive'; event: TransferEvent }
   | { name: 'error'; role: 'send' | 'receive'; message: string };
 
-const ERRORS: Record<string, string> = {
-  E_NO_WIFI: 'This phone is not on Wi-Fi. Connect both phones to the same Wi-Fi network (or turn on one phone’s hotspot and join it with the other), then try again.',
-  E_BAD_CODE: 'That is not a PrivateVault code. Scan the code shown on your new phone.',
-  E_OTHER_NETWORK: 'The new phone is on a different network. Connect both phones to the same Wi-Fi (or one phone’s hotspot), then show a new code.',
-  E_LOCKED: 'The vault locked. Unlock it and start again.',
-  E_UNAVAILABLE: 'The preview app has nothing real to move. This works in the installed app.',
-  CONNECTION: 'The phones lost each other. Keep both on the same Wi-Fi with the screens on, then start again. Items already moved are kept and will not be sent twice.',
-  WRONG_PEER: 'The connection could not be verified, so nothing was accepted. Start again and scan the code on your new phone.',
-  STORAGE_FULL: 'The new phone is out of storage. Free up space, then start again; items already moved are kept.',
-  LOCKED: 'One of the phones locked or left the app. Keep both apps open, then start again. Items already moved are kept.',
-  INTEGRITY: 'An item did not arrive intact, so it was not saved. Start again; items already moved are kept.',
-  CANCELLED: 'The transfer was stopped. Items already moved are kept.',
-  OTHER: 'Something went wrong. Start again; items already moved are kept.',
+const ERRORS: Record<string, Key> = {
+  E_NO_WIFI: 'transfer.err.noWifi',
+  E_BAD_CODE: 'transfer.err.badCode',
+  E_OTHER_NETWORK: 'transfer.err.otherNetwork',
+  E_LOCKED: 'transfer.err.vaultLocked',
+  E_UNAVAILABLE: 'transfer.err.unavailable',
+  CONNECTION: 'transfer.err.connection',
+  WRONG_PEER: 'transfer.err.wrongPeer',
+  STORAGE_FULL: 'transfer.err.storageFull',
+  LOCKED: 'transfer.err.locked',
+  INTEGRITY: 'transfer.err.integrity',
+  CANCELLED: 'transfer.err.cancelled',
+  OTHER: 'transfer.err.other',
 };
 
-const message = (code: string | undefined) => ERRORS[code ?? 'OTHER'] ?? ERRORS.OTHER;
+const message = (code: string | undefined) => t(ERRORS[code ?? 'OTHER'] ?? ERRORS.OTHER);
 
 /** Moves the vault to a new phone: directly between the two phones, encrypted, no cloud. */
 export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; suspendAutoLock: (on: boolean) => void }) {
@@ -135,10 +136,10 @@ export function Transfer({ onClose, suspendAutoLock }: { onClose: () => void; su
       return <Done role={step.role} event={step.event} onClose={onClose} />;
     case 'error':
       return (
-        <Page footer={<Button label="Start again" onPress={() => setStep({ name: 'choose' })} />} onBack={onClose}>
+        <Page footer={<Button label={t('transfer.startAgain')} onPress={() => setStep({ name: 'choose' })} />} onBack={onClose}>
           <Ionicons name="alert-circle-outline" size={40} color={C.danger} />
           <View style={{ height: 12 }} />
-          <Title>Transfer stopped</Title>
+          <Title>{t('transfer.stopped')}</Title>
           <Body style={{ color: C.muted }}>{step.message}</Body>
         </Page>
       );
@@ -184,22 +185,22 @@ function Choice({ icon, title, text, onPress }: { icon: keyof typeof Ionicons.gl
 function Choose({ onClose, onReceive, onSend }: { onClose: () => void; onReceive: () => void; onSend: () => void }) {
   return (
     <Page onBack={onClose}>
-      <Text style={s.label}>Move to a new phone</Text>
+      <Text style={s.label}>{t('transfer.title')}</Text>
       <View style={{ height: 8 }} />
-      <Title>Phone to phone, encrypted</Title>
+      <Title>{t('transfer.chooseTitle')}</Title>
       <Body style={{ color: C.muted, marginBottom: 20 }}>
-        Your photos and videos go straight from one phone to the other over your Wi-Fi. Nothing is uploaded anywhere, and nothing can be read on the way.
+        {t('transfer.chooseBody')}
       </Body>
       <View style={{ gap: 12 }}>
-        <Choice icon="phone-portrait-outline" title="This is my new phone" text="Shows a code for the old phone to scan" onPress={onReceive} />
-        <Choice icon="scan-outline" title="This is my old phone" text="Scans the code on the new phone and sends everything" onPress={onSend} />
+        <Choice icon="phone-portrait-outline" title={t('transfer.isNew')} text={t('transfer.isNewSub')} onPress={onReceive} />
+        <Choice icon="scan-outline" title={t('transfer.isOld')} text={t('transfer.isOldSub')} onPress={onSend} />
       </View>
       <View style={[s.card, { marginTop: 22, gap: 6 }]}>
-        <Text style={[s.body, { fontFamily: F.bold, marginBottom: 4 }]}>Before you start</Text>
-        <Bullet>Install the app on the new phone and create its own PIN or pattern.</Bullet>
-        <Bullet>Put both phones on the same Wi-Fi, or turn on one phone’s hotspot and join it with the other.</Bullet>
-        <Bullet>Keep both apps open with the screens on until it finishes.</Bullet>
-        <Bullet>Your old phone keeps its copy. Erase it yourself once you have checked the new phone.</Bullet>
+        <Text style={[s.body, { fontFamily: F.bold, marginBottom: 4 }]}>{t('transfer.before')}</Text>
+        <Bullet>{t('transfer.before1')}</Bullet>
+        <Bullet>{t('transfer.before2')}</Bullet>
+        <Bullet>{t('transfer.before3')}</Bullet>
+        <Bullet>{t('transfer.before4')}</Bullet>
       </View>
     </Page>
   );
@@ -210,16 +211,16 @@ function Receive({ code, onCancel }: { code: string | null; onCancel: () => void
   const { width } = useWindowDimensions();
   const size = Math.min(width - 48, 320);
   return (
-    <Page footer={<Button label="Cancel" kind="ghost" onPress={onCancel} />}>
-      <Text style={s.label}>New phone</Text>
+    <Page footer={<Button label={t('common.cancel')} kind="ghost" onPress={onCancel} />}>
+      <Text style={s.label}>{t('transfer.newPhone')}</Text>
       <View style={{ height: 8 }} />
-      <Title>Scan this with your old phone</Title>
-      <Body style={{ color: C.muted, marginBottom: 20 }}>On the old phone open Settings › Move to a new phone › This is my old phone.</Body>
+      <Title>{t('transfer.scanThis')}</Title>
+      <Body style={{ color: C.muted, marginBottom: 20 }}>{t('transfer.scanHow')}</Body>
       <View style={{ alignItems: 'center' }}>
         {code ? <Qr text={code} size={size} /> : <View style={{ width: size, height: size, borderRadius: 16, backgroundColor: C.surface }} />}
       </View>
       <Text style={[s.small, { textAlign: 'center', marginTop: 16 }]}>
-        This code works once, only for the next 10 minutes, and only on this Wi-Fi. Do not share it or take a picture of it.
+        {t('transfer.codeNote')}
       </Text>
     </Page>
   );
@@ -252,7 +253,7 @@ function Qr({ text, size }: { text: string; size: number }) {
   const quiet = 4;
   const cell = size / (rows.length + quiet * 2);
   return (
-    <View accessibilityLabel="Transfer code" style={{ width: size, height: size, backgroundColor: '#FFFFFF', borderRadius: 12, padding: cell * quiet }}>
+    <View accessibilityLabel={t('transfer.codeA11y')} style={{ width: size, height: size, backgroundColor: '#FFFFFF', borderRadius: 12, padding: cell * quiet }}>
       {rows.map((runs, r) => (
         <View key={r} style={{ height: cell, flexDirection: 'row' }}>
           {runs.map((run) => (
@@ -272,10 +273,10 @@ function Scan({ onScanned, onCancel, suspendAutoLock }: { onScanned: (data: stri
   if (!perm.granted) {
     return (
       <Page onBack={onCancel}>
-        <Title>Camera access</Title>
-        <Body style={{ color: C.muted, marginBottom: 24 }}>The camera is used only to read the code on your new phone. No picture is taken.</Body>
+        <Title>{t('transfer.cameraTitle')}</Title>
+        <Body style={{ color: C.muted, marginBottom: 24 }}>{t('transfer.cameraBody')}</Body>
         <Button
-          label="Allow camera"
+          label={t('transfer.allowCamera')}
           onPress={async () => {
             suspendAutoLock(true);
             try {
@@ -301,12 +302,12 @@ function Scan({ onScanned, onCancel, suspendAutoLock }: { onScanned: (data: stri
         }}
       />
       <View style={{ position: 'absolute', top: 56, left: 24, right: 24 }}>
-        <Text style={s.label}>Old phone</Text>
+        <Text style={s.label}>{t('transfer.oldPhone')}</Text>
         <View style={{ height: 8 }} />
-        <Text style={{ fontFamily: F.title, fontSize: 26, color: C.ivory }}>Scan the code on your new phone</Text>
+        <Text style={{ fontFamily: F.title, fontSize: 26, color: C.ivory }}>{t('transfer.scanNew')}</Text>
       </View>
       <View style={{ position: 'absolute', bottom: 40, left: 24, right: 24 }}>
-        <Button label="Cancel" kind="ghost" onPress={onCancel} style={{ backgroundColor: 'rgba(11,13,18,0.7)' }} />
+        <Button label={t('common.cancel')} kind="ghost" onPress={onCancel} style={{ backgroundColor: 'rgba(11,13,18,0.7)' }} />
       </View>
     </View>
   );
@@ -319,7 +320,7 @@ function Running({ role, event, onCancel }: { role: 'send' | 'receive'; event: T
   const bytesTotal = event?.bytesTotal ?? 0;
   const pct = bytesTotal > 0 ? Math.round(((event?.bytesDone ?? 0) / bytesTotal) * 100) : total > 0 ? Math.round((done / total) * 100) : 0;
   return (
-    <Page footer={<Button label="Stop" kind="ghost" onPress={onCancel} />}>
+    <Page footer={<Button label={t('transfer.stop')} kind="ghost" onPress={onCancel} />}>
       <View style={{ alignItems: 'center', marginTop: 24, marginBottom: 24 }}>
         <View style={{ width: 168, height: 168, borderRadius: 84, borderWidth: 6, borderColor: C.line, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: F.title, fontSize: 48, color: C.ivory }}>{Math.min(pct, 100)}%</Text>
@@ -328,11 +329,11 @@ function Running({ role, event, onCancel }: { role: 'send' | 'receive'; event: T
           <View style={{ width: `${Math.min(pct, 100)}%`, height: 4, backgroundColor: C.brass }} />
         </View>
       </View>
-      <Text style={s.label}>{role === 'send' ? 'Sending' : 'Receiving'}</Text>
+      <Text style={s.label}>{role === 'send' ? t('transfer.sending') : t('transfer.receiving')}</Text>
       <View style={{ height: 8 }} />
-      <Title>{event ? `${done} of ${total}` : 'Connecting…'}</Title>
-      <Body style={{ color: C.muted }}>Keep both apps open with the screens on. Each item is checked on the new phone before the next one is sent.</Body>
-      {!!event?.alreadyThere && <Text style={[s.small, { marginTop: 10 }]}>{event.alreadyThere} already on the new phone, skipped.</Text>}
+      <Title>{event ? t('transfer.progress', { done, total }) : t('transfer.connecting')}</Title>
+      <Body style={{ color: C.muted }}>{t('transfer.keepOpen')}</Body>
+      {!!event?.alreadyThere && <Text style={[s.small, { marginTop: 10 }]}>{t('transfer.alreadySkipped', { n: event.alreadyThere })}</Text>}
     </Page>
   );
 }
@@ -342,29 +343,29 @@ function Done({ role, event, onClose }: { role: 'send' | 'receive'; event: Trans
   const moved = event.itemsDone ?? 0;
   const skipped = event.skipped ?? 0;
   return (
-    <Page footer={<Button label="Back to vault" onPress={onClose} />}>
+    <Page footer={<Button label={t('premium.backToVault')} onPress={onClose} />}>
       <Ionicons name="checkmark-circle" size={44} color={C.ok} />
       <View style={{ height: 12 }} />
-      <Text style={s.label}>Transfer complete</Text>
+      <Text style={s.label}>{t('transfer.complete')}</Text>
       <View style={{ height: 8 }} />
-      <Title>{role === 'send' ? `${moved - skipped} sent` : `${moved - skipped} received`}</Title>
+      <Title>{tn(role === 'send' ? 'transfer.sent' : 'transfer.received', moved - skipped)}</Title>
       <View style={{ gap: 10 }}>
-        {!!event.alreadyThere && <Body style={{ color: C.muted }}>{event.alreadyThere} were already on the new phone.</Body>}
+        {!!event.alreadyThere && <Body style={{ color: C.muted }}>{t('transfer.alreadyThere', { n: event.alreadyThere })}</Body>}
         {skipped > 0 && (
           <Body style={{ color: C.danger }}>
-            {skipped} {skipped === 1 ? 'item was' : 'items were'} damaged on the old phone and could not be moved.
+            {tn('transfer.damaged', skipped)}
           </Body>
         )}
         {role === 'send' ? (
           <Body style={{ color: C.muted }}>
-            This phone still has its copy. Open the vault on your new phone and check it. When you are happy, you can erase this vault in Settings › Destroy entire vault.
+            {t('transfer.doneSend')}
           </Body>
         ) : (
-          <Body style={{ color: C.muted }}>Everything is now encrypted with this phone’s own key and PIN.</Body>
+          <Body style={{ color: C.muted }}>{t('transfer.doneReceive')}</Body>
         )}
         {role === 'receive' && !st.premium && (
           <Body style={{ color: C.muted }}>
-            Bought Premium on your old phone? Tap Restore purchases in Settings with the same account. Without it, the free plan lets you keep everything but add new items only below {FREE_LIMIT}.
+            {t('transfer.restoreHint', { max: FREE_LIMIT })}
           </Body>
         )}
       </View>

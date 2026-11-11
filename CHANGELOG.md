@@ -14,6 +14,9 @@
 - 화면: 프리미엄, 새 폰 옮기기(QR 표시·스캔·진행·완료), 홈 "N of 100 free" 표시, 설정 Plan·Restore purchases·Move to a new phone
 - `npm test` (무료 한도 규칙), ESLint 설정 (`npx expo lint`)
 - docs/PREMIUM_SETUP.md (스토어 상품 등록 안내), APP_STORE_LISTING.md 1.1 문구, SPEC AC-70~79·AC-80~86
+### Changed (2026-11-11)
+- 1.1 새 화면 문구 98개를 언어팩으로 옮기고 10개 언어 번역 (AI 번역), iOS 로컬 네트워크 권한 안내문 번역. 이용약관·첫 화면 경고·설정 문구 변경도 11개 언어에 반영
+- Owner 결정: 새 폰 옮기기 무료 확정, iPhone 먼저 출시 (Android는 나중)
 ### Changed
 - Android: INTERNET 권한 사용 (같은 Wi-Fi 직접 연결용). iOS: 로컬 네트워크 권한 안내 문구
 - 이용약관·첫 화면 경고: "새 폰으로 옮겨지지 않음" → "설정의 Move to a new phone으로만 옮길 수 있음"
@@ -21,6 +24,13 @@
 - 앱 버전 1.1 (Android versionCode 3)
 
 ## [Unreleased]
+### Added (언어팩, 2026-11-10)
+- 앱 화면 문구를 언어팩으로 분리(app/src/i18n). 기기 언어에 맞춰 자동 선택, 없는 언어는 영어
+- 11개 언어: 영어, 중국어(간체), 힌디어, 인도네시아어, 포르투갈어(브라질), 러시아어, 일본어, 스페인어, 독일어, 터키어, 한국어 (스마트폰 사용자 상위 10개국 기준 + 한국어)
+- 아이폰 권한 안내문(카메라·마이크·사진) 번역(app/locales), 이용약관 번역(영어판 우선 문구 포함)
+- 금고 전체 삭제 확인 단어: 각 언어 단어 또는 영어 DESTROY 둘 다 허용
+- scripts/check-i18n.js: 빠진 문구·자리표시자·복수형 검사
+- 홈 화면 상단 이름을 PrivateVault → Private Vision Vault
 ### Added (iPhone·iPad, 2026-11-10)
 - app/modules/vault-core/ios: 보안 코어 Swift 이식 (Argon2id·AES-256-GCM 조각 암호화·3회 오류 키 파기·이중 저장·촬영본 대기함). 파일 형식·규칙은 Android와 동일
 - Argon2id를 Swift로 직접 구현: RFC 9106 시험값, Android(BouncyCastle) 결과와 일치 확인

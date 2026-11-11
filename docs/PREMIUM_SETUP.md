@@ -17,7 +17,7 @@
 9. 1.1 앱 버전 화면의 **In-App Purchases** 칸에 이 상품을 추가 → 앱과 함께 심사 제출
 10. 테스트: **Users and Access → Sandbox Testers**에 테스트 계정을 만들고, TestFlight 빌드에서 구매 → 실제 돈은 나가지 않음
 
-## 2. Google Play Console (Android)
+## 2. Google Play Console (Android) — Android 출시 때 (Owner 결정 2026-11-11: iPhone 먼저)
 1. **설정 → 결제 프로필** 만들기 (판매자 계정, 처음 1회)
 2. 앱에 Billing 라이브러리가 들어간 빌드(1.1)를 **내부 테스트** 트랙에 먼저 한 번 올려야 상품 메뉴가 열립니다
 3. **수익 창출 → 제품 → 일회성 제품 → 제품 만들기**

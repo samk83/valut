@@ -17,12 +17,18 @@
 - 1.1 계획 (Owner 결정 2026-11-10): 새 핸드폰으로 금고 옮기기 → 개발함 (아래 1.1 항목, SPEC AC-70~79)
 
 ## 1.1 프리미엄 + 새 폰 옮기기 (2026-11-10)
-- Owner 결정: 새 폰 옮기기를 무료로 둘지 (추천: 무료, 현재 무료로 구현)
-- Owner: 스토어에 상품 등록 — docs/PREMIUM_SETUP.md (App Store Connect 유료 앱 계약·상품, Play Console 결제 프로필·일회성 제품)
+- Owner 결정 (2026-11-11): 새 폰 옮기기 무료 확정. iPhone·iPad 먼저 출시, Android 출시는 나중
+- Owner: App Store Connect에 상품 등록 — docs/PREMIUM_SETUP.md 1장 (유료 앱 계약·상품). Play Console 상품 등록은 Android 출시 때
 - 실기기 확인: 100개 제한, 샌드박스 구매·복원, 두 폰 옮기기(iPhone→iPhone, Android→iPhone, iPhone→Android), 옮기는 중 Wi-Fi 끊김 후 이어 받기
-- 출시 순서: 1.0 출시(PR #7 → #6 → #8) → 1.1 PR Merge → 1.1 빌드·심사 제출 (L3 승인)
-- 언어팩 PR #9와 겹침: 1.1 새 화면 문구(프리미엄·옮기기·홈 표시)는 영어로만 작성됨. 둘 중 나중에 Merge하는 쪽에서 문구를 app/src/i18n/en.ts로 옮기고 10개 언어 번역 추가 필요
+- 출시 순서: PR #7 → #6 → #8 → #9 Merge 완료(2026-11-11) → #10 Merge → iPhone 빌드·심사 제출 (L3 승인)
+- 언어팩 통합 완료 (2026-11-11): 1.1 문구 98개를 11개 언어로 번역(AI 번역, 원어민 검토 권장)
 - 남은 개선: Android 17 로컬 네트워크 권한 대응(대상 SDK 37 올릴 때), 구매 영수증 서명 확인(현재 스토어 앱 결과 신뢰), 대용량(수천 개) 옮기기 실측
+
+## 앱 언어팩 (2026-11-10)
+- 원어민 검토 권장: 특히 이용약관 번역(법률 문구). 번역본에는 "영어판이 우선" 문구가 들어 있음
+- 새 언어 추가: app/src/i18n/en.ts를 기준으로 XX.ts 작성 → index.ts PACKS에 추가 → app.json supportedLocales·locales 추가 → `node scripts/check-i18n.js XX`
+- App Store Connect 스토어 문구도 같은 언어로 추가하면 해당 나라 검색 노출에 유리 (docs/APP_STORE_LISTING.md는 현재 영어·한국어)
+- 아랍어·우르두어 같은 오른쪽→왼쪽 언어는 패턴 잠금 좌우 반전 위험 때문에 제외 (supportsRTL false)
 
 ## Android 테스트 앱 (2026-10-30)
 - Owner: APK 설치 후 docs/ANDROID_TEST_APP.md 표의 10개 항목 확인, 결과(특히 설정 화면의 StrongBox/TEE, PIN 확인 시간) 알려주기
