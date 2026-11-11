@@ -1,6 +1,6 @@
 # STATUS — JellyDock PrivateVault
 
-Last Updated: 2026-11-10 (iPhone·iPad 출시 준비)
+Last Updated: 2026-11-10 (앱 언어팩)
 
 | Task / Thread | Status | Progress | Last Updated | Next Action | Owner Action | Branch |
 |---|---|---|---|---|---|---|
@@ -13,6 +13,7 @@ Last Updated: 2026-11-10 (iPhone·iPad 출시 준비)
 | iPhone Expo Go 미리보기 + 승인 시안(19화면) 적용 | REVIEW | 시안 승인(10-31) 후 전 화면 시안대로 구현, 내부 QA 2회(각 5건·3건) 수정, 재게시. 실기기 확인 전 | 2026-10-31 | Owner iPhone 확인 | Expo Go로 다시 열어 확인, PR #7 → #6 순서로 Merge | feature/ios-preview |
 | 자료 무손실 설계 + 제약 (AC-50) | REVIEW | 이중 저장·자동 복구·촬영본 대기함·원본 일치 확인 구현, 테스트 80개 통과, 내부 QA 8건 수정, APK v0.2.0 | 2026-10-30 | 내부 QA 후 PR | 실기기 확인 | fix/no-data-loss |
 | iPhone·iPad 앱 (App Store 출시 준비) | REVIEW | 보안 코어 Swift 이식(테스트 27개 통과, Argon2 결과 Android와 동일), Secure Enclave 키, iOS 네이티브 모듈, iPad·Duo 화면 대응, app.json·eas.json, 출시 가이드 | 2026-11-10 | EAS 빌드 → TestFlight | 첫 `eas build` 실행(Apple 로그인 1회), TestFlight 실기기 확인, 정식 심사 제출 승인(L3) | feature/ios-release |
+| 앱 언어팩 (스마트폰 사용자 상위 10개국 + 한국어) | REVIEW | 앱 문구 약 250개를 언어팩으로 분리, 11개 언어(영어·중국어 간체·힌디어·인도네시아어·포르투갈어(브라질)·러시아어·일본어·스페인어·독일어·터키어·한국어), 기기 언어 자동 선택, iOS 권한 안내문·이용약관 번역 | 2026-11-10 | 내부 QA 후 PR | 원어민 검토 권장(특히 이용약관), 실기기 확인 | feature/i18n |
 | Phase 3 MVP 개발 | TODO | 0 (미착수) | 2026-10-30 | 디자인 승인 후 | 개발 승인 | - |
 | 외부 보안 감사 | TODO | 0 | 2026-10-30 | 견적 조사 | 비용 승인 (L3) | - |
 

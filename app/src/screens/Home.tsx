@@ -6,7 +6,8 @@ import { BackHandler, Image, Platform, Pressable, ScrollView, SectionList, Switc
 
 import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
-import { Body, Bullet, Button, READABLE_WIDTH, s, Segmented, TestBanner, Title } from '../ui';
+import { monthStandalone, t, tn } from '../i18n';
+import { Body, Bullet, Button, READABLE_WIDTH, Rich, s, Segmented, TestBanner, Title } from '../ui';
 
 type Imported = { id: string; kind: ItemKind; assetId?: string | null; safe: boolean };
 type Result = {
@@ -22,8 +23,6 @@ type Result = {
 };
 type Progress = { index: number; total: number; sealed: number; sealedCurrent: boolean };
 type View_ = 'home' | 'options' | 'importing' | 'deleting' | 'result';
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 let lastTab: ItemKind = 'PHOTO';
 
@@ -86,33 +85,33 @@ export function Home({
   /** Deletes the gallery originals of verified imports. Only exact matches are removed. */
   const deleteOriginals = async (imported: Imported[]): Promise<{ deleted: number; kept: number; note: string | null }> => {
     if (VaultCore.isDemo) {
-      return { deleted: 0, kept: imported.length, note: 'Preview only: nothing is kept after the app closes, so originals are never deleted here. The real app deletes them at this step.' };
+      return { deleted: 0, kept: imported.length, note: t('note.preview') };
     }
     const candidates = imported.filter((d) => d.safe && d.assetId);
     const unknown = imported.length - candidates.length;
     if (candidates.length === 0) {
-      return { deleted: 0, kept: imported.length, note: imported.length ? 'The gallery did not say which originals these were, so they were left in place.' : null };
+      return { deleted: 0, kept: imported.length, note: imported.length ? t('note.notIdentified') : null };
     }
     suspendAutoLock(true);
     try {
       const perm = await MediaLibrary.requestPermissionsAsync();
-      if (!perm.granted) return { deleted: 0, kept: imported.length, note: 'Photo access was not granted, so the originals are still in your gallery.' };
+      if (!perm.granted) return { deleted: 0, kept: imported.length, note: t('note.noAccess') };
       // Re-read each original and compare it with the vault copy; only exact matches go.
       const ids: string[] = [];
       for (const d of candidates) {
         if (await VaultCore.matchesOriginal(d.id, d.assetId as string, d.kind).catch(() => false)) ids.push(d.assetId as string);
       }
       if (ids.length > 0 && !(await MediaLibrary.deleteAssetsAsync(ids))) {
-        return { deleted: 0, kept: imported.length, note: 'Deletion was cancelled, so the originals are still in your gallery.' };
+        return { deleted: 0, kept: imported.length, note: t('note.deleteCancelled') };
       }
       const kept = imported.length - ids.length;
       return {
         deleted: ids.length,
         kept,
-        note: kept > 0 ? `${kept} original(s) could not be confirmed identical to the vault copy${unknown ? ' or were not identified' : ''} and were left in your gallery.` : null,
+        note: kept > 0 ? tn(unknown ? 'note.keptUnconfirmedOrUnknown' : 'note.keptUnconfirmed', kept) : null,
       };
     } catch {
-      return { deleted: 0, kept: imported.length, note: 'The originals could not be deleted. Remove them in the Photos app.' };
+      return { deleted: 0, kept: imported.length, note: t('note.deleteFailed') };
     } finally {
       suspendAutoLock(false);
     }
@@ -239,13 +238,13 @@ export function Home({
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 22 }}>
         <View style={{ flex: 1 }}>
-          <Text style={[s.label, { color: C.faint }]}>PrivateVault</Text>
-          <Text style={{ fontFamily: F.title, fontSize: 34, color: C.ivory, marginTop: 6 }}>Your Vault</Text>
+          <Text style={[s.label, { color: C.faint }]}>Private Vision Vault</Text>
+          <Text style={{ fontFamily: F.title, fontSize: 34, color: C.ivory, marginTop: 6 }}>{t('home.title')}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Lock now"
+            accessibilityLabel={t('home.lockNow')}
             onPress={onLock}
             style={({ pressed }) => [
               { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
@@ -253,9 +252,9 @@ export function Home({
             ]}
           >
             <Ionicons name="lock-closed-outline" size={15} color={C.brass} />
-            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>Lock now</Text>
+            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{t('home.lockNow')}</Text>
           </Pressable>
-          <Pressable accessibilityLabel="Settings" onPress={onSettings} style={{ padding: 8 }}>
+          <Pressable accessibilityLabel={t('common.settings')} onPress={onSettings} style={{ padding: 8 }}>
             <Ionicons name="settings-outline" size={22} color={C.brass} />
           </Pressable>
         </View>
@@ -263,10 +262,10 @@ export function Home({
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 22, paddingTop: 14 }}>
         <Chip>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.ok }} />
-          <Text style={chipText}>Encrypted on device</Text>
+          <Text style={chipText}>{t('home.chipEncrypted')}</Text>
         </Chip>
         <Chip>
-          <Text style={chipText}>Offline · no cloud</Text>
+          <Text style={chipText}>{t('home.chipOffline')}</Text>
         </Chip>
       </View>
       <View style={{ paddingHorizontal: 22, paddingTop: 18 }}>
@@ -274,8 +273,8 @@ export function Home({
           value={tab}
           onChange={setTab}
           options={[
-            { value: 'PHOTO', label: `Photos ${photos.length}`, icon: <Ionicons name="image-outline" size={18} color={tab === 'PHOTO' ? C.brass : C.faint} /> },
-            { value: 'VIDEO', label: `Videos ${videos.length}`, icon: <Ionicons name="videocam-outline" size={18} color={tab === 'VIDEO' ? C.brass : C.faint} /> },
+            { value: 'PHOTO', label: t('home.photosTab', { n: photos.length }), icon: <Ionicons name="image-outline" size={18} color={tab === 'PHOTO' ? C.brass : C.faint} /> },
+            { value: 'VIDEO', label: t('home.videosTab', { n: videos.length }), icon: <Ionicons name="videocam-outline" size={18} color={tab === 'VIDEO' ? C.brass : C.faint} /> },
           ]}
         />
       </View>
@@ -301,8 +300,8 @@ export function Home({
         )}
         ListEmptyComponent={
           <View style={[s.card, { margin: 18 }]}>
-            <Body>{tab === 'PHOTO' ? 'No photos yet.' : 'No videos yet.'}</Body>
-            <Text style={s.small}>Use the vault camera, or import from your gallery.</Text>
+            <Body>{tab === 'PHOTO' ? t('home.noPhotos') : t('home.noVideos')}</Body>
+            <Text style={s.small}>{t('home.emptyHint')}</Text>
           </View>
         }
       />
@@ -335,11 +334,11 @@ export function Home({
           style={({ pressed }) => [{ flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderRadius: 16 }, pressed && { backgroundColor: C.surface2 }]}
         >
           <Ionicons name="download-outline" size={20} color={C.ivory} />
-          <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ivory }}>Import from Photos</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ivory, flexShrink: 1 }} numberOfLines={1}>{t('home.import')}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Camera"
+          accessibilityLabel={t('common.camera')}
           onPress={onCamera}
           style={({ pressed }) => [
             { width: 52, height: 52, borderRadius: 26, backgroundColor: C.brass, alignItems: 'center', justifyContent: 'center' },
@@ -361,7 +360,7 @@ function byMonth(list: VaultItem[], cols: number): { title: string; data: VaultI
   const groups: { title: string; items: VaultItem[] }[] = [];
   for (const it of sorted) {
     const d = new Date(it.createdAt);
-    const title = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const title = t('home.month', { month: monthStandalone(d.getMonth()), year: d.getFullYear() });
     if (!current || current.title !== title) {
       current = { title, items: [] };
       groups.push(current);
@@ -446,45 +445,43 @@ function ImportOptions({
   onChoose: () => void;
 }) {
   return (
-    <Page footer={<Button label="Choose photos and videos" onPress={onChoose} />}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={{ alignSelf: 'flex-start', padding: 8, marginLeft: -8, marginBottom: 12 }}>
+    <Page footer={<Button label={t('import.choose')} onPress={onChoose} />}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t('common.back')} onPress={onBack} style={{ alignSelf: 'flex-start', padding: 8, marginLeft: -8, marginBottom: 12 }}>
         <Ionicons name="chevron-back" size={26} color={C.ivory} />
       </Pressable>
-      <Text style={s.label}>Before you pick</Text>
+      <Text style={s.label}>{t('import.beforeYouPick')}</Text>
       <View style={{ height: 8 }} />
-      <Title>Import from your gallery</Title>
-      <Body style={{ color: C.muted, marginBottom: 20 }}>Choose what happens to the originals first. It applies to every item you pick.</Body>
+      <Title>{t('import.title')}</Title>
+      <Body style={{ color: C.muted, marginBottom: 20 }}>{t('import.intro')}</Body>
 
       <View style={[s.card, { borderColor: deleteAfter ? C.brassDim : C.line }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Text style={[s.body, { flex: 1, fontFamily: F.bold }]}>Delete originals after import</Text>
+          <Text style={[s.body, { flex: 1, fontFamily: F.bold }]}>{t('import.deleteOriginals')}</Text>
           <Switch
             value={deleteAfter}
             onValueChange={setDeleteAfter}
             trackColor={{ true: C.brass, false: C.outline }}
             thumbColor={C.ivory}
             ios_backgroundColor={C.outline}
-            accessibilityLabel="Delete originals after import"
+            accessibilityLabel={t('import.deleteOriginals')}
           />
         </View>
         <Text style={[s.small, { marginTop: 8 }]}>
           {deleteAfter
-            ? 'On. Every imported original is deleted from your gallery once its encrypted copy is verified.'
-            : 'Off. Originals stay in your gallery. You can delete them yourself later.'}
+            ? t('import.deleteOn')
+            : t('import.deleteOff')}
         </Text>
       </View>
 
-      <Text style={[s.label, { color: C.faint, marginTop: 24, marginBottom: 6 }]}>For each item</Text>
-      <Step n={1} label="Encrypt into the vault" state="active" />
-      <Step n={2} label="Verify the encrypted copy" state="active" />
-      <Step n={3} label={deleteAfter ? 'Delete the original' : 'Keep the original'} state="active" />
-      <Text style={[s.small, { marginTop: 8 }]}>If encryption or verification fails, that original is kept.</Text>
+      <Text style={[s.label, { color: C.faint, marginTop: 24, marginBottom: 6 }]}>{t('import.forEach')}</Text>
+      <Step n={1} label={t('import.stepEncrypt')} state="active" />
+      <Step n={2} label={t('import.stepVerify')} state="active" />
+      <Step n={3} label={deleteAfter ? t('import.stepDelete') : t('import.stepKeep')} state="active" />
+      <Text style={[s.small, { marginTop: 8 }]}>{t('import.failKeeps')}</Text>
 
       <View style={{ height: 20 }} />
       <InfoRow icon="information-circle-outline" color={C.faint}>
-        <Text style={s.small}>
-          iPhone and Android ask you to confirm the deletion once in a system dialog. Deleted items stay in Recently Deleted for 30 days until you empty it.
-        </Text>
+        <Text style={s.small}>{t('import.systemDialog')}</Text>
       </InfoRow>
     </Page>
   );
@@ -510,9 +507,9 @@ function Importing({
       <View style={[s.screen, { alignItems: 'center', justifyContent: 'center' }]}>
         <Ionicons name="trash-outline" size={40} color={C.brass} />
         <View style={{ height: 16 }} />
-        <Title>Deleting originals…</Title>
+        <Title>{t('importing.deleting')}</Title>
         <Body style={{ color: C.muted, textAlign: 'center' }}>
-          Only originals whose encrypted copy matches exactly are removed. Confirm in the system dialog if asked.
+          {t('importing.deletingBody')}
         </Body>
       </View>
     );
@@ -521,8 +518,8 @@ function Importing({
     <Page
       footer={
         <>
-          <Text style={[s.small, { textAlign: 'center', marginBottom: 12 }]}>Keep the app open. If it closes, any original not yet verified stays in your gallery.</Text>
-          <Button label={cancelling ? 'Stopping after this item…' : 'Cancel import'} kind="ghost" disabled={cancelling} onPress={onCancel} />
+          <Text style={[s.small, { textAlign: 'center', marginBottom: 12 }]}>{t('importing.keepOpen')}</Text>
+          <Button label={cancelling ? t('importing.stopping') : t('importing.cancel')} kind="ghost" disabled={cancelling} onPress={onCancel} />
         </>
       }
     >
@@ -534,18 +531,16 @@ function Importing({
           <View style={{ width: `${Math.min(pct, 100)}%`, height: 4, backgroundColor: C.brass }} />
         </View>
       </View>
-      <Text style={s.label}>Sealing</Text>
+      <Text style={s.label}>{t('importing.sealing')}</Text>
       <View style={{ height: 8 }} />
-      <Title>
-        Encrypting {index} of {total}
-      </Title>
-      {deleteChosen && <Body style={{ color: C.muted, marginBottom: 12 }}>Each original is deleted from your gallery only after its encrypted copy is verified.</Body>}
-      <Step n={1} label="Encrypt into the vault" state={sealedCurrent ? 'done' : 'active'} />
-      <Step n={2} label="Verify the encrypted copy" state={sealedCurrent ? 'done' : 'todo'} />
-      <Step n={3} label={deleteChosen ? 'Delete the original' : 'Keep the original'} state={sealedCurrent ? (deleteChosen ? 'active' : 'done') : 'todo'} />
+      <Title>{t('importing.progress', { index, total })}</Title>
+      {deleteChosen && <Body style={{ color: C.muted, marginBottom: 12 }}>{t('importing.deleteNote')}</Body>}
+      <Step n={1} label={t('import.stepEncrypt')} state={sealedCurrent ? 'done' : 'active'} />
+      <Step n={2} label={t('import.stepVerify')} state={sealedCurrent ? 'done' : 'todo'} />
+      <Step n={3} label={deleteChosen ? t('import.stepDelete') : t('import.stepKeep')} state={sealedCurrent ? (deleteChosen ? 'active' : 'done') : 'todo'} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
         <Ionicons name="lock-closed" size={14} color={C.ok} />
-        <Text style={[s.body, { color: C.ok }]}>{sealed} sealed</Text>
+        <Text style={[s.body, { color: C.ok }]}>{t('importing.sealed', { n: sealed })}</Text>
       </View>
     </Page>
   );
@@ -558,37 +553,37 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
     <Page
       footer={
         <>
-          <Button label="How to empty Recently Deleted" kind="ghost" onPress={() => setHelp((h) => !h)} />
+          <Button label={t('result.howToEmpty')} kind="ghost" onPress={() => setHelp((h) => !h)} />
           <View style={{ height: 10 }} />
-          <Button label="Back to vault" onPress={onDone} />
+          <Button label={t('result.backToVault')} onPress={onDone} />
         </>
       }
     >
       <View style={{ height: 24 }} />
-      <Text style={s.label}>Import complete</Text>
+      <Text style={s.label}>{t('result.complete')}</Text>
       <View style={{ height: 8 }} />
-      <Title>{r.deleteChosen ? `${r.ok} sealed · ${r.deleted} originals deleted` : `${r.ok} sealed`}</Title>
+      <Title>{r.deleteChosen ? t('result.titleDeleted', { ok: r.ok, deleted: r.deleted }) : t('result.title', { ok: r.ok })}</Title>
       <Text style={[s.small, { marginBottom: 20 }]}>
-        {r.photos} {r.photos === 1 ? 'photo' : 'photos'} · {r.videos} {r.videos === 1 ? 'video' : 'videos'}
-        {r.cancelled ? ' · import cancelled' : ''}
+        {tn('result.photos', r.photos)} · {tn('result.videos', r.videos)}
+        {r.cancelled ? t('result.cancelled') : ''}
       </Text>
 
       <View style={{ gap: 14 }}>
         {r.ok > 0 && (
           <InfoRow icon="checkmark-circle" color={C.ok}>
-            <Text style={[s.body, { fontFamily: F.bold }]}>Encrypted and verified</Text>
-            <Text style={s.small}>All {r.ok} stored inside the vault</Text>
+            <Text style={[s.body, { fontFamily: F.bold }]}>{t('result.verified')}</Text>
+            <Text style={s.small}>{t('result.allStored', { n: r.ok })}</Text>
           </InfoRow>
         )}
         {r.deleted > 0 && (
           <InfoRow icon="checkmark-circle" color={C.ok}>
-            <Text style={[s.body, { fontFamily: F.bold }]}>Originals deleted from gallery</Text>
+            <Text style={[s.body, { fontFamily: F.bold }]}>{t('result.originalsDeleted')}</Text>
           </InfoRow>
         )}
         {r.failed > 0 && (
           <InfoRow icon="alert-circle" color={C.danger}>
-            <Text style={[s.body, { fontFamily: F.bold, color: C.danger }]}>{r.failed} failed · original kept</Text>
-            <Text style={s.small}>Nothing was saved for those and their originals are untouched.</Text>
+            <Text style={[s.body, { fontFamily: F.bold, color: C.danger }]}>{t('result.failed', { n: r.failed })}</Text>
+            <Text style={s.small}>{t('result.failedBody')}</Text>
           </InfoRow>
         )}
         {r.note && (
@@ -598,26 +593,22 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
         )}
         {!r.deleteChosen && (
           <InfoRow icon="information-circle-outline" color={C.faint}>
-            <Text style={s.small}>The originals are still in your gallery.</Text>
+            <Text style={s.small}>{t('result.stillInGallery')}</Text>
           </InfoRow>
         )}
       </View>
 
       <View style={[s.card, { marginTop: 24, gap: 6 }]}>
-        <Text style={[s.body, { fontFamily: F.bold, marginBottom: 4 }]}>Copies may still exist</Text>
-        <Bullet>Recently Deleted keeps them for 30 days on iPhone and Android. Empty it to remove them now.</Bullet>
-        <Bullet>iCloud Photos or Google Photos backups</Bullet>
-        <Bullet>Anything you already sent through other apps</Bullet>
+        <Text style={[s.body, { fontFamily: F.bold, marginBottom: 4 }]}>{t('result.copiesTitle')}</Text>
+        <Bullet>{t('result.copiesRecent')}</Bullet>
+        <Bullet>{t('result.copiesCloud')}</Bullet>
+        <Bullet>{t('result.copiesSent')}</Bullet>
       </View>
 
       {help && (
         <View style={[s.card, { marginTop: 12, gap: 8 }]}>
-          <Text style={s.small}>
-            <Text style={{ fontFamily: F.bold, color: C.ivory }}>iPhone: </Text>Photos › Albums › Recently Deleted › Select › Delete All
-          </Text>
-          <Text style={s.small}>
-            <Text style={{ fontFamily: F.bold, color: C.ivory }}>Android: </Text>Gallery/Photos › Trash/Bin › Empty
-          </Text>
+          <Rich text={t('result.helpIphone')} style={s.small} strongStyle={{ fontFamily: F.bold, color: C.ivory }} />
+          <Rich text={t('result.helpAndroid')} style={s.small} strongStyle={{ fontFamily: F.bold, color: C.ivory }} />
         </View>
       )}
     </Page>

@@ -70,7 +70,26 @@
         }
       ],
       "./plugins/withLargeHeap",
-      "./plugins/withIosOrientations"
+      "./plugins/withIosOrientations",
+      [
+        "expo-localization",
+        {
+          "supportsRTL": false,
+          "supportedLocales": [
+            "en",
+            "zh-Hans",
+            "hi",
+            "id",
+            "pt-BR",
+            "ru",
+            "ja",
+            "es",
+            "de",
+            "tr",
+            "ko"
+          ]
+        }
+      ]
     ],
     "owner": "chihunkim",
     "runtimeVersion": "exposdk:58.0.0",
@@ -100,7 +119,8 @@
               "NSExceptionAllowsInsecureHTTPLoads": true
             }
           }
-        }
+        },
+        "CFBundleAllowMixedLocalizations": true
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -133,6 +153,18 @@
           }
         ]
       }
+    },
+    "locales": {
+      "zh-Hans": "./locales/zh.json",
+      "hi": "./locales/hi.json",
+      "id": "./locales/id.json",
+      "pt-BR": "./locales/pt.json",
+      "ru": "./locales/ru.json",
+      "ja": "./locales/ja.json",
+      "es": "./locales/es.json",
+      "de": "./locales/de.json",
+      "tr": "./locales/tr.json",
+      "ko": "./locales/ko.json"
     }
   }
 }

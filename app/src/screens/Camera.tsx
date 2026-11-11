@@ -5,6 +5,7 @@ import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import VaultCore from '../../modules/vault-core';
 import { C, F } from '../theme';
+import { spacing, t, UPPERCASE } from '../i18n';
 import { Body, Busy, Button, s, Title } from '../ui';
 
 const REC_RED = '#EF5B5B';
@@ -44,11 +45,11 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
   if (!cam.granted) {
     return (
       <View style={[s.screen, { justifyContent: 'center' }]}>
-        <Title>Camera access</Title>
-        <Body style={{ color: C.muted, marginBottom: 24 }}>The vault camera saves directly into the vault, never to the gallery.</Body>
-        <Button label="Allow camera" onPress={() => ask(requestCam)} />
+        <Title>{t('camera.accessTitle')}</Title>
+        <Body style={{ color: C.muted, marginBottom: 24 }}>{t('camera.accessBody')}</Body>
+        <Button label={t('camera.allow')} onPress={() => ask(requestCam)} />
         <View style={{ height: 12 }} />
-        <Button label="Back" kind="ghost" onPress={() => onClose(false)} />
+        <Button label={t('common.back')} kind="ghost" onPress={() => onClose(false)} />
       </View>
     );
   }
@@ -58,9 +59,9 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
     try {
       const r = await VaultCore.importCapture(uri, kind);
       if (r.saved) setSaved((n) => n + 1);
-      else Alert.alert('Saved for later', 'This capture could not be encrypted right now (for example, the phone is low on space). It is kept safely and will be added to the vault after your next unlock.');
+      else Alert.alert(t('camera.savedLater'), t('camera.savedLaterSpace'));
     } catch {
-      Alert.alert('Saved for later', 'This capture will be added to the vault after your next unlock.');
+      Alert.alert(t('camera.savedLater'), t('camera.savedLaterBody'));
     } finally {
       setBusy(false);
     }
@@ -73,7 +74,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
       try {
         pic = await ref.current.takePictureAsync({ quality: 0.92, exif: false });
       } catch {
-        return Alert.alert('Camera error', 'The photo could not be taken.');
+        return Alert.alert(t('camera.error'), t('camera.photoFailed'));
       }
       if (pic?.uri) await seal(pic.uri, 'PHOTO');
       return;
@@ -84,9 +85,9 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
     }
     if (!mic?.granted) {
       if (mic && !mic.canAskAgain) {
-        Alert.alert('Microphone blocked', 'Video needs the microphone. Allow it in Android Settings.', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => ask(() => Linking.openSettings()) },
+        Alert.alert(t('camera.micBlocked'), t('camera.micBlockedBody'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('camera.openSettings'), onPress: () => ask(() => Linking.openSettings()) },
         ]);
       } else {
         await ask(requestMic);
@@ -98,7 +99,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
       const video = await ref.current.recordAsync({ maxDuration: 600 });
       if (video?.uri) await seal(video.uri, 'VIDEO');
     } catch {
-      Alert.alert('Camera error', 'The video could not be recorded.');
+      Alert.alert(t('camera.error'), t('camera.videoFailed'));
     } finally {
       setRecording(false);
     }
@@ -110,7 +111,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
     <View style={{ flex: 1, backgroundColor: '#050608' }}>
       <View style={cs.top}>
         <Pressable
-          accessibilityLabel={saved > 0 ? `Close, ${saved} saved` : 'Close'}
+          accessibilityLabel={saved > 0 ? t('camera.closeSaved', { n: saved }) : t('common.close')}
           onPress={() => onClose(saved > 0)}
           disabled={recording}
           style={({ pressed }) => [cs.round, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
@@ -119,7 +120,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
         </Pressable>
         <View style={cs.pill}>
           <Ionicons name="lock-closed-outline" size={12} color="#E6CFA0" />
-          <Text style={cs.pillText}>Straight to vault · never to Photos</Text>
+          <Text style={cs.pillText} numberOfLines={2}>{t('camera.pill')}</Text>
         </View>
         <View style={{ width: 44 }} />
       </View>
@@ -133,11 +134,11 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
           </View>
         )}
         <View style={cs.chip} pointerEvents="none">
-          <Text style={cs.chipText}>Location data stripped</Text>
+          <Text style={cs.chipText}>{t('camera.noLocation')}</Text>
         </View>
         {saved > 0 && !recording && (
           <View style={cs.savedChip} pointerEvents="none">
-            <Text style={cs.chipText}>{saved} saved</Text>
+            <Text style={cs.chipText}>{t('camera.saved', { n: saved })}</Text>
           </View>
         )}
       </View>
@@ -155,7 +156,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
                 onPress={() => setMode(m)}
                 style={[cs.switchItem, on && { backgroundColor: C.surface2 }]}
               >
-                <Text style={[cs.switchText, { color: on ? C.ivory : C.faint }]}>{m === 'picture' ? 'Photo' : 'Video'}</Text>
+                <Text style={[cs.switchText, { color: on ? C.ivory : C.faint }]}>{m === 'picture' ? t('common.photo') : t('common.video')}</Text>
               </Pressable>
             );
           })}
@@ -164,7 +165,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
 
       <View style={cs.controls}>
         <View style={{ width: 52 }} />
-        <Pressable accessibilityLabel={video ? (recording ? 'Stop recording' : 'Start recording') : 'Take photo'} onPress={shutter} style={cs.shutter}>
+        <Pressable accessibilityLabel={video ? (recording ? t('camera.stopRecording') : t('camera.startRecording')) : t('camera.takePhoto')} onPress={shutter} style={cs.shutter}>
           <View
             style={{
               width: recording ? 28 : 60,
@@ -175,7 +176,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
           />
         </Pressable>
         <Pressable
-          accessibilityLabel="Flip camera"
+          accessibilityLabel={t('camera.flip')}
           disabled={recording}
           onPress={() => setFacing(facing === 'back' ? 'front' : 'back')}
           style={({ pressed }) => [cs.flip, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
@@ -183,7 +184,7 @@ export function VaultCamera({ onClose, suspendAutoLock }: { onClose: (saved: boo
           <Ionicons name="camera-reverse-outline" size={24} color={C.ivory} />
         </Pressable>
       </View>
-      {busy && <Busy label="Encrypting into the vault…" />}
+      {busy && <Busy label={t('camera.encrypting')} />}
     </View>
   );
 }
@@ -201,7 +202,7 @@ const cs = StyleSheet.create({
   chipText: { fontFamily: F.body, fontSize: 11, letterSpacing: 0.4, color: C.muted },
   switch: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 999, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
   switchItem: { minWidth: 92, height: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-  switchText: { fontFamily: F.bold, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' },
+  switchText: { fontFamily: F.bold, fontSize: 12, letterSpacing: spacing(2), textTransform: UPPERCASE },
   controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 36, paddingTop: 4, paddingBottom: 36 },
   shutter: { width: 78, height: 78, borderRadius: 39, borderWidth: 4, borderColor: C.ivory, alignItems: 'center', justifyContent: 'center' },
   flip: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, borderColor: '#2A2F3A', backgroundColor: '#10131A', alignItems: 'center', justifyContent: 'center' },

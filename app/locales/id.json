@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Private Vision Vault",
+    "NSCameraUsageDescription": "Private Vision Vault menggunakan kamera untuk mengambil foto dan video yang langsung masuk ke brankas terenkripsi Anda.",
+    "NSMicrophoneUsageDescription": "Private Vision Vault menggunakan mikrofon untuk merekam suara pada video yang Anda ambil dengan kamera brankas.",
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault memungkinkan Anda memilih foto dan video untuk dipindahkan ke brankas terenkripsi Anda. Jika Anda memintanya menghapus file asli, app terlebih dahulu memeriksa bahwa setiap file identik dengan salinan di brankas."
+  }
+}

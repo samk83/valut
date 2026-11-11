@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Private Vision Vault",
+    "NSCameraUsageDescription": "Private Vision Vault, doğrudan şifreli kasana giden fotoğraf ve videolar çekmek için kamerayı kullanır.",
+    "NSMicrophoneUsageDescription": "Private Vision Vault, kasa kamerasıyla çektiğin videolarda ses kaydetmek için mikrofonu kullanır.",
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault, şifreli kasana taşımak üzere fotoğraf ve video seçmeni sağlar. Orijinalleri kaldırmasını istersen önce her birinin kasa kopyasıyla aynı olduğunu denetler."
+  }
+}

@@ -14,7 +14,8 @@ import {
   readLockMethod,
   saveLockMethod,
 } from '../pattern';
-import { Body, Busy, Button, PinDots, s, Segmented, Title } from '../ui';
+import { Key, spacing, t, tn, UPPERCASE } from '../i18n';
+import { Body, Busy, Button, PinDots, Rich, s, Segmented, Title } from '../ui';
 import { TermsSheet } from './Terms';
 
 /** Lock mark: a brass ring with a lock inside. */
@@ -48,7 +49,7 @@ const Small = ({ children, style }: { children: ReactNode; style?: object }) => 
 );
 
 const Caption = ({ children }: { children: ReactNode }) => (
-  <Text style={[s.small, { fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: C.faint }]}>{children}</Text>
+  <Text style={[s.small, { fontSize: 12, letterSpacing: spacing(1), textTransform: UPPERCASE, color: C.faint }]}>{children}</Text>
 );
 
 /** A dot with a hanging indent: the title and the wrapped sub-line both line up after the dot. */
@@ -91,7 +92,7 @@ function KeyPad({
           <View key={k} style={{ width: '33.33%', alignItems: 'center' }}>
             <Pressable
               disabled={off}
-              accessibilityLabel={k === 'del' ? 'Delete' : k === 'ok' ? 'Confirm' : k}
+              accessibilityLabel={k === 'del' ? t('common.delete') : k === 'ok' ? t('common.confirm') : k}
               onPress={() => {
                 if (k === 'del') onChange(value.slice(0, -1));
                 else if (k === 'ok') onSubmit();
@@ -136,8 +137,8 @@ function KeyPad({
 
 function methodOptions(value: LockMethod) {
   return [
-    { value: 'pin' as const, label: 'PIN', icon: <Ionicons name="keypad-outline" size={16} color={value === 'pin' ? C.brass : C.faint} /> },
-    { value: 'pattern' as const, label: 'Pattern', icon: <Ionicons name="git-network-outline" size={16} color={value === 'pattern' ? C.brass : C.faint} /> },
+    { value: 'pin' as const, label: t('common.pin'), icon: <Ionicons name="keypad-outline" size={16} color={value === 'pin' ? C.brass : C.faint} /> },
+    { value: 'pattern' as const, label: t('common.pattern'), icon: <Ionicons name="git-network-outline" size={16} color={value === 'pattern' ? C.brass : C.faint} /> },
   ];
 }
 
@@ -145,52 +146,53 @@ export function Welcome({ onNext }: { onNext: () => void }) {
   return (
     <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, paddingTop: 72, paddingHorizontal: 28 }]}>
       <Logo size={72} tile />
-      <Text style={[s.label, { marginTop: 32 }]}>Step 1 of 3</Text>
-      <Text style={{ fontFamily: F.title, fontSize: 40, lineHeight: 44, color: C.ivory, marginTop: 10 }}>{'Your files.\nYour device.\nYour eyes only.'}</Text>
+      <Text style={[s.label, { marginTop: 32 }]}>{t('welcome.step')}</Text>
+      <Text style={{ fontFamily: F.title, fontSize: 40, lineHeight: 44, color: C.ivory, marginTop: 10 }}>{t('welcome.title')}</Text>
       <View style={{ gap: 16, marginTop: 28 }}>
-        <Point title="Encrypted on this phone" sub="AES-256, sealed with your PIN or pattern and the phone's security chip." />
-        <Point title="Nothing ever leaves" sub="No account, no cloud, no sharing, no internet access." />
-        <Point title="No recovery, ever" sub="Forget your PIN or pattern, lose your phone or delete the app, and the files are gone for good." color={C.danger} />
+        <Point title={t('welcome.encryptedTitle')} sub={t('welcome.encryptedSub')} />
+        <Point title={t('welcome.nothingTitle')} sub={t('welcome.nothingSub')} />
+        <Point title={t('welcome.noRecoveryTitle')} sub={t('welcome.noRecoverySub')} color={C.danger} />
       </View>
       <View style={{ flex: 1, minHeight: 32 }} />
-      <Button label="Create my vault" onPress={onNext} />
-      <Small style={{ marginTop: 14 }}>Requires a device passcode and a hardware security chip.</Small>
+      <Button label={t('welcome.create')} onPress={onNext} />
+      <Small style={{ marginTop: 14 }}>{t('welcome.requires')}</Small>
     </ScrollView>
   );
 }
 
-const REJECTION: Record<string, string> = {
-  TOO_SHORT: 'Use at least 4 digits.',
-  TOO_LONG: 'Use at most 32 digits.',
-  REPEATED: 'All digits are the same.',
-  SEQUENTIAL: 'Digits run in sequence.',
-  COMMON: 'This PIN is too common.',
-  NOT_DIGITS: 'Digits only.',
+const REJECTION_KEY: Record<string, Key> = {
+  TOO_SHORT: 'pin.tooShort',
+  TOO_LONG: 'pin.tooLong',
+  REPEATED: 'pin.repeated',
+  SEQUENTIAL: 'pin.sequential',
+  COMMON: 'pin.common',
+  NOT_DIGITS: 'pin.notDigits',
 };
+const rejection = (code: string | null | undefined) => (code && REJECTION_KEY[code] ? t(REJECTION_KEY[code]) : code ? t('strength.notAllowed') : null);
 
-const STRENGTH: Record<string, { word: string; bars: number; color: string; note: string }> = {
-  WEAK: { word: 'Weak', bars: 1, color: C.danger, note: 'Easy to guess. 10+ digits recommended.' },
-  FAIR: { word: 'Fair', bars: 2, color: C.brass, note: '10+ digits recommended.' },
-  STRONG: { word: 'Strong', bars: 3, color: C.ok, note: 'Hard to guess.' },
-  FORTRESS: { word: 'Fortress', bars: 4, color: C.ok, note: 'Very hard to guess.' },
+const STRENGTH: Record<string, { word: Key; bars: number; color: string; note: Key }> = {
+  WEAK: { word: 'strength.weak', bars: 1, color: C.danger, note: 'strength.weakNote' },
+  FAIR: { word: 'strength.fair', bars: 2, color: C.brass, note: 'strength.fairNote' },
+  STRONG: { word: 'strength.strong', bars: 3, color: C.ok, note: 'strength.strongNote' },
+  FORTRESS: { word: 'strength.fortress', bars: 4, color: C.ok, note: 'strength.fortressNote' },
 };
 
 function StrengthCard({ check }: { check: ReturnType<typeof VaultCore.checkPin> | null }) {
   const level = check ? STRENGTH[check.strength] : null;
-  const rejected = check?.rejection ? REJECTION[check.rejection] : null;
+  const rejected = rejection(check?.rejection);
   const filled = rejected ? 0 : (level?.bars ?? 0);
   return (
     <View style={[s.card, { gap: 10 }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <Caption>Strength</Caption>
-        <Text style={{ fontFamily: F.title, fontSize: 18, color: rejected ? C.danger : (level?.color ?? C.faint) }}>{rejected ? 'Not allowed' : (level?.word ?? '—')}</Text>
+        <Caption>{t('strength.title')}</Caption>
+        <Text style={{ fontFamily: F.title, fontSize: 18, color: rejected ? C.danger : (level?.color ?? C.faint) }}>{rejected ? t('strength.notAllowed') : level ? t(level.word) : '—'}</Text>
       </View>
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {[0, 1, 2, 3].map((i) => (
           <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i < filled ? (level?.color ?? C.brass) : C.line }} />
         ))}
       </View>
-      <Text style={[s.small, { fontSize: 12, color: rejected ? C.danger : C.muted }]}>{rejected ?? level?.note ?? 'At least 4 digits.'}</Text>
+      <Text style={[s.small, { fontSize: 12, color: rejected ? C.danger : C.muted }]}>{rejected ?? (level ? t(level.note) : t('strength.atLeast4'))}</Text>
     </View>
   );
 }
@@ -217,7 +219,7 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
   const submit = async (value: string) => {
     setError(null);
     if (first === null) {
-      if (check?.rejection) return setError(REJECTION[check.rejection]);
+      if (check?.rejection) return setError(rejection(check.rejection));
       setFirst(value);
       setPin('');
       return;
@@ -225,9 +227,9 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
     if (value !== first) {
       setFirst(null);
       setPin('');
-      return setError(`${method === 'pin' ? 'PINs' : 'Patterns'} didn't match. Start again.`);
+      return setError(t(method === 'pin' ? 'create.pinMismatch' : 'create.patternMismatch'));
     }
-    if (!agree) return setError('Please tick the box: 3 wrong attempts erase everything for good, and you accept the Terms of Use.');
+    if (!agree) return setError(t('create.mustAgree'));
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
@@ -249,15 +251,15 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
     // On a clear failure put back what was there, so an existing vault keeps its lock kind.
     if (!r.ok && r.error !== 'INTERRUPTED') previous ? saveLockMethod(previous) : clearLockMethod();
     if (r.ok) onDone();
-    else if (r.error === 'WEAK_PIN') setError(method === 'pin' ? REJECTION[r.reason] : 'This pattern is too simple. Try another.');
+    else if (r.error === 'WEAK_PIN') setError(method === 'pin' ? rejection(r.reason) : t('create.patternTooSimple'));
     else if (r.error === 'EXISTS' || r.error === 'INTERRUPTED') onLocked();
-    else setError(`Could not create vault (${r.error}).`);
+    else setError(t('create.failed', { error: r.error }));
   };
 
   const drawn = (dots: number[]) => {
     if (dots.length < MIN_PATTERN_DOTS) {
       const n = dots.length;
-      return setError(`Only ${n} dot${n === 1 ? '' : 's'}. Connect at least ${MIN_PATTERN_DOTS}.`);
+      return setError(tn('create.tooFewDots', n, { min: MIN_PATTERN_DOTS }));
     }
     submit(patternToSecret(dots));
   };
@@ -265,27 +267,27 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
   const sub =
     method === 'pin'
       ? first === null
-        ? 'Pick one way to lock your vault. At least 4 digits.'
-        : 'Enter the same PIN again to confirm.'
+        ? t('create.subPin')
+        : t('create.subPinConfirm')
       : first === null
-        ? `Draw a pattern, connect at least ${MIN_PATTERN_DOTS} dots.`
-        : 'Draw the same pattern again to confirm';
+        ? t('create.subPattern', { n: MIN_PATTERN_DOTS })
+        : t('create.subPatternConfirm');
 
   // Pattern status line: live count while drawing, then any error.
-  const patternStatus = drawing > 0 ? `${drawing} dot${drawing === 1 ? '' : 's'} connected · lift to continue` : null;
+  const patternStatus = drawing > 0 ? tn('create.dotsConnected', drawing) : null;
   const status = method === 'pattern' ? (patternStatus ?? error) : error;
 
   return (
     <View style={[s.screen, { paddingTop: 48, paddingHorizontal: 24, paddingBottom: 20 }]}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 16, paddingBottom: 16 }} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 8 }}>
-          <Text style={s.label}>Step {first === null ? '2' : '3'} of 3</Text>
-          <Text style={{ fontFamily: F.title, fontSize: 34, lineHeight: 38, color: C.ivory }}>Create your key</Text>
+          <Text style={s.label}>{t('create.step', { n: first === null ? 2 : 3 })}</Text>
+          <Text style={{ fontFamily: F.title, fontSize: 34, lineHeight: 38, color: C.ivory }}>{t('create.title')}</Text>
           <Text style={[s.small, { fontSize: 14, lineHeight: 21 }]}>{sub}</Text>
         </View>
         {first === null && (
           <View style={{ gap: 8 }}>
-            <Caption>Lock method</Caption>
+            <Caption>{t('create.lockMethod')}</Caption>
             <Segmented value={method} onChange={choose} options={methodOptions(method)} />
           </View>
         )}
@@ -299,10 +301,8 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
           <Text style={[s.small, { textAlign: 'center', color: status === patternStatus ? C.muted : C.danger }]}>{status}</Text>
         ) : null}
         <View style={{ gap: 6, padding: 16, borderRadius: 16, backgroundColor: '#1A1410', borderWidth: 1, borderColor: '#4A3420' }}>
-          <Text style={{ fontFamily: F.title, fontSize: 18, color: '#F0B98A' }}>Forget it, lose everything.</Text>
-          <Text style={[s.small, { fontSize: 12, color: '#D4C4B5' }]}>
-            Three wrong attempts destroys the vault. There is no password reset, no admin override and no cloud backup. Reinstalling the app will not bring your files back, and the vault does not move to a new phone.
-          </Text>
+          <Text style={{ fontFamily: F.title, fontSize: 18, color: '#F0B98A' }}>{t('create.warnTitle')}</Text>
+          <Text style={[s.small, { fontSize: 12, color: '#D4C4B5' }]}>{t('create.warnBody')}</Text>
         </View>
         <Pressable
           accessibilityRole="checkbox"
@@ -313,13 +313,13 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
           <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1, borderColor: C.brass, backgroundColor: agree ? C.brass : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
             {agree && <Ionicons name="checkmark" size={16} color={C.bg} />}
           </View>
-          <Text style={[s.small, { flex: 1, color: C.ivory }]}>
-            I understand that 3 wrong attempts permanently erase everything and nothing can be recovered, and I agree to the{' '}
-            <Text accessibilityRole="link" onPress={() => setShowTerms(true)} style={{ color: C.brass, textDecorationLine: 'underline' }}>
-              Terms of Use
-            </Text>
-            .
-          </Text>
+          <Rich
+            text={t('create.agree')}
+            style={[s.small, { flex: 1, color: C.ivory }]}
+            strongStyle={{ color: C.brass, textDecorationLine: 'underline' }}
+            strongRole="link"
+            onStrongPress={() => setShowTerms(true)}
+          />
         </Pressable>
         <TermsSheet visible={showTerms} onClose={() => setShowTerms(false)} />
       </ScrollView>
@@ -338,16 +338,14 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
           />
         )}
       </View>
-      {busy && <Busy label="Sealing the vault…" />}
+      {busy && <Busy label={t('create.sealing')} />}
     </View>
   );
 }
 
 function Attempts({ left }: { left: number }) {
   return (
-    <Text style={[s.small, { textAlign: 'center' }]}>
-      <Text style={{ color: C.brass, fontFamily: F.bold }}>{left} of 3</Text> attempts remaining
-    </Text>
+    <Rich text={t('unlock.attempts', { left })} style={[s.small, { textAlign: 'center' }]} strongStyle={{ color: C.brass, fontFamily: F.bold }} />
   );
 }
 
@@ -358,28 +356,28 @@ const Dash = ({ children }: { children: ReactNode }) => (
   </View>
 );
 
-function FinalWarning({ what, onContinue }: { what: string; onContinue: () => void }) {
+function FinalWarning({ method, onContinue }: { method: LockMethod; onContinue: () => void }) {
   const [paused, setPaused] = useState(false);
   return (
     <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, alignItems: 'center', paddingTop: 96, paddingHorizontal: 32 }]}>
       <View style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: C.outline, borderTopColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: F.title, fontSize: 40, lineHeight: 48, color: C.ivory, includeFontPadding: false }}>1</Text>
       </View>
-      <Text style={[s.label, { color: C.danger, marginTop: 26 }]}>Final attempt</Text>
-      <Text style={{ fontFamily: F.title, fontSize: 32, lineHeight: 37, color: C.ivory, marginTop: 10, textAlign: 'center' }}>One try left</Text>
+      <Text style={[s.label, { color: C.danger, marginTop: 26 }]}>{t('unlock.finalAttempt')}</Text>
+      <Text style={{ fontFamily: F.title, fontSize: 32, lineHeight: 37, color: C.ivory, marginTop: 10, textAlign: 'center' }}>{t('final.oneTry')}</Text>
       <Body style={{ color: C.muted, textAlign: 'center', marginTop: 14 }}>
-        If the next {what} is wrong, the vault key is destroyed. Every photo and video inside will be gone for good.
+        {t(method === 'pin' ? 'final.bodyPin' : 'final.bodyPattern')}
       </Body>
       <View style={[s.card, { width: '100%', gap: 12, marginTop: 28 }]}>
-        <Dash>Take a moment. Enter it slowly.</Dash>
-        <Dash>Incomplete entries don't count as attempts.</Dash>
-        <Dash>No one, including us, can open this vault for you.</Dash>
+        <Dash>{t('final.slowly')}</Dash>
+        <Dash>{t('final.incomplete')}</Dash>
+        <Dash>{t('final.noOne')}</Dash>
       </View>
       <View style={{ flex: 1, minHeight: 24 }} />
       <View style={{ width: '100%', gap: 12 }}>
-        {paused && <Small>Take your time. The vault stays locked until you continue.</Small>}
-        <Button label="I understand, continue" kind="light" onPress={onContinue} />
-        <Button label="Not now" kind="ghost" onPress={() => setPaused(true)} style={{ height: 48 }} />
+        {paused && <Small>{t('final.paused')}</Small>}
+        <Button label={t('final.continue')} kind="light" onPress={onContinue} />
+        <Button label={t('final.notNow')} kind="ghost" onPress={() => setPaused(true)} style={{ height: 48 }} />
       </View>
     </ScrollView>
   );
@@ -399,7 +397,6 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
   const [saved] = useState(readLockMethod);
   const [hideTrail] = useState(readHideTrail);
   const [method, setMethod] = useState<LockMethod>(saved ?? 'pin');
-  const what = method === 'pin' ? 'PIN' : 'pattern';
 
   const submit = async (secret: string) => {
     if (inFlight.current) return;
@@ -419,30 +416,30 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
     switch (r.error) {
       case 'WRONG_PIN':
         setLeft(r.remaining);
-        setMsg(`Wrong ${what}.`);
+        setMsg(t(method === 'pin' ? 'unlock.wrongPin' : 'unlock.wrongPattern'));
         break;
       case 'DESTROYED':
         onDestroyed();
         break;
       case 'INCOMPLETE':
-        setMsg(method === 'pin' ? 'Enter at least 4 digits. Not counted.' : 'Connect at least 4 dots. Not counted.');
+        setMsg(method === 'pin' ? t('unlock.incompletePin') : t('unlock.incompletePattern', { n: MIN_PATTERN_DOTS }));
         break;
       case 'KEYS_UNAVAILABLE':
-        setMsg('Security chip key not available. Nothing was erased.');
+        setMsg(t('unlock.keysUnavailable'));
         break;
       case 'OUT_OF_MEMORY':
-        setMsg('Not enough memory. Close other apps and retry. Not counted.');
+        setMsg(t('unlock.outOfMemory'));
         break;
       default:
         // The count may have changed (or the vault been destroyed) without a clear answer.
         VaultCore.status()
           .then((st) => (st.exists ? setLeft(st.remainingAttempts) : onDestroyed()))
           .catch(() => {});
-        setMsg('Something went wrong. Try again.');
+        setMsg(t('unlock.error'));
     }
   };
 
-  if (left === 1 && !ackFinal) return <FinalWarning what={what} onContinue={() => setAckFinal(true)} />;
+  if (left === 1 && !ackFinal) return <FinalWarning method={method} onContinue={() => setAckFinal(true)} />;
 
   return (
     <View style={[s.screen, { alignItems: 'center', paddingTop: 56, paddingHorizontal: 32 }]}>
@@ -460,9 +457,9 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
         </View>
       )}
       <Logo size={saved === null ? 56 : 72} />
-      <Text style={[s.label, { color: left === 1 ? C.danger : C.faint, marginTop: 20 }]}>{left === 1 ? 'Final attempt' : 'Vault locked'}</Text>
+      <Text style={[s.label, { color: left === 1 ? C.danger : C.faint, marginTop: 20 }]}>{left === 1 ? t('unlock.finalAttempt') : t('unlock.locked')}</Text>
       <View style={{ marginTop: 8 }}>
-        <Title>{method === 'pin' ? 'Welcome back' : 'Draw your pattern'}</Title>
+        <Title>{method === 'pin' ? t('unlock.welcomeBack') : t('unlock.drawPattern')}</Title>
       </View>
       {method === 'pin' && <PinDots count={pin.length} />}
       <View style={{ marginTop: 8 }}>
@@ -479,7 +476,7 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
           maxSize={300}
           onDone={(dots) => {
             // Too short is not a real try and is not counted (same as a short PIN).
-            if (dots.length < MIN_PATTERN_DOTS) return setMsg(`Connect at least ${MIN_PATTERN_DOTS} dots. Not counted.`);
+            if (dots.length < MIN_PATTERN_DOTS) return setMsg(t('unlock.incompletePattern', { n: MIN_PATTERN_DOTS }));
             setMsg(null);
             submit(patternToSecret(dots));
           }}
@@ -487,31 +484,31 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
       )}
       <Small style={{ marginTop: 22 }}>
         {method === 'pin'
-          ? 'Three wrong attempts permanently destroys this vault.\nThere is no recovery.'
-          : `Lock method: Pattern · trail ${hideTrail ? 'hidden' : 'visible'}\nChange it in Security Settings.`}
+          ? t('unlock.footerPin')
+          : t(hideTrail ? 'unlock.footerPatternHidden' : 'unlock.footerPatternVisible')}
       </Small>
-      {busy && <Busy label="Checking with the security chip…" />}
+      {busy && <Busy label={t('unlock.checking')} />}
     </View>
   );
 }
 
 export function Destroyed({ cause, onNew }: { cause: 'attempts' | 'reset'; onNew: () => void }) {
-  const reason = cause === 'attempts' ? 'Three wrong attempts were entered.' : 'You chose to destroy the vault.';
+  const reason = cause === 'attempts' ? t('destroyed.attempts') : t('destroyed.reset');
   return (
     <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, alignItems: 'center', paddingTop: 112, paddingHorizontal: 32 }]}>
       <View style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderStyle: 'dashed', borderColor: '#3A3F4A', alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name="close-circle-outline" size={56} color="#6B7078" />
       </View>
-      <Text style={[s.label, { color: C.faint, marginTop: 32 }]}>Key destroyed</Text>
-      <Text style={{ fontFamily: F.title, fontSize: 32, lineHeight: 37, color: C.ivory, marginTop: 10, textAlign: 'center' }}>This vault is sealed forever</Text>
+      <Text style={[s.label, { color: C.faint, marginTop: 32 }]}>{t('destroyed.label')}</Text>
+      <Text style={{ fontFamily: F.title, fontSize: 32, lineHeight: 37, color: C.ivory, marginTop: 10, textAlign: 'center' }}>{t('destroyed.title')}</Text>
       <Body style={{ color: C.muted, textAlign: 'center', marginTop: 14 }}>
-        {reason} The encryption key was erased, so the previous files can no longer be opened by anyone.
+        {reason} {t('destroyed.body')}
       </Body>
       <View style={[s.card, { width: '100%', marginTop: 28, backgroundColor: '#13171F' }]}>
-        <Text style={[s.small, { color: '#D9D4CA' }]}>You can start over with a new, empty vault. Nothing from the old vault will be carried across.</Text>
+        <Text style={[s.small, { color: '#D9D4CA' }]}>{t('destroyed.startOver')}</Text>
       </View>
       <View style={{ flex: 1, minHeight: 24 }} />
-      <Button label="Create a new vault" onPress={onNew} style={{ alignSelf: 'stretch' }} />
+      <Button label={t('destroyed.new')} onPress={onNew} style={{ alignSelf: 'stretch' }} />
     </ScrollView>
   );
 }
