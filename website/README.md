@@ -26,7 +26,7 @@ python -m http.server 8000
 |---|---|---|
 | 스토어 버튼 | `index.html` 의 `.store` 버튼 2곳 × 2섹션 | `<button disabled>`를 스토어 주소 `<a href>`로 교체, 공식 배지 사용 시 Apple·Google 배지 가이드 준수 |
 | 소개 영상 | `index.html` 의 `.film-frame` 주석 | `assets/privatevault-intro.mp4`, `assets/film-poster.jpg`를 넣고 주석 해제 |
-| 미정 사양 | `[출시 때 공개]` 표시 | 지원 OS 버전, 가격 입력 |
+| 미정 사양 | `[... announced at launch]` 표시 | 지원 iOS·Android 버전 입력 |
 | 개인정보처리방침 | `privacy.html` 의 `[ ]` 표시 | 시행일, 사업자 정보, 보호책임자, 연락처 이메일, 호스팅 업체 입력 |
 | 한국어 문구 수정 후 | `tools/fetch_fonts.py` | 새 글자가 글꼴에 들어가도록 다시 실행 |
 

@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Private Vision Vault",
+    "NSCameraUsageDescription": "Private Vision Vault कैमरे का इस्तेमाल ऐसी फ़ोटो और वीडियो लेने के लिए करता है जो सीधे आपके एन्क्रिप्टेड वॉल्ट में जाते हैं।",
+    "NSMicrophoneUsageDescription": "Private Vision Vault माइक्रोफ़ोन का इस्तेमाल वॉल्ट कैमरे से लिए गए वीडियो के साथ आवाज़ रिकॉर्ड करने के लिए करता है।",
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault आपको अपने एन्क्रिप्टेड वॉल्ट में ले जाने के लिए फ़ोटो और वीडियो चुनने देता है। अगर आप मूल फ़ाइलें हटाने के लिए कहते हैं, तो यह पहले जाँचता है कि हर एक वॉल्ट की कॉपी जैसी ही है।",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault आपके एन्क्रिप्टेड वॉल्ट को ले जाने के लिए उसी Wi-Fi पर मौजूद आपके दूसरे फ़ोन से सीधे कनेक्ट होता है। इंटरनेट पर कुछ भी नहीं भेजा जाता।"
+  }
+}
