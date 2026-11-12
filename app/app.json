@@ -34,6 +34,12 @@
       "expo-video",
       "expo-font",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Private Vision Vault uses Face ID as a first lock before you enter your vault PIN or pattern. Face ID alone never opens the vault."
+        }
+      ],
+      [
         "expo-camera",
         {
           "recordAudioAndroid": true,

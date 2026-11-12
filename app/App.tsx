@@ -12,6 +12,7 @@ import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from 'react
 
 import VaultCore, { VaultItem } from './modules/vault-core';
 import { CreatePin, Destroyed, Unlock, Welcome } from './src/screens/Auth';
+import { DeviceGate } from './src/screens/DeviceGate';
 import { VaultCamera } from './src/screens/Camera';
 import { Home } from './src/screens/Home';
 import { Premium } from './src/screens/Premium';
@@ -140,6 +141,12 @@ export default function App() {
 
   // Captures that could not be saved earlier (app killed, battery died) are added now.
   const afterUnlock = () => {
+    // The app was left while the PIN was being checked: it must not come back already open.
+    if (AppState.currentState !== 'active') {
+      VaultCore.lock();
+      toLocked();
+      return;
+    }
     home();
     VaultCore.recoverPending()
       .then((r) => {
@@ -160,7 +167,12 @@ export default function App() {
       screen = <CreatePin onDone={home} onLocked={toLocked} />;
       break;
     case 'unlock':
-      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'attempts' })} />;
+      // Two-step unlock: the phone's own lock first, then the app's PIN or pattern.
+      screen = (
+        <DeviceGate>
+          <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'attempts' })} />
+        </DeviceGate>
+      );
       break;
     case 'destroyed':
       screen = <Destroyed cause={route.cause} onNew={() => setRoute({ name: 'create' })} />;

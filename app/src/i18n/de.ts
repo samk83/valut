@@ -91,6 +91,12 @@ const de: Pack = {
   'unlock.footerPatternVisible': 'Sperrmethode: Muster · Spur sichtbar\nÄndern unter Sicherheitseinstellungen.',
   'unlock.footerPatternHidden': 'Sperrmethode: Muster · Spur ausgeblendet\nÄndern unter Sicherheitseinstellungen.',
   'unlock.checking': 'Prüfung mit dem Sicherheitschip …',
+  'gate.step': 'Schritt 1 von 2',
+  'gate.checking': 'Bestätigung, dass du es bist',
+  'gate.sub': 'Nutze die Sperre des Telefons: Gesicht, Fingerabdruck oder Code.',
+  'gate.retry': 'Tippen, um es erneut zu versuchen',
+  'gate.prompt': 'Private Vision Vault entsperren',
+  'gate.noLock': 'Dieses Telefon hat keine Bildschirmsperre, daher wird Schritt 1 übersprungen. Lege in den Telefoneinstellungen einen Code fest, um Schritt 1 zu nutzen.',
 
   // Final attempt warning
   'final.oneTry': 'Noch ein Versuch',
@@ -257,6 +263,7 @@ const de: Pack = {
   'settings.lockWhenLeaves': 'Sperren, wenn die App den Bildschirm verlässt',
   'settings.always': 'Immer',
   'settings.hideTrail': 'Musterspur ausblenden',
+  'settings.deviceGate': 'Zuerst die Telefonsperre',
   'settings.key': 'Schlüssel',
   'settings.unlockWith': 'Entsperren mit',
   'settings.unknown': 'Unbekannt',

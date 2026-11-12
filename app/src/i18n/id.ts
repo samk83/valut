@@ -90,6 +90,12 @@ const id: Pack = {
   'unlock.footerPatternVisible': 'Metode kunci: Pola · jejak terlihat\nUbah di Pengaturan Keamanan.',
   'unlock.footerPatternHidden': 'Metode kunci: Pola · jejak disembunyikan\nUbah di Pengaturan Keamanan.',
   'unlock.checking': 'Memeriksa dengan chip keamanan…',
+  'gate.step': 'Langkah 1 dari 2',
+  'gate.checking': 'Memastikan ini Anda',
+  'gate.sub': 'Gunakan kunci bawaan ponsel: wajah, sidik jari, atau kode sandi.',
+  'gate.retry': 'Ketuk untuk mencoba lagi',
+  'gate.prompt': 'Buka Private Vision Vault',
+  'gate.noLock': 'Ponsel ini tidak memiliki kunci layar, jadi langkah 1 dilewati. Atur kode sandi di pengaturan ponsel untuk menambahkannya.',
 
   // Final attempt warning
   'final.oneTry': 'Tinggal satu percobaan',
@@ -252,6 +258,7 @@ const id: Pack = {
   'settings.lockWhenLeaves': 'Kunci saat app keluar dari layar',
   'settings.always': 'Selalu',
   'settings.hideTrail': 'Sembunyikan jejak pola',
+  'settings.deviceGate': 'Kunci ponsel terlebih dahulu',
   'settings.key': 'Kunci',
   'settings.unlockWith': 'Buka dengan',
   'settings.unknown': 'Tidak diketahui',

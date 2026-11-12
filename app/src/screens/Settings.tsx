@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { Alert, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
+import { readDeviceGate, saveDeviceGate } from '../deviceGate';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
 import { FREE_LIMIT, restorePremium, usePremium } from '../premium';
 import { C, F } from '../theme';
@@ -72,6 +73,7 @@ export function Settings({
   const [view, setView] = useState<'main' | 'reset'>('main');
   const method = readLockMethod();
   const [hideTrail, setHideTrail] = useState(() => readHideTrail());
+  const [deviceGate, setDeviceGate] = useState(() => readDeviceGate());
   const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
@@ -120,7 +122,19 @@ export function Settings({
 
       <Text style={st.section}>{t('settings.locking')}</Text>
       <View style={st.group}>
-        <Row label={t('settings.lockWhenLeaves')} value={t('settings.always')} last={method !== 'pattern'} />
+        <Row label={t('settings.lockWhenLeaves')} value={t('settings.always')} />
+        <Row label={t('settings.deviceGate')} last={method !== 'pattern'}>
+          <Switch
+            value={deviceGate}
+            accessibilityLabel={t('settings.deviceGate')}
+            onValueChange={(v) => {
+              setDeviceGate(v);
+              saveDeviceGate(v);
+            }}
+            trackColor={{ false: C.outline, true: C.brassDim }}
+            thumbColor={deviceGate ? C.brass : C.muted}
+          />
+        </Row>
         {method === 'pattern' && (
           <Row label={t('settings.hideTrail')} last>
             <Switch

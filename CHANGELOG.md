@@ -1,6 +1,13 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-12, 두 겹 잠금)
+- 잠금 해제 1단계: 흐린 화면 위에 휴대폰 자체 잠금(Face ID·Touch ID·지문·기기 암호), 통과 시 금색 자물쇠가 열리고 빛이 퍼진 뒤 화면이 밝아지며 2단계 PIN·패턴 화면 (Owner 선택 C안, SPEC AC-08a~d)
+- 1단계 실패는 3회 횟수와 무관, 화면 잠금 없는 폰은 1단계 건너뜀 + 안내, 설정에 켜기·끄기 스위치(기본 켜짐)
+- 새 부품: expo-local-authentication, expo-blur (다음 네이티브 빌드부터 반영, Expo Go 미리보기 불가)
+- 11개 언어 문구 + iOS Face ID 권한 안내문
+- 내부 QA 수정: 화면 잠금 판단은 휴대폰 잠금 수준으로만 결정(오류 코드로 건너뛰지 않음), 열리는 애니메이션 중 앱을 나가면 1단계 화면이 사라지던 문제, 앱 복귀 시 다시 확인
+- Fixed: PIN 확인 중 앱을 나가면 돌아왔을 때 이미 열려 있을 수 있던 문제 → 다시 잠금 화면으로
 ### Added (2026-11-10)
 - 새 핸드폰으로 옮기기: 같은 Wi-Fi(또는 핫스팟)에서 두 폰을 QR 코드로 직접 연결, 암호화 전송. 서버·클라우드 없음. iPhone ↔ Android 가능 (docs/TRANSFER_PROTOCOL.md)
   - core/Transfer.kt + ios/Core/Transfer.swift: QR 1회용 비밀값 → 방향별 AES-256-GCM 키, 순번 nonce 프레임, 항목마다 SHA-256 확인 후 다음 항목
