@@ -32,8 +32,10 @@ const files = fs.readdirSync(S + '/samples').filter(f => /IMG_10(0|1[0-7])/.test
       await txt(T['welcome.create']).click(); await p.waitForTimeout(600);
       await p.getByText(T['create.agree'].split('**')[0].trim().slice(0, 12), { exact: false }).first().click();
       await pin('135790'); await p.waitForTimeout(900); await pin('135790'); await p.waitForTimeout(1500);
-      await txt(T['home.import']).click(); await shot('import');
-      const fc = p.waitForEvent('filechooser'); await txt(T['import.choose']).click(); (await fc).setFiles(files);
+      // Builds with an import options screen (before copy-only import) show it first.
+      const fc = p.waitForEvent('filechooser'); await txt(T['home.import']).click();
+      if (T['import.choose']) { await shot('import'); await txt(T['import.choose']).click(); }
+      (await fc).setFiles(files);
       await shot('sealing', 1700);
       await p.waitForTimeout(9000);
       await txt(T['result.backToVault']).click(); await shot('home', 1800);

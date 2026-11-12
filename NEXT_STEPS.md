@@ -20,7 +20,7 @@
 
 ## App Store ASO (2026-11-12)
 - 스토어 문구 원본: docs/aso/listing.json, 입력 시트: docs/aso/listing.md, 설명: docs/aso/ASO.md
-- feature/never-lose-photos 합류 후 스크린샷 최종 촬영 (가져오기·설정·첫 화면 문구 변경 반영)
+- 스크린샷 154장: 프로젝트 파일 privatevault/appstore-screenshots-1.1/ (PR #19·#14·#15 합친 화면). 세 PR 중 출시에서 빠지는 것이 있으면 다시 촬영
 - PR #14 미합류 시 `TWO_STEP=0 python3 docs/aso/build.py` + 스크린샷 2번 제외
 - Owner: 웹사이트 공개 후 개인정보처리방침·지원 URL 입력, 중국 본토 판매 끄기 여부 결정(ICP 번호 필요)
 - 추천(미구현, 승인 필요): 첫 가져오기 후 평점 요청 창
