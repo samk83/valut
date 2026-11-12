@@ -29,12 +29,12 @@ WHAT IT DOES
 • Protects the vault key with your PIN or pattern together with a key held in the device's Secure Enclave, so the vault only opens on this device.
 • Works without an account, a server or a cloud copy. The app does not send your photos, videos or PIN anywhere.
 • Take photos and videos with the in-app camera; they go straight into the vault and are not saved to your photo library.
-• Move items in from your photo library. If you choose, the original is removed from the library only after the app has checked that the vault copy is identical.
+• Copy items in from your photo library. The app never deletes your originals; you decide what to remove in the Photos app.
 • Locks the moment you leave the app and blurs its preview in the app switcher.
 • Grid layout adapts to iPad and larger screens.
 
 PLEASE READ BEFORE YOU START
-• There is no recovery. Three wrong PIN or pattern attempts in a row permanently erase the vault.
+• There is no PIN reset. Wrong attempts never erase anything; after three, each further try has to wait longer (up to an hour).
 • Nobody, including the developer, can reset your PIN or open your vault.
 • The vault is not included in iCloud or computer backups and does not move to a new phone. Deleting the app or resetting the device erases it.
 • Keep separate copies of anything you cannot afford to lose.
@@ -80,8 +80,8 @@ Private Vision Vault는 고른 사진과 동영상을 이 기기 안의 암호�
 ## App Review 메모 (Notes)
 ```
 Private Vision Vault is a fully offline vault for photos and videos. No account and no network are used.
-On first launch, tick the consent box (3 wrong attempts permanently erase the vault; Terms of Use), then create a PIN of 4+ digits (avoid simple ones like 1234) or a pattern.
-IMPORTANT: 3 wrong PIN entries permanently erase the vault by design (security feature).
+On first launch, tick the consent box (a forgotten PIN cannot be reset; Terms of Use), then create a PIN of 4+ digits (avoid simple ones like 1234) or a pattern.
+Note: wrong PIN entries never erase data. After 3 wrong entries the app asks you to wait (1 min, then 5 min, 15 min, 1 hour) before the next try.
 To test: create a PIN, tap "Import from Photos" to add a photo, or use the camera button; open an item to view it.
 Encryption: AES-256-GCM via Apple CryptoKit, used only to protect the user's own data on the device.
 ```

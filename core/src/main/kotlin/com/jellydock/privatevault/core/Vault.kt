@@ -45,10 +45,11 @@ class Vault(
     hardwareKey: HardwareKey,
     params: Argon2Params = Argon2Params.DEFAULT,
     private val chunkSize: Int = ChunkedCipher.DEFAULT_CHUNK_SIZE,
+    clock: MonotonicClock = SystemMonotonicClock,
 ) {
     private val items = File(root, "items")
     private val staging = File(root, "staging")
-    private val keys = VaultKeyManager(File(root, "vault.key"), FileAttemptCounter(File(root, "attempts")), hardwareKey, params)
+    private val keys = VaultKeyManager(File(root, "vault.key"), FileAttemptCounter(File(root, "attempts")), hardwareKey, params, clock)
 
     @Volatile
     private var masterKey: ByteArray? = null
@@ -63,7 +64,7 @@ class Vault(
         keys.sweepTempFiles()
         // Finish only deletes the user started (marked by a tombstone). Folders without a key
         // are hidden but never removed here: a missing file may be a passing storage error,
-        // and only the user, 3 wrong PINs or a reset may remove anything (SPEC AC-50).
+        // and only the user (one item, or a full reset) may remove anything (SPEC AC-50).
         items.listFiles { f -> f.isDirectory && isValidId(f.name) && File(f, DELETED).exists() }
             ?.forEach { SecureFiles.deleteTree(it) }
     }
@@ -74,11 +75,21 @@ class Vault(
 
     fun remainingAttempts(): Int = keys.remainingAttempts()
 
-    /** See [VaultKeyManager.wipeLeftoversForFreshInstall]. Also removes old ciphertext. */
-    fun wipeLeftoversForFreshInstall() {
+    /** How long until the next PIN attempt is allowed (0 = now). */
+    fun lockedForMs(): Long = keys.lockedForMs()
+
+    /**
+     * See [VaultKeyManager.wipeLeftoversForFreshInstall]: removes security chip keys left by
+     * an earlier install. Uninstalling deletes this folder, so if vault files are still here
+     * this is NOT a fresh install (only the install marker went missing): then nothing is
+     * touched and false is returned. A working vault is never wiped on a guess.
+     */
+    fun wipeLeftoversForFreshInstall(): Boolean {
+        if (keys.hasKeyFiles() || items.listFiles()?.isNotEmpty() == true) return false
         lock()
         keys.wipeLeftoversForFreshInstall()
         SecureFiles.deleteTree(items)
+        return true
     }
 
     fun create(pin: CharArray) {
@@ -98,13 +109,13 @@ class Vault(
     fun unlock(pin: CharArray) {
         lock()
         val generation = currentGeneration()
-        setMasterKey(destroyingItemsOnLockout { keys.unlock(pin) }, generation)
+        setMasterKey(keys.unlock(pin), generation)
     }
 
     fun changePin(
         currentPin: CharArray,
         newPin: CharArray,
-    ) = destroyingItemsOnLockout { keys.changePin(currentPin, newPin) }
+    ) = keys.changePin(currentPin, newPin)
 
     /** Drops the master key from memory. Call when the app leaves the screen (SPEC AC-07). */
     @Synchronized
@@ -365,17 +376,6 @@ class Vault(
         masterKey?.wipe()
         masterKey = mk
     }
-
-    /** Ciphertext is removed only after a real 3-strike destruction, never on a key glitch. */
-    private fun <T> destroyingItemsOnLockout(block: () -> T): T =
-        try {
-            block()
-        } catch (e: VaultDestroyedException) {
-            lock()
-            SecureFiles.deleteTree(items)
-            SecureFiles.deleteTree(staging)
-            throw e
-        }
 
     private fun aad(
         purpose: String,

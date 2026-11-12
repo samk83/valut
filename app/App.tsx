@@ -26,8 +26,8 @@ type Route =
   | { name: 'loading' }
   | { name: 'welcome' }
   | { name: 'create' }
-  | { name: 'unlock'; remaining: number }
-  | { name: 'destroyed'; cause: 'attempts' | 'reset' }
+  | { name: 'unlock'; remaining: number; lockedForMs: number }
+  | { name: 'destroyed' }
   | { name: 'home' }
   | { name: 'camera' }
   | { name: 'settings' }
@@ -57,7 +57,7 @@ export default function App() {
     // Hide decrypted content at once; status() may wait behind a long native call.
     setRoute({ name: 'loading' });
     const st = await VaultCore.status();
-    setRoute(st.exists ? { name: 'unlock', remaining: st.remainingAttempts } : { name: 'welcome' });
+    setRoute(st.exists ? { name: 'unlock', remaining: st.remainingAttempts, lockedForMs: st.lockedForMs } : { name: 'welcome' });
   }, []);
 
   const suspendAutoLock = useCallback(
@@ -160,10 +160,10 @@ export default function App() {
       screen = <CreatePin onDone={home} onLocked={toLocked} />;
       break;
     case 'unlock':
-      screen = <Unlock key={route.remaining} remaining={route.remaining} onUnlocked={afterUnlock} onDestroyed={() => setRoute({ name: 'destroyed', cause: 'attempts' })} />;
+      screen = <Unlock key={route.remaining} remaining={route.remaining} lockedForMs={route.lockedForMs} onUnlocked={afterUnlock} onNoVault={toLocked} />;
       break;
     case 'destroyed':
-      screen = <Destroyed cause={route.cause} onNew={() => setRoute({ name: 'create' })} />;
+      screen = <Destroyed onNew={() => setRoute({ name: 'create' })} />;
       break;
     case 'home':
       screen = (
@@ -188,7 +188,7 @@ export default function App() {
       screen = (
         <Settings
           onBack={home}
-          onDestroyed={() => setRoute({ name: 'destroyed', cause: 'reset' })}
+          onDestroyed={() => setRoute({ name: 'destroyed' })}
           onPremium={() => setRoute({ name: 'premium', back: 'settings' })}
           onTransfer={() => setRoute({ name: 'transfer' })}
           suspendAutoLock={suspendAutoLock}

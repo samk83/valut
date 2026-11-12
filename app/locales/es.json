@@ -3,7 +3,7 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault usa la cámara para tomar fotos y videos que van directamente a tu bóveda cifrada.",
     "NSMicrophoneUsageDescription": "Private Vision Vault usa el micrófono para grabar el sonido de los videos que tomas con la cámara de la bóveda.",
-    "NSPhotoLibraryUsageDescription": "Private Vision Vault te permite elegir fotos y videos para moverlos a tu bóveda cifrada. Si le pides que elimine los originales, primero comprueba que cada uno sea idéntico a la copia de la bóveda.",
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault te permite elegir fotos y videos para copiarlos a tu bóveda cifrada. Los originales permanecen en tu fototeca.",
     "NSLocalNetworkUsageDescription": "Private Vision Vault se conecta directamente a tu otro teléfono en la misma Wi-Fi para mover tu bóveda cifrada. Nada pasa por internet."
   }
 }

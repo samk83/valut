@@ -10,7 +10,6 @@ import { spacing, t, tn, UPPERCASE } from '../i18n';
 import { Busy, Button, Rich, s, TestBanner } from '../ui';
 import { TermsSheet } from './Terms';
 
-const MAX_ATTEMPTS = 3;
 const OK_GREEN = '#9FD3A8';
 // Android: StrongBox or TEE (Keystore). iPhone/iPad: the Secure Enclave.
 const HARDWARE_LEVELS = ['StrongBox', 'TEE', 'Secure hardware', 'SECURE_ENCLAVE'];
@@ -139,7 +138,7 @@ export function Settings({
       <Text style={st.section}>{t('settings.key')}</Text>
       <View style={st.group}>
         <Row label={t('settings.unlockWith')} value={method === 'pin' ? t('common.pin') : method === 'pattern' ? t('common.pattern') : t('settings.unknown')} />
-        <Row label={t('settings.attemptsLeft')} value={status ? t('settings.attemptsValue', { left: status.remainingAttempts, max: MAX_ATTEMPTS }) : '…'} last />
+        <Row label={t('settings.wrongAttempts')} value={t('settings.wrongAttemptsValue')} last />
       </View>
 
       <Text style={st.section}>{t('plan.section')}</Text>

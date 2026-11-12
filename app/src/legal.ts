@@ -4,7 +4,7 @@
 // other languages are translations, and the English version applies if they differ.
 import { t } from './i18n';
 
-export const TERMS_VERSION = '2026-11-10';
+export const TERMS_VERSION = '2026-11-12';
 
 export const termsTitle = () => t('common.termsOfUse');
 

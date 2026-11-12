@@ -5,7 +5,8 @@ import Darwin
 import Glibc
 #endif
 
-/// Owns the vault master key (MK) and the 3-strike rule. Port of core/VaultKeyManager.kt.
+/// Owns the vault master key (MK) and the wait after wrong attempts. Port of core/VaultKeyManager.kt.
+/// Wrong attempts never destroy anything (SPEC AC-04): only destroy() and the fresh-install wipe do.
 ///
 ///   A   = Argon2id(PIN, salt, params)
 ///   H   = HardwareKey.mix(A)                      computed inside the Secure Enclave
@@ -15,7 +16,6 @@ import Glibc
 /// The PIN alone cannot open the envelope (H is needed), and the device key alone cannot
 /// either (A is needed). There is no recovery key of any kind (PRD PV-SEC-001).
 final class VaultKeyManager {
-  static let maxAttempts = 3
 
   private let envelopeFile: URL
   private let backupFile: URL
@@ -24,17 +24,20 @@ final class VaultKeyManager {
   private let counter: AttemptCounter
   private let hardwareKey: HardwareKey
   private let params: Argon2Params
+  private let lastAttempt: LockoutRecord
 
   // Bytes of the envelope copy that opened in the current unlock; used only by repairCopies.
   private var lastOpened: [UInt8]?
 
-  init(envelopeFile: URL, counter: AttemptCounter, hardwareKey: HardwareKey, params: Argon2Params) {
+  init(envelopeFile: URL, counter: AttemptCounter, hardwareKey: HardwareKey, params: Argon2Params,
+       clock: MonotonicClock = SystemMonotonicClock()) {
     self.envelopeFile = envelopeFile
     let dir = envelopeFile.deletingLastPathComponent()
     let name = envelopeFile.lastPathComponent
     backupFile = dir.appendingPathComponent(name + ".bak")
     checkFile = dir.appendingPathComponent(name + ".check")
     lockFile = dir.appendingPathComponent(name + ".lock")
+    lastAttempt = LockoutRecord(file: dir.appendingPathComponent(name + ".wait"), clock: clock)
     self.counter = counter
     self.hardwareKey = hardwareKey
     self.params = params
@@ -44,7 +47,14 @@ final class VaultKeyManager {
 
   func exists() -> Bool { hasEnvelope() && hardwareKey.exists() }
 
-  func remainingAttempts() -> Int { max(VaultKeyManager.maxAttempts - counter.read(), 0) }
+  /// True if any key file of a vault is on disk here (used to tell a real fresh install).
+  func hasKeyFiles() -> Bool { hasEnvelope() || SecureFiles.exists(checkFile) }
+
+  /// Wrong attempts left before a wait starts.
+  func remainingAttempts() -> Int { max(LockoutPolicy.freeAttempts - counter.read(), 0) }
+
+  /// How long until the next attempt is allowed (0 = now).
+  func lockedForMs() -> Int64 { (try? exclusive { lastAttempt.remainingMs(counter.read()) }) ?? 0 }
 
   /// Largest Argon2 memory any stored envelope copy asks for, so the app can check free
   /// memory BEFORE an attempt is counted (running out of memory kills an iPhone app).
@@ -73,7 +83,7 @@ final class VaultKeyManager {
     }
   }
 
-  /// Checks [pin] and returns the master key. On the third wrong PIN the keys are destroyed.
+  /// Checks [pin] and returns the master key. While a wait runs, .lockedOut is thrown unchecked.
   func unlock(pin: [UInt8]) throws -> [UInt8] {
     try exclusive { try unlockLocked(pin) }
   }
@@ -110,6 +120,7 @@ final class VaultKeyManager {
       SecureFiles.shred(backupFile)
       SecureFiles.shred(checkFile)
       try counter.write(0)
+      lastAttempt.clear()
     }
   }
 
@@ -125,41 +136,33 @@ final class VaultKeyManager {
   private func unlockLocked(_ pin: [UInt8]) throws -> [UInt8] {
     if !PinPolicy.isCompleteEntry(pin) { throw VaultError.incompleteEntry }
     let used = counter.read()
-    if used >= VaultKeyManager.maxAttempts {
-      // The final attempt was recorded but the process died, or a destruction was
-      // interrupted: the destruction is (re)done so killing the app gives no free retry.
-      try destroyLocked()
-      throw VaultError.destroyed
-    }
+    // Too many wrong attempts: wait first. Nothing is checked, counted or erased (AC-04).
+    let wait = lastAttempt.remainingMs(used)
+    if wait > 0 { throw VaultError.lockedOut(waitMs: wait) }
     let envelope = hasEnvelope()
     let chipKey = hardwareKey.exists()
     if !envelope && !chipKey { throw VaultError.destroyed }
     if !envelope || !chipKey { throw VaultError.keysUnavailable }
     let copies = readEnvelopeCopies()
     if copies.isEmpty { throw VaultError.keysUnavailable }
-    // Count first, check second (SPEC AC-03).
-    try counter.write(used + 1)
+    // Count first, check second (SPEC AC-03); the wait of this attempt starts now.
+    try? lastAttempt.markNow()
+    try counter.write(min(used + 1, LockoutPolicy.maxCount))
     var mk: [UInt8]
     do {
       mk = try openEnvelope(pin: pin, copies: copies)
     } catch VaultError.integrity {
-      if used + 1 >= VaultKeyManager.maxAttempts {
-        try destroyLocked()
-        throw VaultError.destroyed
-      }
-      throw VaultError.wrongPin(remaining: VaultKeyManager.maxAttempts - (used + 1))
+      let failures = used + 1
+      throw VaultError.wrongPin(remaining: max(LockoutPolicy.freeAttempts - failures, 0), waitMs: LockoutPolicy.delayMs(failures))
     } catch {
       // The check did not complete (Secure Enclave error): give the attempt back.
       try? counter.write(used)
       throw error
     }
-    do {
-      try counter.write(0)
-      repairCopies(mk)
-    } catch {
-      mk.wipe()
-      throw error
-    }
+    // The PIN is right: open even if the count cannot be reset (storage full); then at least
+    // this attempt is taken back, so a correct PIN never counts as a wrong one.
+    do { try counter.write(0) } catch { try? counter.write(used) }
+    repairCopies(mk)
     return mk
   }
 
@@ -184,8 +187,6 @@ final class VaultKeyManager {
   }
 
   private func destroyLocked() throws {
-    // The count is set first so an interruption still leaves the vault refusing entry.
-    try counter.write(VaultKeyManager.maxAttempts)
     // Always asked to delete: "not found" may also mean "Keychain unreadable right now".
     try hardwareKey.destroy()
     SecureFiles.shred(envelopeFile)
@@ -196,6 +197,8 @@ final class VaultKeyManager {
     where f.lastPathComponent.hasPrefix(prefix) && f.lastPathComponent.hasSuffix(".tmp") {
       SecureFiles.shred(f)
     }
+    try counter.write(0)
+    lastAttempt.clear()
   }
 
   /// Holds an in-process lock (threads) and a file lock (processes and extensions).
