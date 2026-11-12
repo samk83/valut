@@ -60,3 +60,10 @@
 4. Phase 3 MVP 개발
 5. Phase 4 Security QA + 외부 감사 (예산 승인 후)
 6. Phase 5 출시
+
+## 베타 홈페이지 (2026-11-12)
+- 위치: `website/beta/myvisionvault/` (폴더 하나만 올리면 동작). 안내: 그 폴더의 README.md
+- Owner: jellydock.com을 어디서 관리하는지 알려주기 → 올리는 방법 안내 → 배포 승인(L3)
+- TestFlight 외부 테스트 공개 링크가 생기면 `config.js`에 넣기
+- "틀린 횟수" 최종 규칙이 정해지면 페이지 문구 2곳 + 스크린샷 준비 도구(tools/prepare_shots.py) 수정 후 영상 다시 만들기
+- 홍보용 추가 제안: 세로(9:16) 영상, 실제 폰을 다른 기기로 촬영한 영상, 영어 내레이션

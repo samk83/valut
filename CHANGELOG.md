@@ -1,6 +1,8 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-12)
+- 베타 홈페이지 `website/beta/myvisionvault/` (영어): 앱 소개, 50초 사용법 영상(실제 앱 화면), 빠른 시작, 적용 기술, 사용 원칙, 테스트 전 주의사항, TestFlight 참여 안내. TestFlight 링크는 `config.js` 한 곳에 넣으면 버튼이 켜짐
 ### Added (2026-11-10)
 - 새 핸드폰으로 옮기기: 같은 Wi-Fi(또는 핫스팟)에서 두 폰을 QR 코드로 직접 연결, 암호화 전송. 서버·클라우드 없음. iPhone ↔ Android 가능 (docs/TRANSFER_PROTOCOL.md)
   - core/Transfer.kt + ios/Core/Transfer.swift: QR 1회용 비밀값 → 방향별 AES-256-GCM 키, 순번 nonce 프레임, 항목마다 SHA-256 확인 후 다음 항목

@@ -1,0 +1,91 @@
+/* Private Vision Vault beta page. Builds on base.css (copied from the main site, Obsidian & Brass). */
+.beta-tag {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--obsidian); background: var(--metal); padding: 2px 8px; border-radius: 999px; margin-left: 2px;
+}
+@media (max-width: 420px) { .brand { font-size: 16px; } .beta-tag { display: none; } }
+
+/* TestFlight + secondary buttons */
+.store { text-decoration: none; cursor: pointer; }
+.store.tf { cursor: default; }
+.store.tf.is-live { cursor: pointer; border-color: rgba(201, 166, 107, 0.7); background: linear-gradient(180deg, #2A2619 0%, #15130E 100%); }
+.store.tf.is-live small { color: var(--brass); }
+.store:hover { color: var(--ivory); }
+.store.ghost { border-color: var(--line); background: transparent; }
+.store.ghost:hover { border-color: #3A3F4A; }
+
+/* About */
+.about-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: clamp(32px, 6vw, 80px); align-items: center; }
+.about-shot { margin: 0; justify-self: center; }
+.about-shot img, .quick img {
+  display: block; width: 100%; height: auto; border-radius: 28px;
+  border: 1px solid #2E3340; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+.about-shot img { max-width: 320px; }
+.about-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { padding: 24px; border-radius: 18px; background: var(--graphite); border: 1px solid var(--line); display: grid; gap: 10px; align-content: start; }
+.card h3 { font-size: 22px; line-height: 1.25; }
+.card p { color: var(--muted); font-size: 16px; }
+
+.pricing { margin-top: clamp(48px, 7vw, 80px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.price { padding: 28px; border-radius: 18px; border: 1px solid var(--line); display: grid; gap: 6px; align-content: start; }
+.price.hot { border-color: rgba(201, 166, 107, 0.55); box-shadow: 0 0 40px rgba(201, 166, 107, 0.08); }
+.price-label { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass); font-weight: 500; }
+.price-big { font-family: var(--f-display); font-size: clamp(32px, 4vw, 44px); line-height: 1.1; }
+.price-big small { font-family: var(--f-body); font-size: 15px; color: var(--muted); }
+.price p:last-child { color: var(--muted); font-size: 16px; }
+.price-note { grid-column: 1 / -1; text-align: center; font-size: 14px; color: var(--faint); }
+
+/* Watch */
+.watch { background: var(--graphite); border-block: 1px solid var(--line); }
+.video-frame {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: clamp(14px, 2vw, 28px);
+  overflow: hidden; background: #0E1117; border: 1px solid var(--line); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+}
+.video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; background: #0B0D12; }
+.video-desc { margin-top: 16px; font-size: 14px; color: var(--faint); text-align: center; max-width: 70ch; margin-inline: auto; }
+
+.quick { list-style: none; margin: clamp(56px, 8vw, 96px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 28px); }
+.quick li { display: grid; gap: 10px; align-content: start; }
+.quick img { border-radius: 20px; margin-bottom: 8px; }
+.q-num { font-family: var(--f-mono); font-size: 13px; color: var(--brass); letter-spacing: 0.08em; }
+.quick h3 { font-size: 22px; line-height: 1.2; }
+.quick p { color: var(--muted); font-size: 15px; }
+
+/* Technology */
+.tech-specs { margin-top: clamp(56px, 8vw, 96px); }
+
+/* Principles */
+.rules { list-style: none; margin: 0; padding: 0; counter-reset: rule; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 6vw, 80px); }
+.rules li { counter-increment: rule; display: grid; align-content: start; grid-template-rows: auto 1fr; grid-template-columns: 44px minmax(0, 1fr); gap: 0 18px; padding-block: 28px; border-top: 1px solid var(--line); }
+.rules li::before { content: counter(rule, decimal-leading-zero); grid-row: span 2; font-family: var(--f-mono); font-size: 14px; color: var(--brass); padding-top: 6px; }
+.rules h3 { font-size: 23px; line-height: 1.25; }
+.rules p { color: var(--muted); font-size: 16px; margin-top: 10px; }
+.before { margin-top: clamp(56px, 8vw, 96px); padding: clamp(24px, 4vw, 40px); border-radius: 24px; background: var(--graphite); border: 1px solid var(--line); }
+.before-title { font-size: clamp(26px, 3vw, 34px); margin-bottom: 24px; }
+
+/* Join */
+.join { text-align: center; }
+.join .wrap { display: grid; justify-items: center; gap: 24px; }
+.join h2 { font-size: clamp(38px, 6vw, 72px); line-height: 1.05; font-weight: 300; }
+.join .hero-dial { width: 120px; }
+.join-steps { list-style: none; margin: 8px 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; max-width: 980px; text-align: left; }
+.join-steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--graphite); }
+.join-steps .q-num { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--brass); font-size: 14px; }
+.join-steps h3 { font-size: 20px; line-height: 1.25; }
+.join-steps p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+
+@media (max-width: 860px) {
+  .about-grid { grid-template-columns: minmax(0, 1fr); }
+  .about-shot img { max-width: 260px; }
+  .about-cards, .rules, .pricing { grid-template-columns: minmax(0, 1fr); }
+  .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .join-steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .card, .price { padding: 20px; }
+  .rules li { grid-template-columns: 34px minmax(0, 1fr); gap: 0 12px; }
+}
+.section-head .eyebrow { color: var(--brass); }
+.before .limit h4 { font-family: var(--f-display); font-weight: 400; font-size: 22px; margin: 0; display: flex; gap: 12px; align-items: baseline; }
+.before .limit h4::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ember); flex: none; transform: translateY(-3px); }
