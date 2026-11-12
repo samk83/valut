@@ -113,7 +113,7 @@
       <div class="section-head">
         <p class="eyebrow">The app</p>
         <h2 id="about-title">A private vault<br>for your photos and videos.</h2>
-        <p>Move the pictures you don’t want sitting in your gallery into a vault that only opens with your PIN or pattern, on your own phone. Nothing is uploaded, synced or shared.</p>
+        <p>Copy the pictures you want to keep private into a vault that only opens with your PIN or pattern, on your own phone. Nothing is uploaded, synced or shared.</p>
       </div>
       <div class="about-grid">
         <figure class="about-shot">
@@ -182,7 +182,7 @@
           <img src="assets/shots/05-import-options.webp" width="660" height="1434" loading="lazy" alt="Import from your gallery screen with the Delete originals after import option.">
           <span class="q-num">02</span>
           <h3>Bring photos in</h3>
-          <p>Import from Photos. Choose whether originals are removed after the vault copy is checked.</p>
+          <p>Import from Photos. Each item is copied in and checked. Your originals are never deleted.</p>
         </li>
         <li>
           <img src="assets/shots/06-photo-viewer.webp" width="660" height="1434" loading="lazy" alt="Photo viewer inside the vault with Rotate, Info and Destroy buttons.">
@@ -230,9 +230,9 @@
         <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>Turns your PIN into a key in a way that is deliberately slow to guess</span></dd></div>
         <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Left out of iCloud and computer backups. Deleting the app and reinstalling starts an empty vault.</span></dd></div>
         <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits or a pattern</strong><span>Common PINs and simple patterns are rejected. There is no Face ID or fingerprint unlock: only your PIN or pattern opens the vault.</span></dd></div>
-        <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Strictly limited, and counted on screen</strong><span>Each attempt is recorded before the PIN is checked, so closing the app doesn’t reset the count. The exact rule is being finalized during the beta.</span></dd></div>
+        <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Each attempt is recorded before the PIN is checked, and the wait uses the phone’s time since start-up, so closing the app or changing the clock doesn’t skip it</span></dd></div>
         <div class="spec-row"><dt>Locking</dt><dd><strong>The moment you leave the app</strong><span>Contents are hidden in the app switcher</span></dd></div>
-        <div class="spec-row"><dt>Import</dt><dd><strong>Encrypt, then verify, then (only if you choose) delete the original</strong><span>If anything fails, the original stays in your gallery</span></dd></div>
+        <div class="spec-row"><dt>Import</dt><dd><strong>Copy, encrypt, then verify</strong><span>The app never deletes your originals. They stay in your photo library.</span></dd></div>
         <div class="spec-row"><dt>Network</dt><dd><strong>No servers, accounts, analytics or ads</strong><span>The only connection is a direct one between your own two phones on the same Wi-Fi when you move to a new phone. Purchases go through the App Store.</span></dd></div>
         <div class="spec-row"><dt>Built with</dt><dd><strong>React Native (Expo) with native security cores</strong><span>Swift and Apple CryptoKit on iPhone and iPad · Kotlin on Android</span></dd></div>
         <div class="spec-row"><dt>Languages</dt><dd><strong>11 languages</strong><span>English, Simplified Chinese, Hindi, Indonesian, Portuguese (Brazil), Russian, Japanese, Spanish, German, Turkish, Korean</span></dd></div>
@@ -254,7 +254,7 @@
         <li><h3>You hold the only key.</h3><p>Nobody, including us, can reset your PIN or open your vault. There is no back door.</p></li>
         <li><h3>We collect nothing.</h3><p>No account, no analytics, no ads, no tracking. PINs, file names and keys are never written to logs.</p></li>
         <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. The only way out is moving your vault, still encrypted, to your own new phone.</p></li>
-        <li><h3>Nothing is deleted without a check.</h3><p>An original leaves your gallery only after its vault copy is verified, and only if you asked for that. Moving to a new phone never deletes anything on the old one.</p></li>
+        <li><h3>The app never deletes your photos on its own.</h3><p>Importing only copies, so your originals stay in your gallery. Wrong PINs make you wait, but never erase the vault. Moving to a new phone never deletes anything on the old one.</p></li>
         <li><h3>Honest about limits.</h3><p>We say what the app protects and what it can’t. No “unhackable” claims.</p></li>
       </ol>
 
@@ -263,8 +263,8 @@
         <div class="limit-list">
           <article class="limit"><h4>Keep your own copies</h4><p>This is a beta and may have bugs. Only put in photos you also have saved somewhere else.</p></article>
           <article class="limit"><h4>Remember your PIN</h4><p>There is no recovery. If you forget your PIN or pattern, nobody can open the vault, including us.</p></article>
-          <article class="limit"><h4>Don’t experiment with wrong PINs</h4><p>Wrong attempts are strictly limited. Test wrong PINs only on a vault that holds nothing you care about.</p></article>
-          <article class="limit"><h4>Clean up after importing</h4><p>Copies can remain in Recently Deleted or in a cloud photo backup. You need to remove those yourself.</p></article>
+          <article class="limit"><h4>Wrong PINs make you wait</h4><p>After three wrong tries, each new try waits 1 minute, then 5, then 15, then an hour. Your files stay safe while you wait.</p></article>
+          <article class="limit"><h4>Originals stay in your gallery</h4><p>Importing copies. If you want an original gone, delete it in Photos, then from Recently Deleted and any cloud photo backup.</p></article>
         </div>
       </div>
     </div>

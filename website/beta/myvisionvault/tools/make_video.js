@@ -18,12 +18,12 @@ const scenes = [
   { kind: 'title' },
   { shot: '01-welcome', step: '01', tag: 'Start', title: 'Open the app.<br>No sign-up.', body: 'No account, no email, no cloud. Your vault is created on this phone.' },
   { shot: '02-create-pin', step: '02', tag: 'Lock', title: 'Choose a PIN<br>or a pattern.', body: 'At least 4 digits, and 10 or more is safer. Nobody can reset it, so pick one you will remember.' },
-  { shot: '05-import-options', step: '03', tag: 'Import', title: 'Bring photos in.', body: 'Each item is encrypted, then checked. An original is removed from your gallery only if you turn that on, and only after the check passes.' },
+  { shot: '05-import-options', step: '03', tag: 'Import', title: 'Bring photos in.', body: 'Each item is copied in, encrypted, then checked. Your originals stay in your gallery.' },
   { shot: '03-home-photos', step: '04', tag: 'Your vault', title: 'Everything stays<br>on this phone.', body: 'Photos and videos sit in their own tabs, encrypted on the device.' },
   { shot: '04-home-videos', step: '05', tag: 'Camera', title: 'Shoot straight<br>into the vault.', body: 'Tap the camera button. What you capture never goes to your photo library.' },
   { shot: '06-photo-viewer', step: '06', tag: 'View', title: 'Look, but only<br>in here.', body: 'There is no share or export button. Swipe through, rotate, or check the details.' },
   { shot: '07-settings', step: '07', tag: 'Check', title: 'Your protection<br>at a glance.', body: 'Settings shows what guards your vault. It locks the moment you leave the app.' },
-  { shot: '08-unlock', step: '08', tag: 'Return', title: 'Come back with<br>your PIN.', body: 'Wrong attempts are limited and shown on screen. Never share your PIN with anyone.' },
+  { shot: '08-unlock', step: '08', tag: 'Return', title: 'Come back with<br>your PIN.', body: 'Wrong tries make you wait, but never erase your vault. Never share your PIN with anyone.' },
   { kind: 'outro' },
 ];
 

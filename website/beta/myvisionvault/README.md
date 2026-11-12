@@ -44,4 +44,5 @@ node website/beta/myvisionvault/tools/make_video.js shots-prepared
 ## 올리기 전에 확인
 - 공유 미리보기(`og:url`, `og:image`)는 `https://jellydock.com/beta/myvisionvault/` 주소를 가정합니다. 주소가 바뀌면 `index.html` 위쪽 두 줄을 고칩니다.
 - 공개 배포는 Owner 승인 후 진행합니다 (L3).
-- "틀린 횟수 제한" 문구는 최종 규칙이 정해지지 않아 일부러 단정하지 않았습니다. 규칙이 정해지면 `index.html`의 *Wrong attempts* 줄, *Don’t experiment with wrong PINs* 카드, 그리고 `tools/prepare_shots.py`(화면 02·08 문구)를 고친 뒤 영상을 다시 만듭니다.
+- 페이지 문구는 Owner 결정(2026-11-12)을 반영했습니다: 틀려도 파기 없음(3번 후 1·5·15분, 이후 1시간 대기), 가져오기는 복사만(원본 삭제 없음).
+- **영상과 스크린샷은 아직 옛 앱 화면입니다.** 앱 수정(대기 잠금·복사 전용)과 이름 변경 PR이 Merge되면 새 스크린샷을 찍고 `prepare_shots.py`(가리기 대부분 불필요해짐)를 정리한 뒤 영상을 다시 만듭니다. 자막은 이미 새 방침으로 바꿔 두었습니다.
