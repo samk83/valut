@@ -358,16 +358,19 @@ function Attempts({ left }: { left: number }) {
 function useCountdown(until: number): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    // Always refresh first: a deadline that has already passed must not leave an old `now`
+    // Refresh right away too: a deadline that has already passed must not leave an old `now`
     // behind, which would keep the input disabled.
-    setNow(Date.now());
-    if (until <= Date.now()) return;
-    const id = setInterval(() => {
+    const tick = () => {
       const t = Date.now();
       setNow(t);
       if (t >= until) clearInterval(id);
-    }, 1000);
-    return () => clearInterval(id);
+    };
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 1000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
   }, [until]);
   return Math.max(0, until - now);
 }
