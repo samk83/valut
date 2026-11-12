@@ -22,6 +22,9 @@
 1. App Store Connect → 앱 → **TestFlight** → **External Testing** 그룹 → **Public Link** 켜기 → 링크 복사 (`https://testflight.apple.com/join/...`)
 2. `config.js`를 메모장으로 열어 `testflightUrl: ""`의 따옴표 안에 붙여넣고 저장
 3. 다시 올리면 "Coming soon" 버튼이 "Join on TestFlight" 링크로 바뀝니다
+4. Apple 베타 심사가 끝나기 전에는 `reviewPending: true`로 두면 "심사 중, 승인 후 링크가 동작" 안내가 함께 보입니다. 승인되면 `false`로 바꿉니다.
+
+현재 링크(2026-11-12): `https://testflight.apple.com/join/pFr2dxch` (외부 그룹 "public beta", 빌드 3 베타 심사 대기)
 
 `https://testflight.apple.com/join/` 으로 시작하는 링크만 받습니다 (다른 주소는 무시).
 

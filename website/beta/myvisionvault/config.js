@@ -1,7 +1,9 @@
 /* Private Vision Vault beta page settings.
-   When the app is on TestFlight, paste the public invite link between the quotes, for example:
-     testflightUrl: "https://testflight.apple.com/join/AbCdEf12"
-   Leave it empty ("") to show "Coming soon". */
+   testflightUrl: the public TestFlight invite link (https://testflight.apple.com/join/...).
+                  Leave it empty ("") to show "Coming soon".
+   reviewPending: true while Apple's Beta App Review of the build is still pending.
+                  Set it to false once Apple approves the build. */
 window.PVV_CONFIG = {
-  testflightUrl: ""
+  testflightUrl: "https://testflight.apple.com/join/pFr2dxch",
+  reviewPending: true
 };
