@@ -24,6 +24,7 @@ import com.jellydock.privatevault.core.VaultDestroyedException
 import com.jellydock.privatevault.core.VaultStateException
 import com.jellydock.privatevault.core.WeakPinException
 import com.jellydock.privatevault.core.WrongPinException
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -49,6 +50,11 @@ class VaultCoreModule : Module() {
   private lateinit var inbox: PendingImports
   private val inboxLock = Any()
   private val playbackTicket = java.util.concurrent.atomic.AtomicInteger()
+  // Photo search reads photos here, one at a time, at low priority.
+  private val readExecutor =
+    java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+      Thread(r, "PhotoReader").apply { priority = Thread.MIN_PRIORITY }
+    }
   private val transfer by lazy { TransferBridge({ vault }) { sendEvent("onTransfer", it) } }
 
   private val root: File get() = File(context.noBackupFilesDir, "vault")
@@ -204,6 +210,68 @@ class VaultCoreModule : Module() {
         val out = ByteArrayOutputStream()
         vault.read(id, out)
         Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+      }
+
+      /**
+       * Photo search: the item's sealed search note as JSON text, reading the photo first when
+       * it has no current note. ML Kit runs on its own thread, one photo at a time, so other
+       * calls never wait behind it. Called for photos only (the UI skips videos).
+       */
+      AsyncFunction("analyze") { id: String, promise: Promise ->
+        val existing =
+          try {
+            vault.readSearchNote(id)
+          } catch (e: Exception) {
+            promise.reject(CodedException("E_LOCKED", "The vault is locked", e))
+            return@AsyncFunction
+          }
+        if (existing != null && PhotoReader.isCurrent(existing)) {
+          promise.resolve(String(existing, Charsets.UTF_8))
+          return@AsyncFunction
+        }
+        readExecutor.execute {
+          val note =
+            try {
+              val out = ByteArrayOutputStream()
+              vault.read(id, out)
+              val bytes = out.toByteArray()
+              try {
+                PhotoReader.read(bytes)
+              } finally {
+                bytes.fill(0)
+              }
+            } catch (e: VaultStateException) {
+              promise.reject(CodedException("E_LOCKED", "The vault was locked", e))
+              return@execute
+            } catch (e: Throwable) {
+              promise.reject(CodedException("E_READ", "The photo could not be read", e))
+              return@execute
+            }
+          try {
+            // Locked meanwhile: nothing is saved and the next unlock reads it again.
+            vault.writeSearchNote(id, note)
+            promise.resolve(String(note, Charsets.UTF_8))
+          } catch (e: Exception) {
+            promise.reject(CodedException("E_LOCKED", "The vault was locked", e))
+          }
+        }
+      }
+
+      /** Saved search notes for many items at once (missing ones are left out). Never reads photos. */
+      AsyncFunction("searchNotes") { ids: List<String> ->
+        val out = mutableMapOf<String, String>()
+        for (id in ids) {
+          val note =
+            try {
+              vault.readSearchNote(id)
+            } catch (e: VaultStateException) {
+              throw e
+            } catch (e: Exception) {
+              null
+            }
+          if (note != null && PhotoReader.isCurrent(note)) out[id] = String(note, Charsets.UTF_8)
+        }
+        out
       }
 
       /**

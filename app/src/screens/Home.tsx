@@ -1,13 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, Image, Pressable, ScrollView, SectionList, Text, useWindowDimensions, View } from 'react-native';
+import { BackHandler, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
 import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
 import { fitToSlots, FREE_LIMIT, freeSlots, refreshPremium, usePremium } from '../premium';
 import { C, F } from '../theme';
-import { monthStandalone, t, tn } from '../i18n';
-import { Body, Button, READABLE_WIDTH, s, Segmented, TestBanner, Title } from '../ui';
+import { t, tn } from '../i18n';
+import * as searchIndex from '../searchIndex';
+import { Thumb } from '../thumb';
+import { Body, Button, READABLE_WIDTH, s, TestBanner, Title } from '../ui';
+import { Gallery } from './Gallery';
+import { Search } from './Search';
 
 // Import only copies: the originals always stay in the gallery, and the user deletes them
 // there if they want to (owner decision 2026-11-12). The app never deletes from the gallery.
@@ -23,7 +27,19 @@ type Result = {
 type Progress = { index: number; total: number; sealed: number; sealedCurrent: boolean };
 type View_ = 'home' | 'importing' | 'result';
 
-let lastTab: ItemKind = 'PHOTO';
+/** Home, a full-screen gallery (photos or videos) or search. */
+type Mode = 'home' | ItemKind | 'search';
+// Kept while the app runs, so Back from a photo lands on the same gallery or search results.
+const remembered: { mode: Mode } = { mode: 'home' };
+
+function rememberMode(m: Mode) {
+  remembered.mode = m;
+}
+
+/** After a lock the next unlock starts on Home. */
+export function resetHomeMode() {
+  remembered.mode = 'home';
+}
 
 export function Home({
   onOpen,
@@ -34,7 +50,8 @@ export function Home({
   suspendAutoLock,
   refreshKey,
 }: {
-  onOpen: (item: VaultItem) => void;
+  /** [highlight]: the search words to mark in the photo. */
+  onOpen: (item: VaultItem, highlight?: string) => void;
   onCamera: () => void;
   onSettings: () => void;
   onPremium: (reason?: 'limit', itemCount?: number) => void;
@@ -48,11 +65,10 @@ export function Home({
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
-  // Remembered across visits so Back from a video lands on the Videos page again.
-  const [tab, setTabState] = useState<ItemKind>(lastTab);
-  const setTab = (t: ItemKind) => {
-    lastTab = t;
-    setTabState(t);
+  const [mode, setModeState] = useState<Mode>(remembered.mode);
+  const setMode = (m: Mode) => {
+    rememberMode(m);
+    setModeState(m);
   };
   const importing = useRef(false);
   const [view, setView] = useState<View_>('home');
@@ -77,6 +93,16 @@ export function Home({
   useEffect(() => {
     load();
   }, [load, refreshKey]);
+
+  // Android back: from a gallery or search, back to Home.
+  useEffect(() => {
+    if (view !== 'home' || mode === 'home') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setMode('home');
+      return true;
+    });
+    return () => sub.remove();
+  }, [view, mode]);
 
   // Android back: leave the result page instead of closing the app.
   useEffect(() => {
@@ -180,11 +206,12 @@ export function Home({
 
   const photos = useMemo(() => items.filter((i) => i.kind === 'PHOTO'), [items]);
   const videos = useMemo(() => items.filter((i) => i.kind === 'VIDEO'), [items]);
-  const shown = tab === 'PHOTO' ? photos : videos;
-  // 3 columns on a phone; more on an iPad or an unfolded iPhone (about 130 pt per tile).
+  const recent = useMemo(() => [...items].sort((a, b) => b.createdAt - a.createdAt), [items]);
   const { width } = useWindowDimensions();
-  const cols = Math.max(3, Math.min(8, Math.floor(width / 130)));
-  const sections = useMemo(() => byMonth(shown, cols), [shown, cols]);
+  // Photos without a search note are read in the background while the vault is open.
+  useEffect(() => {
+    if (loadedRef.current) searchIndex.update(items);
+  }, [items]);
 
   if (view === 'importing') {
     return (
@@ -210,161 +237,205 @@ export function Home({
     );
   }
 
+  const actionBar = (
+    <View
+      style={{
+        position: 'absolute',
+        // Phone: 22 pt from each edge. iPad / unfolded: a centred bar at most 560 pt wide.
+        left: Math.max(22, (width - 560) / 2),
+        right: Math.max(22, (width - 560) / 2),
+        bottom: 30,
+        height: 72,
+        borderRadius: 24,
+        backgroundColor: 'rgba(28,33,44,0.96)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.10)',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingLeft: 8,
+        paddingRight: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.55,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 12 },
+        elevation: 12,
+      }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        onPress={async () => {
+          await importFromGallery();
+        }}
+        style={({ pressed }) => [{ flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderRadius: 16 }, pressed && { backgroundColor: C.surface2 }]}
+      >
+        <Ionicons name="download-outline" size={20} color={C.ivory} />
+        <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ivory, flexShrink: 1 }} numberOfLines={1}>{t('home.import')}</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('common.camera')}
+        onPress={async () => {
+          if ((await roomLeft()) > 0) onCamera();
+        }}
+        style={({ pressed }) => [
+          { width: 52, height: 52, borderRadius: 26, backgroundColor: C.brass, alignItems: 'center', justifyContent: 'center' },
+          pressed && { opacity: 0.8 },
+        ]}
+      >
+        <Ionicons name="camera-outline" size={24} color={C.bg} />
+      </Pressable>
+    </View>
+  );
+
+  if (mode === 'PHOTO' || mode === 'VIDEO') {
+    return (
+      <Gallery
+        kind={mode}
+        items={mode === 'PHOTO' ? photos : videos}
+        onBack={() => setMode('home')}
+        onOpen={(item) => onOpen(item)}
+        onSearch={() => setMode('search')}
+        actionBar={actionBar}
+      />
+    );
+  }
+  if (mode === 'search') {
+    return <Search items={items} onBack={() => setMode('home')} onOpen={(item, query) => onOpen(item, query)} />;
+  }
+
+  // Up to five rows of the newest items, edge to edge.
+  const recentCols = Math.max(4, Math.floor(width / 110));
+  const recentTile = Math.floor((width - 2 * (recentCols - 1)) / recentCols);
+  const shownRecent = recent.slice(0, recentCols * 5);
+
   return (
     <View style={[s.screen, { paddingHorizontal: 0, paddingBottom: 0 }]}>
-      <View style={{ paddingHorizontal: 22 }}>
-        <TestBanner />
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 22 }}>
-        <View style={{ flex: 1 }}>
-          <Text style={[s.label, { color: C.faint }]}>Private Vision Vault</Text>
-          <Text style={{ fontFamily: F.title, fontSize: 34, color: C.ivory, marginTop: 6 }}>{t('home.title')}</Text>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 130 }}>
+        <View style={{ paddingHorizontal: 22 }}>
+          <TestBanner />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('home.lockNow')}
-            onPress={onLock}
-            style={({ pressed }) => [
-              { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Ionicons name="lock-closed-outline" size={15} color={C.brass} />
-            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{t('home.lockNow')}</Text>
-          </Pressable>
-          <Pressable accessibilityLabel={t('common.settings')} onPress={onSettings} style={{ padding: 8 }}>
-            <Ionicons name="settings-outline" size={22} color={C.brass} />
-          </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22 }}>
+          <Text style={{ flex: 1, fontFamily: F.title, fontSize: 30, color: C.ivory }} numberOfLines={1} accessibilityRole="header">
+            {t('home.title')}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('home.lockNow')}
+              onPress={onLock}
+              style={({ pressed }) => [
+                { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Ionicons name="lock-closed-outline" size={15} color={C.brass} />
+              <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{t('home.lockNow')}</Text>
+            </Pressable>
+            <Pressable accessibilityLabel={t('common.settings')} onPress={onSettings} style={{ padding: 8 }}>
+              <Ionicons name="settings-outline" size={22} color={C.brass} />
+            </Pressable>
+          </View>
         </View>
-      </View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 22, paddingTop: 14 }}>
-        <Chip>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.ok }} />
-          <Text style={chipText}>{t('home.chipEncrypted')}</Text>
-        </Chip>
-        <Chip>
-          <Text style={chipText}>{t('home.chipOffline')}</Text>
-        </Chip>
-        {plan.loaded && !plan.premium && (
-          <Pressable accessibilityRole="button" accessibilityLabel={t('plan.chipA11y', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })} onPress={() => onPremium()}>
-            <Chip>
-              <Text style={[chipText, items.length >= FREE_LIMIT && { color: C.brass }]}>
-                {t('plan.chip', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })}
-              </Text>
-            </Chip>
-          </Pressable>
-        )}
-      </View>
-      <View style={{ paddingHorizontal: 22, paddingTop: 18 }}>
-        <Segmented
-          value={tab}
-          onChange={setTab}
-          options={[
-            { value: 'PHOTO', label: t('home.photosTab', { n: photos.length }), icon: <Ionicons name="image-outline" size={18} color={tab === 'PHOTO' ? C.brass : C.faint} /> },
-            { value: 'VIDEO', label: t('home.videosTab', { n: videos.length }), icon: <Ionicons name="videocam-outline" size={18} color={tab === 'VIDEO' ? C.brass : C.faint} /> },
-          ]}
-        />
-      </View>
-      <SectionList
-        key={`${tab}-${cols}`}
-        sections={sections}
-        keyExtractor={(row) => row.map((i) => i.id).join('|')}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 130 }}
-        stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => (
-          <Text style={{ fontFamily: F.title, fontSize: 17, color: C.muted, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 10 }}>{section.title}</Text>
-        )}
-        renderItem={({ item: row }) => (
-          <View style={{ flexDirection: 'row', gap: 4, marginBottom: 4 }}>
-            {row.map((it) => (
-              <Thumb key={it.id} item={it} onPress={() => onOpen(it)} />
-            ))}
-            {Array.from({ length: cols - row.length }).map((_, i) => (
-              <View key={`pad${i}`} style={{ flex: 1 }} />
-            ))}
-          </View>
-        )}
-        ListEmptyComponent={
-          <View style={[s.card, { margin: 18 }]}>
-            <Body>{tab === 'PHOTO' ? t('home.noPhotos') : t('home.noVideos')}</Body>
-            <Text style={s.small}>{t('home.emptyHint')}</Text>
-          </View>
-        }
-      />
-      <View
-        style={{
-          position: 'absolute',
-          // Phone: 22 pt from each edge. iPad / unfolded: a centred bar at most 560 pt wide.
-          left: Math.max(22, (width - 560) / 2),
-          right: Math.max(22, (width - 560) / 2),
-          bottom: 30,
-          height: 72,
-          borderRadius: 24,
-          backgroundColor: 'rgba(28,33,44,0.96)',
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.10)',
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingLeft: 8,
-          paddingRight: 10,
-          shadowColor: '#000',
-          shadowOpacity: 0.55,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 12 },
-          elevation: 12,
-        }}
-      >
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 22, paddingTop: 12 }}>
+          <Chip>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.ok }} />
+            <Text style={chipText}>{t('home.chipEncrypted')}</Text>
+          </Chip>
+          <Chip>
+            <Text style={chipText}>{t('home.chipOffline')}</Text>
+          </Chip>
+          {plan.loaded && !plan.premium && (
+            <Pressable accessibilityRole="button" accessibilityLabel={t('plan.chipA11y', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })} onPress={() => onPremium()}>
+              <Chip>
+                <Text style={[chipText, items.length >= FREE_LIMIT && { color: C.brass }]}>
+                  {t('plan.chip', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })}
+                </Text>
+              </Chip>
+            </Pressable>
+          )}
+        </View>
+
         <Pressable
-          accessibilityRole="button"
-          onPress={async () => {
-            await importFromGallery();
-          }}
-          style={({ pressed }) => [{ flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderRadius: 16 }, pressed && { backgroundColor: C.surface2 }]}
-        >
-          <Ionicons name="download-outline" size={20} color={C.ivory} />
-          <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ivory, flexShrink: 1 }} numberOfLines={1}>{t('home.import')}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.camera')}
-          onPress={async () => {
-            if ((await roomLeft()) > 0) onCamera();
-          }}
+          accessibilityRole="search"
+          accessibilityLabel={t('home.search')}
+          onPress={() => setMode('search')}
           style={({ pressed }) => [
-            { width: 52, height: 52, borderRadius: 26, backgroundColor: C.brass, alignItems: 'center', justifyContent: 'center' },
+            { marginHorizontal: 22, marginTop: 18, height: 50, borderRadius: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: C.outline, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14 },
             pressed && { opacity: 0.8 },
           ]}
         >
-          <Ionicons name="camera-outline" size={24} color={C.bg} />
+          <Ionicons name="search" size={18} color={C.brass} />
+          <Text style={{ flex: 1, fontFamily: F.body, fontSize: 15, color: C.faint }} numberOfLines={1}>
+            {t('home.search')}
+          </Text>
         </Pressable>
-      </View>
+
+        <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 22, paddingTop: 16 }}>
+          <CategoryCard kind="PHOTO" count={photos.length} cover={photos.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 4)} onPress={() => setMode('PHOTO')} />
+          <CategoryCard kind="VIDEO" count={videos.length} cover={videos.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 1)} onPress={() => setMode('VIDEO')} />
+        </View>
+
+        {items.length === 0 ? (
+          <View style={[s.card, { margin: 22 }]}>
+            <Body>{t('home.noPhotos')}</Body>
+            <Text style={s.small}>{t('home.emptyHint')}</Text>
+          </View>
+        ) : (
+          <>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: 22, paddingTop: 24, paddingBottom: 12 }}>
+              <Text style={{ flex: 1, fontFamily: F.title, fontSize: 18, color: C.muted }} accessibilityRole="header">
+                {t('home.recent')}
+              </Text>
+              <Pressable accessibilityRole="button" onPress={() => setMode(photos.length ? 'PHOTO' : 'VIDEO')} hitSlop={10}>
+                <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.brass }}>{t('home.seeAll')}</Text>
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2 }}>
+              {shownRecent.map((it) => (
+                <Thumb key={it.id} item={it} onPress={() => onOpen(it)} style={{ width: recentTile, height: recentTile }} />
+              ))}
+            </View>
+          </>
+        )}
+      </ScrollView>
+      {actionBar}
     </View>
   );
 }
 
-/** Newest first, grouped by month, three tiles per row. */
-function byMonth(list: VaultItem[], cols: number): { title: string; data: VaultItem[][] }[] {
-  const sorted = [...list].sort((a, b) => b.createdAt - a.createdAt);
-  const out: { title: string; data: VaultItem[][] }[] = [];
-  let current: { title: string; items: VaultItem[] } | null = null;
-  const groups: { title: string; items: VaultItem[] }[] = [];
-  for (const it of sorted) {
-    const d = new Date(it.createdAt);
-    const title = t('home.month', { month: monthStandalone(d.getMonth()), year: d.getFullYear() });
-    if (!current || current.title !== title) {
-      current = { title, items: [] };
-      groups.push(current);
-    }
-    current.items.push(it);
-  }
-  for (const g of groups) {
-    const rows: VaultItem[][] = [];
-    for (let i = 0; i < g.items.length; i += cols) rows.push(g.items.slice(i, i + cols));
-    out.push({ title: g.title, data: rows });
-  }
-  return out;
+function CategoryCard({ kind, count, cover, onPress }: { kind: ItemKind; count: number; cover: VaultItem[]; onPress: () => void }) {
+  const label = kind === 'PHOTO' ? t('home.photos') : t('home.videos');
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label} ${count}`}
+      onPress={onPress}
+      style={({ pressed }) => [{ flex: 1, borderRadius: 22, overflow: 'hidden', backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }, pressed && { opacity: 0.85 }]}
+    >
+      <View style={{ aspectRatio: 1.1, backgroundColor: C.surface2 }}>
+        {kind === 'PHOTO' && cover.length >= 2 ? (
+          <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 2 }}>
+            {[0, 1, 2, 3].map((i) =>
+              cover[i] ? <Thumb key={cover[i].id} item={cover[i]} style={{ width: '49.4%', height: '49.4%', aspectRatio: undefined }} /> : <View key={`e${i}`} style={{ width: '49.4%', height: '49.4%', backgroundColor: C.surface }} />,
+            )}
+          </View>
+        ) : cover[0] ? (
+          <Thumb item={cover[0]} style={{ width: '100%', height: '100%', aspectRatio: undefined }} />
+        ) : (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={kind === 'PHOTO' ? 'image-outline' : 'videocam-outline'} size={34} color={C.faint} />
+          </View>
+        )}
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 12 }}>
+        <Ionicons name={kind === 'PHOTO' ? 'image-outline' : 'videocam-outline'} size={18} color={C.brass} />
+        <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 16, color: C.ivory }} numberOfLines={1}>
+          {label}
+        </Text>
+        <Text style={{ fontFamily: F.body, fontSize: 15, color: C.muted }}>{count}</Text>
+      </View>
+    </Pressable>
+  );
 }
 
 const chipText = { fontFamily: F.body, fontSize: 11, color: C.muted };
@@ -502,28 +573,5 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
         )}
       </View>
     </Page>
-  );
-}
-
-function Thumb({ item, onPress }: { item: VaultItem; onPress: () => void }) {
-  const [uri, setUri] = useState<string | null>(null);
-  useEffect(() => {
-    let live = true;
-    VaultCore.thumbnailUri(item.id)
-      .then((u) => live && u && setUri(u))
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [item.id]);
-  return (
-    <Pressable onPress={onPress} style={{ flex: 1, aspectRatio: 1, backgroundColor: C.surface, borderRadius: 6, overflow: 'hidden' }}>
-      {uri && <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />}
-      {item.kind === 'VIDEO' && (
-        <View style={{ position: 'absolute', bottom: 4, right: 4, backgroundColor: 'rgba(11,13,18,0.7)', borderRadius: 10, padding: 3 }}>
-          <Ionicons name="play" size={12} color={C.ivory} />
-        </View>
-      )}
-    </Pressable>
   );
 }

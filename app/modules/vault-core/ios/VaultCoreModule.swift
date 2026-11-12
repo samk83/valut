@@ -10,6 +10,8 @@ import UIKit
 /// Every async call runs on one serial queue, so a PIN check never races an import or a lock.
 public final class VaultCoreModule: Module {
   private let queue = DispatchQueue(label: "com.jellydock.privatevault.vaultcore", qos: .userInitiated)
+  // Photo search reads photos here, one at a time, at low priority.
+  private let readQueue = DispatchQueue(label: "com.jellydock.privatevault.photoreader", qos: .utility)
   private let hardwareKey = IOSHardwareKey()
   private let stateLock = NSLock()
   private var _vault: Vault?
@@ -164,6 +166,57 @@ public final class VaultCoreModule: Module {
       try self.requireVault().read(id: id, output: sink)
       defer { sink.bytes.wipe() }
       return Data(sink.bytes).base64EncodedString()
+    }.runOnQueue(queue)
+
+    /// Photo search: the item's sealed search note as JSON text, reading the photo first when
+    /// it has no current note. Reading (Apple Vision, on the device) runs off the vault queue so
+    /// opening photos never waits behind it. Called for photos only (the UI skips videos).
+    AsyncFunction("analyze") { (id: String, promise: Promise) in
+      self.queue.async {
+        do {
+          let v = try self.requireVault()
+          if let note = try v.readSearchNote(id: id), PhotoReader.isCurrent(note) {
+            promise.resolve(String(decoding: note, as: UTF8.self))
+            return
+          }
+          let sink = MemorySink()
+          try v.read(id: id, output: sink)
+          let data = Data(sink.bytes)
+          sink.bytes.wipe()
+          self.readQueue.async {
+            let note: [UInt8]
+            do {
+              note = try autoreleasepool { try PhotoReader.read(data) }
+            } catch {
+              promise.reject("E_READ", "The photo could not be read")
+              return
+            }
+            self.queue.async {
+              do {
+                // Locked meanwhile: nothing is saved and the next unlock reads it again.
+                try self.requireVault().writeSearchNote(id: id, note: note)
+                promise.resolve(String(decoding: note, as: UTF8.self))
+              } catch {
+                promise.reject("E_LOCKED", "The vault was locked")
+              }
+            }
+          }
+        } catch {
+          promise.reject("E_LOCKED", "The vault is locked")
+        }
+      }
+    }
+
+    /// Saved search notes for many items at once (missing ones are left out). Never reads photos.
+    AsyncFunction("searchNotes") { (ids: [String]) -> [String: String] in
+      let v = try self.requireVault()
+      var out: [String: String] = [:]
+      for id in ids {
+        if let note = try? v.readSearchNote(id: id), PhotoReader.isCurrent(note) {
+          out[id] = String(decoding: note, as: UTF8.self)
+        }
+      }
+      return out
     }.runOnQueue(queue)
 
     /// Imports a file:// copy made by the picker or camera. The SHA-256 is computed in a

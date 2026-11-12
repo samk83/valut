@@ -14,11 +14,14 @@ import VaultCore, { VaultItem } from './modules/vault-core';
 import { CreatePin, Destroyed, Unlock, Welcome } from './src/screens/Auth';
 import { DeviceGate } from './src/screens/DeviceGate';
 import { VaultCamera } from './src/screens/Camera';
-import { Home } from './src/screens/Home';
+import { Home, resetHomeMode } from './src/screens/Home';
 import { Premium } from './src/screens/Premium';
 import { Settings } from './src/screens/Settings';
 import { Transfer } from './src/screens/Transfer';
+import { resetSearchScreen } from './src/screens/Search';
 import { PhotoViewer, VideoPlayer } from './src/screens/Viewer';
+import * as searchIndex from './src/searchIndex';
+import { clearThumbs } from './src/thumb';
 import { C } from './src/theme';
 import { t } from './src/i18n';
 import { Busy, READABLE_WIDTH } from './src/ui';
@@ -34,7 +37,7 @@ type Route =
   | { name: 'settings' }
   | { name: 'premium'; reason?: 'limit'; itemCount?: number; back: 'home' | 'settings' }
   | { name: 'transfer' }
-  | { name: 'view'; item: VaultItem };
+  | { name: 'view'; item: VaultItem; highlight?: string };
 
 const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'premium', 'transfer', 'view'];
 // Screens that use the whole width on an iPad; the rest are centred in a readable column.
@@ -57,6 +60,11 @@ export default function App() {
   const toLocked = useCallback(async () => {
     // Hide decrypted content at once; status() may wait behind a long native call.
     setRoute({ name: 'loading' });
+    // Forget decrypted thumbnails, search notes and the last search.
+    searchIndex.reset();
+    clearThumbs();
+    resetHomeMode();
+    resetSearchScreen();
     const st = await VaultCore.status();
     setRoute(st.exists ? { name: 'unlock', remaining: st.remainingAttempts, lockedForMs: st.lockedForMs } : { name: 'welcome' });
   }, []);
@@ -182,7 +190,7 @@ export default function App() {
         <Home
           refreshKey={refreshKey}
           suspendAutoLock={suspendAutoLock}
-          onOpen={(item) => setRoute({ name: 'view', item })}
+          onOpen={(item, highlight) => setRoute({ name: 'view', item, highlight })}
           onCamera={() => setRoute({ name: 'camera' })}
           onSettings={() => setRoute({ name: 'settings' })}
           onPremium={(reason, itemCount) => setRoute({ name: 'premium', reason, itemCount, back: 'home' })}
@@ -227,7 +235,7 @@ export default function App() {
         route.item.kind === 'VIDEO' ? (
           <VideoPlayer item={route.item} onClose={home} onDeleted={home} />
         ) : (
-          <PhotoViewer item={route.item} onClose={home} onDeleted={home} />
+          <PhotoViewer item={route.item} highlight={route.highlight} onClose={home} onDeleted={home} />
         );
       break;
   }

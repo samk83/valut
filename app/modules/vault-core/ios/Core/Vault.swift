@@ -37,6 +37,7 @@ final class Vault {
 
   private static let deletedMarker = "deleted"
   private static let sourceFile = "source"
+  private static let searchFile = "search"
 
   init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize,
        clock: MonotonicClock = SystemMonotonicClock()) throws {
@@ -227,6 +228,26 @@ final class Vault {
     return out
   }
 
+  /// Saves the on-device search note of one item (text read from the photo and what it
+  /// shows). Same as core/Vault.kt: sealed with the item's own key, kept in the item's folder,
+  /// deleted with the item. It never touches the photo; a lost note only means a re-read.
+  func writeSearchNote(id: String, note: [UInt8]) throws {
+    try withFileKey(id) { fk, idBytes in
+      let dir = try itemDir(id)
+      guard isLiveItem(dir) else { throw VaultError.state("No such item") }
+      try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.searchFile), try seal(fk, note, aad(Vault.searchFile, idBytes)))
+    }
+  }
+
+  /// The item's search note, or nil when it has none yet (or it cannot be read).
+  func readSearchNote(id: String) throws -> [UInt8]? {
+    try withFileKey(id) { fk, idBytes in
+      let file = try itemDir(id).appendingPathComponent(Vault.searchFile)
+      guard SecureFiles.exists(file) else { return nil }
+      return try? open(fk, try SecureFiles.readBytes(file), aad(Vault.searchFile, idBytes))
+    }
+  }
+
   /// Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2).
   func delete(id: String) throws {
     var mk = try requireUnlocked()
@@ -234,7 +255,7 @@ final class Vault {
     let dir = try itemDir(id)
     guard SecureFiles.exists(dir) else { return }
     try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.deletedMarker), [])
-    for name in ["key", "key.bak", "meta", "meta.bak", "thumb", Vault.sourceFile] { SecureFiles.shred(dir.appendingPathComponent(name)) }
+    for name in ["key", "key.bak", "meta", "meta.bak", "thumb", Vault.sourceFile, Vault.searchFile] { SecureFiles.shred(dir.appendingPathComponent(name)) }
     SecureFiles.deleteTree(dir)
   }
 

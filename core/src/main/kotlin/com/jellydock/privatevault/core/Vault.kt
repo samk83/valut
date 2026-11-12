@@ -252,6 +252,38 @@ class Vault(
         }.toSet()
     }
 
+    /**
+     * Saves the on-device search note of one item (text read from the photo and what it
+     * shows). It is sealed with the item's own key, lives in the item's folder and is
+     * deleted with the item. It never touches the photo itself, and a lost or damaged note
+     * only means the photo is read again.
+     */
+    fun writeSearchNote(
+        id: String,
+        note: ByteArray,
+    ) {
+        withFileKey(id) { fk, idBytes ->
+            val dir = itemDir(id)
+            if (!isLiveItem(dir)) throw IOException("No such item")
+            SecureFiles.writeAtomic(File(dir, SEARCH), Aead.seal(fk, note, aad(SEARCH, idBytes)))
+        }
+    }
+
+    /** The item's search note, or null when it has none yet (or it cannot be read). */
+    fun readSearchNote(id: String): ByteArray? =
+        withFileKey(id) { fk, idBytes ->
+            val file = File(itemDir(id), SEARCH)
+            if (!file.exists()) {
+                null
+            } else {
+                try {
+                    Aead.open(fk, file.readBytes(), aad(SEARCH, idBytes))
+                } catch (e: IntegrityException) {
+                    null
+                }
+            }
+        }
+
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
     fun delete(id: String) {
         requireUnlocked().wipe()
@@ -266,6 +298,7 @@ class Vault(
         SecureFiles.shred(File(dir, "meta.bak"))
         SecureFiles.shred(File(dir, "thumb"))
         SecureFiles.shred(File(dir, SOURCE))
+        SecureFiles.shred(File(dir, SEARCH))
         SecureFiles.deleteTree(dir)
     }
 
@@ -415,5 +448,6 @@ class Vault(
     private companion object {
         const val DELETED = "deleted"
         const val SOURCE = "source"
+        const val SEARCH = "search"
     }
 }

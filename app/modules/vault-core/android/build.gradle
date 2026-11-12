@@ -26,4 +26,13 @@ dependencies {
   implementation "org.bouncycastle:bcprov-jdk18on:1.78.1"
   // Google's own Play Billing library (1.1 Premium). No third-party payment SDK.
   implementation "com.android.billingclient:billing:8.0.0"
+  // Photo search: Google ML Kit with the models bundled in the app (works offline, nothing is
+  // downloaded or sent). Text in Latin, Korean, Japanese, Chinese and Devanagari script, and
+  // on-device image labels.
+  implementation "com.google.mlkit:text-recognition:16.0.1"
+  implementation "com.google.mlkit:text-recognition-korean:16.0.1"
+  implementation "com.google.mlkit:text-recognition-japanese:16.0.1"
+  implementation "com.google.mlkit:text-recognition-chinese:16.0.1"
+  implementation "com.google.mlkit:text-recognition-devanagari:16.0.1"
+  implementation "com.google.mlkit:image-labeling:17.0.9"
 }
