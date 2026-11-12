@@ -9,8 +9,11 @@ import { C } from './theme';
 // gallery does not decrypt them again when it scrolls back or changes its column count.
 const cache = new Map<string, string>();
 const MAX = 400;
+// Bumped on lock: a thumbnail that arrives after the lock is dropped, never cached.
+let generation = 0;
 
 export function clearThumbs() {
+  generation++;
   cache.clear();
 }
 
@@ -32,9 +35,10 @@ export function useThumb(id: string): string | null {
   useEffect(() => {
     if (cache.has(id)) return;
     let live = true;
+    const gen = generation;
     VaultCore.thumbnailUri(id)
       .then((u) => {
-        if (!u) return;
+        if (!u || gen !== generation) return;
         remember(id, u);
         if (live) setLoaded({ id, uri: u });
       })
