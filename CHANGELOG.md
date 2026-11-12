@@ -32,6 +32,8 @@
 - docs/aso/: 11개 언어 스토어 문구(listing.json → listing.md·store.config.json, build.py가 글자 수·키워드 중복 검사), ASO 전략 문서(ASO.md)
 - 스크린샷 자동 촬영(capture.js, 웹 미리보기)·문구 합성(compose.js) 도구. iPhone 6.9형·iPad 13형 × 11개 언어 × 7장 (사진 보호 수정·두 겹 잠금·새 이름 반영)
 - 스토어 문구에서 3회 파기·원본 삭제 표현 제거, 대기 시간 잠금·복사 가져오기 기준으로 작성
+### Added (2026-11-12)
+- 베타 홈페이지 `website/beta/myvisionvault/` (영어): 앱 소개, 50초 사용법 영상(실제 앱 화면), 빠른 시작, 적용 기술, 사용 원칙, 테스트 전 주의사항, TestFlight 참여 안내. TestFlight 링크는 `config.js` 한 곳에 넣으면 버튼이 켜짐
 ### Changed (2026-11-11)
 - 출시 계획: 1.0을 따로 내지 않고 첫 App Store 출시를 1.1로 (무료 100개 + 평생 Premium 인앱 구매 함께 제출). docs/APP_STORE_LISTING.md 설명·가격·제출 체크리스트, NEXT_STEPS.md 출시 순서 수정
 

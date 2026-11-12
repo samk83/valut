@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Private Vision Vault Beta</title>
+<meta name="description" content="Join the Private Vision Vault beta. A photo and video vault that stays encrypted on your iPhone or iPad. No account, no cloud, no servers.">
+<meta name="theme-color" content="#0B0D12">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Private Vision Vault Beta">
+<meta property="og:description" content="Your photos stay on your phone. Encrypted on device, no account, no cloud. Join the beta on TestFlight.">
+<meta property="og:url" content="https://jellydock.com/beta/myvisionvault/">
+<meta property="og:image" content="https://jellydock.com/beta/myvisionvault/assets/video/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="beta.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pvMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7E6BE"></stop>
+      <stop offset="0.35" stop-color="#C9A66B"></stop>
+      <stop offset="0.55" stop-color="#8A6635"></stop>
+      <stop offset="0.75" stop-color="#C9A66B"></stop>
+      <stop offset="1" stop-color="#F7E6BE"></stop>
+    </linearGradient>
+    <radialGradient id="pvBg" cx="0.3" cy="0.2" r="1">
+      <stop offset="0" stop-color="#262C3A"></stop>
+      <stop offset="0.6" stop-color="#10131A"></stop>
+      <stop offset="1" stop-color="#07080B"></stop>
+    </radialGradient>
+    <radialGradient id="pvFace" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#1B202B"></stop>
+      <stop offset="1" stop-color="#06070A"></stop>
+    </radialGradient>
+    <linearGradient id="pvGloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"></stop>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+  <symbol id="dial" viewBox="0 0 360 360">
+    <rect width="360" height="360" rx="80" fill="url(#pvBg)"></rect>
+    <circle cx="180" cy="180" r="118" fill="url(#pvFace)" stroke="url(#pvMetal)" stroke-width="14"></circle>
+    <circle cx="180" cy="166" r="22" fill="url(#pvMetal)"></circle>
+    <path d="M169 178 L160 226 L200 226 L191 178 Z" fill="url(#pvMetal)"></path>
+    <path d="M80 0 H280 A80 80 0 0 1 360 80 V150 C260 120 100 120 0 160 V80 A80 80 0 0 1 80 0 Z" fill="url(#pvGloss)"></path>
+  </symbol>
+</svg>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Private Vision Vault beta, back to top">
+      <svg aria-hidden="true"><use href="#dial"></use></svg>
+      Private Vision Vault <span class="beta-tag">Beta</span>
+    </a>
+    <nav class="nav" aria-label="Page sections">
+      <a class="nav-link" href="#about">The app</a>
+      <a class="nav-link" href="#watch">Watch</a>
+      <a class="nav-link" href="#technology">Technology</a>
+      <a class="nav-link" href="#principles">Principles</a>
+      <a class="nav-cta" href="#join">Join the beta</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <svg class="hero-dial" viewBox="0 0 360 360" role="img" aria-label="Private Vision Vault app icon: a brass vault dial with a keyhole">
+        <rect x="0" y="0" width="360" height="360" rx="80" fill="url(#pvBg)"></rect>
+        <rect x="1.5" y="1.5" width="357" height="357" rx="78.5" fill="none" stroke="url(#pvMetal)" stroke-opacity="0.45" stroke-width="3"></rect>
+        <circle cx="180" cy="186" r="124" fill="#000000" opacity="0.45"></circle>
+        <circle cx="180" cy="180" r="118" fill="url(#pvFace)" stroke="url(#pvMetal)" stroke-width="12"></circle>
+        <g class="dial-ring">
+          <circle cx="180" cy="180" r="92" fill="none" stroke="url(#pvMetal)" stroke-opacity="0.5" stroke-width="1.5"></circle>
+          <circle cx="180" cy="180" r="102" fill="none" stroke="url(#pvMetal)" stroke-width="10" stroke-dasharray="2 24.704"></circle>
+          <circle cx="180" cy="180" r="102" fill="none" stroke="url(#pvMetal)" stroke-width="18" stroke-dasharray="4 156.221"></circle>
+        </g>
+        <circle cx="180" cy="166" r="20" fill="url(#pvMetal)"></circle>
+        <path d="M170 176 L162 222 L198 222 L190 176 Z" fill="url(#pvMetal)"></path>
+        <path d="M80 0 H280 A80 80 0 0 1 360 80 V150 C260 120 100 120 0 160 V80 A80 80 0 0 1 80 0 Z" fill="url(#pvGloss)"></path>
+      </svg>
+      <p class="eyebrow">Beta · iPhone &amp; iPad</p>
+      <h1 id="hero-title">Your photos stay<br><em>on your phone.</em></h1>
+      <p class="hero-lede">Private Vision Vault keeps the photos and videos you choose encrypted on your own device. No account, no cloud, no servers. Help us test it before it reaches the App Store.</p>
+      <div class="stores">
+        <a class="store tf" data-testflight href="#join">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v9"></path><path d="M8.5 6.5 12 2.5l3.5 4"></path><path d="M5 13.5c0 4 3 7.5 7 7.5s7-3.5 7-7.5"></path><circle cx="12" cy="14" r="2"></circle></svg>
+          <span><small data-tf-small>Coming soon</small><b>Join on TestFlight</b></span>
+        </a>
+        <a class="store ghost" href="#watch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"></path></svg>
+          <span><small>Under a minute</small><b>Watch how it works</b></span>
+        </a>
+      </div>
+      <p class="store-note" data-tf-note>The TestFlight invite link will appear here when the beta opens.</p>
+      <ul class="chips" aria-label="Core principles">
+        <li class="chip"><span class="dot"></span>Encrypted on device</li>
+        <li class="chip">No account</li>
+        <li class="chip">No cloud or servers</li>
+        <li class="chip">No ads or tracking</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- What it is -->
+  <section class="section" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The app</p>
+        <h2 id="about-title">A private vault<br>for your photos and videos.</h2>
+        <p>Copy the pictures you want to keep private into a vault that only opens with your PIN or pattern, on your own phone. Nothing is uploaded, synced or shared.</p>
+      </div>
+      <div class="about-grid">
+        <figure class="about-shot">
+          <img src="assets/shots/03-home-photos.webp" width="660" height="1434" alt="The vault home screen: a grid of encrypted photos with Photos and Videos tabs, an Import from Photos button and a camera button.">
+        </figure>
+        <div class="about-cards">
+          <article class="card">
+            <h3>Encrypted on this device</h3>
+            <p>Every photo and video is encrypted on your iPhone or iPad with AES-256-GCM, each with its own key.</p>
+          </article>
+          <article class="card">
+            <h3>No account, no cloud</h3>
+            <p>No sign-up and no email. There are no servers to send anything to, and the vault works in airplane mode.</p>
+          </article>
+          <article class="card">
+            <h3>A camera inside the vault</h3>
+            <p>Shoot photos and videos straight into the vault. They never land in your photo library, and location data is removed.</p>
+          </article>
+          <article class="card">
+            <h3>Move to a new phone, free</h3>
+            <p>Send your vault directly from your old phone to your new one over your own Wi-Fi, encrypted the whole way. Works between iPhone and Android once the Android version is out.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="pricing" aria-label="Pricing">
+        <div class="price">
+          <p class="price-label">Free</p>
+          <p class="price-big">Up to 100</p>
+          <p>photos and videos, with every security feature included.</p>
+        </div>
+        <div class="price hot">
+          <p class="price-label">Lifetime Premium</p>
+          <p class="price-big">US$9.99 <small>once</small></p>
+          <p>Unlimited photos and videos. One payment, no subscription, no ads. Prices vary by country.</p>
+        </div>
+        <p class="price-note">In the TestFlight beta, purchases go through Apple’s test system, so you are never charged.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How-to video -->
+  <section class="section watch" id="watch" aria-labelledby="watch-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Watch</p>
+        <h2 id="watch-title">How it works,<br>in under a minute.</h2>
+        <p>Real screens from the beta app, from creating your vault to opening it again.</p>
+      </div>
+      <div class="video-frame">
+        <video controls playsinline muted preload="none" poster="assets/video/poster.jpg" aria-describedby="video-desc">
+          <source src="assets/video/how-to.mp4" type="video/mp4">
+          <a href="assets/video/how-to.mp4">Download the how-to video (MP4)</a>
+        </video>
+      </div>
+      <p class="video-desc" id="video-desc">50 seconds, no sound. Steps shown: open the app, choose a PIN or pattern, import photos, browse the vault, shoot with the vault camera, view an item, check the security settings, and unlock again.</p>
+
+      <ol class="quick" aria-label="Quick start">
+        <li>
+          <img src="assets/shots/02-create-pin.webp" width="660" height="1434" loading="lazy" alt="Create your key screen with PIN and Pattern options and a strength meter.">
+          <span class="q-num">01</span>
+          <h3>Create your key</h3>
+          <p>Pick a PIN (at least 4 digits, 10 or more is safer) or a pattern.</p>
+        </li>
+        <li>
+          <img src="assets/shots/05-import-options.webp" width="660" height="1434" loading="lazy" alt="Import from your gallery screen with the Delete originals after import option.">
+          <span class="q-num">02</span>
+          <h3>Bring photos in</h3>
+          <p>Import from Photos. Each item is copied in and checked. Your originals are never deleted.</p>
+        </li>
+        <li>
+          <img src="assets/shots/06-photo-viewer.webp" width="660" height="1434" loading="lazy" alt="Photo viewer inside the vault with Rotate, Info and Destroy buttons.">
+          <span class="q-num">03</span>
+          <h3>View inside the app</h3>
+          <p>Swipe through photos and play videos. There is no share or export.</p>
+        </li>
+        <li>
+          <img src="assets/shots/08-unlock.webp" width="660" height="1434" loading="lazy" alt="Vault locked screen asking for the PIN, showing attempts remaining.">
+          <span class="q-num">04</span>
+          <h3>Unlock with your PIN</h3>
+          <p>The vault locks the moment you leave the app. Your PIN opens it again.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Technology -->
+  <section class="section" id="technology" aria-labelledby="technology-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Technology</p>
+        <h2 id="technology-title">A door that needs<br>two keys.</h2>
+        <p>The vault opens only when your PIN and your phone’s security chip are both present. Neither one opens it alone, and the unlocked key lives in memory only while the vault is open.</p>
+      </div>
+
+      <div class="keys-wrap" role="region" aria-label="Key hierarchy diagram" tabindex="0">
+        <div class="keychain">
+          <div class="k-col">
+            <div class="k-node"><span class="k-label">SOMETHING YOU KNOW</span><b>PIN or pattern</b><span>Stretched with Argon2id, which makes every guess slow and memory-hungry.</span></div>
+            <p class="k-plus">+</p>
+            <div class="k-node"><span class="k-label">SOMETHING THE PHONE HAS</span><b>Security chip key</b><span>Held in the Secure Enclave on iPhone and iPad. It can’t be copied out.</span></div>
+          </div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node hot"><span class="k-label">MASTER KEY</span><b>Master key</b><span>Unlocked only when both are present. Erased from memory when the vault locks.</span></div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node"><span class="k-label">PER-FILE KEY</span><b>Per-file keys</b><span>Every photo and every video gets its own key.</span></div>
+          <div class="k-arrow" aria-hidden="true"></div>
+          <div class="k-node"><span class="k-label">AES-256-GCM</span><b>Encrypted files</b><span>Photos, videos, file names, capture details and thumbnails.</span></div>
+        </div>
+      </div>
+
+      <dl class="specs tech-specs">
+        <div class="spec-row"><dt>Encryption</dt><dd><strong>AES-256-GCM, a separate key per file</strong><span class="mono">video: encrypted in chunks, each with its own nonce and authentication tag</span></dd></div>
+        <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>Turns your PIN into a key in a way that is deliberately slow to guess</span></dd></div>
+        <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Left out of iCloud and computer backups. Deleting the app and reinstalling starts an empty vault.</span></dd></div>
+        <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits or a pattern</strong><span>Common PINs and simple patterns are rejected. There is no Face ID or fingerprint unlock: only your PIN or pattern opens the vault.</span></dd></div>
+        <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Each attempt is recorded before the PIN is checked, and the wait uses the phone’s time since start-up, so closing the app or changing the clock doesn’t skip it</span></dd></div>
+        <div class="spec-row"><dt>Locking</dt><dd><strong>The moment you leave the app</strong><span>Contents are hidden in the app switcher</span></dd></div>
+        <div class="spec-row"><dt>Import</dt><dd><strong>Copy, encrypt, then verify</strong><span>The app never deletes your originals. They stay in your photo library.</span></dd></div>
+        <div class="spec-row"><dt>Network</dt><dd><strong>No servers, accounts, analytics or ads</strong><span>The only connection is a direct one between your own two phones on the same Wi-Fi when you move to a new phone. Purchases go through the App Store.</span></dd></div>
+        <div class="spec-row"><dt>Built with</dt><dd><strong>React Native (Expo) with native security cores</strong><span>Swift and Apple CryptoKit on iPhone and iPad · Kotlin on Android</span></dd></div>
+        <div class="spec-row"><dt>Languages</dt><dd><strong>11 languages</strong><span>English, Simplified Chinese, Hindi, Indonesian, Portuguese (Brazil), Russian, Japanese, Spanish, German, Turkish, Korean</span></dd></div>
+      </dl>
+      <p class="spec-foot">Beta specifications, subject to change during testing. No independent security audit has been done yet.</p>
+    </div>
+  </section>
+
+  <!-- Principles -->
+  <section class="section principles" id="principles" aria-labelledby="principles-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Principles</p>
+        <h2 id="principles-title">The rules we<br>built it on.</h2>
+        <p>These don’t change from beta to release.</p>
+      </div>
+      <ol class="rules">
+        <li><h3>Your photos stay on your device.</h3><p>They are encrypted and kept on your phone. We never receive a copy, and nothing is uploaded.</p></li>
+        <li><h3>You hold the only key.</h3><p>Nobody, including us, can reset your PIN or open your vault. There is no back door.</p></li>
+        <li><h3>We collect nothing.</h3><p>No account, no analytics, no ads, no tracking. PINs, file names and keys are never written to logs.</p></li>
+        <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. The only way out is moving your vault, still encrypted, to your own new phone.</p></li>
+        <li><h3>The app never deletes your photos on its own.</h3><p>Importing only copies, so your originals stay in your gallery. Wrong PINs make you wait, but never erase the vault. Moving to a new phone never deletes anything on the old one.</p></li>
+        <li><h3>Honest about limits.</h3><p>We say what the app protects and what it can’t. No “unhackable” claims.</p></li>
+      </ol>
+
+      <div class="before">
+        <h3 class="before-title">Before you test</h3>
+        <div class="limit-list">
+          <article class="limit"><h4>Keep your own copies</h4><p>This is a beta and may have bugs. Only put in photos you also have saved somewhere else.</p></article>
+          <article class="limit"><h4>Remember your PIN</h4><p>There is no recovery. If you forget your PIN or pattern, nobody can open the vault, including us.</p></article>
+          <article class="limit"><h4>Wrong PINs make you wait</h4><p>After three wrong tries, each new try waits 1 minute, then 5, then 15, then an hour. Your files stay safe while you wait.</p></article>
+          <article class="limit"><h4>Originals stay in your gallery</h4><p>Importing copies. If you want an original gone, delete it in Photos, then from Recently Deleted and any cloud photo backup.</p></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Join -->
+  <section class="section join" id="join" aria-labelledby="join-title">
+    <div class="wrap">
+      <svg class="hero-dial" viewBox="0 0 360 360" aria-hidden="true"><use href="#dial"></use></svg>
+      <h2 id="join-title">Join the beta.</h2>
+      <p class="hero-lede">Three steps on your iPhone or iPad.</p>
+      <ol class="join-steps">
+        <li><span class="q-num">1</span><div><h3>Install TestFlight</h3><p>Get Apple’s free <a href="https://apps.apple.com/app/testflight/id899247664" rel="noopener">TestFlight app</a> from the App Store.</p></div></li>
+        <li><span class="q-num">2</span><div><h3>Open the invite</h3><p>Tap the button below on your iPhone or iPad. TestFlight opens and offers Private Vision Vault.</p></div></li>
+        <li><span class="q-num">3</span><div><h3>Tell us what you find</h3><p>In the TestFlight app, open Private Vision Vault and tap Send Beta Feedback.</p></div></li>
+      </ol>
+      <div class="stores">
+        <a class="store tf" data-testflight href="#join">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v9"></path><path d="M8.5 6.5 12 2.5l3.5 4"></path><path d="M5 13.5c0 4 3 7.5 7 7.5s7-3.5 7-7.5"></path><circle cx="12" cy="14" r="2"></circle></svg>
+          <span><small data-tf-small>Coming soon</small><b>Join on TestFlight</b></span>
+        </a>
+      </div>
+      <p class="store-note" data-tf-note>The TestFlight invite link will appear here when the beta opens.</p>
+      <p class="store-note">Android version comes later.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Private Vision Vault · Beta · JellyDock</p>
+    <p>The app doesn’t collect personal data or send it to us.</p>
+    <p>© 2026 JellyDock</p>
+  </div>
+</footer>
+<script src="config.js"></script>
+<script src="beta.js"></script>
+</body>
+</html>
