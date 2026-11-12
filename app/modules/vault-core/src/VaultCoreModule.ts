@@ -5,14 +5,18 @@ import { DemoVault } from './DemoVault';
 export type VaultStatus = {
   exists: boolean;
   unlocked: boolean;
+  /** Wrong attempts left before a wait starts. Wrong attempts never erase anything. */
   remainingAttempts: number;
+  /** Milliseconds until the next PIN attempt is allowed (0 = now). */
+  lockedForMs: number;
   hardware: string;
   strongBoxAvailable: boolean;
 };
 
 export type PinResult =
   | { ok: true }
-  | { ok: false; error: 'WRONG_PIN'; remaining: number }
+  | { ok: false; error: 'WRONG_PIN'; remaining: number; waitMs: number }
+  | { ok: false; error: 'LOCKED_OUT'; waitMs: number }
   | { ok: false; error: 'WEAK_PIN'; reason: string }
   | {
       ok: false;
@@ -63,11 +67,8 @@ declare class VaultCoreModule extends NativeModule<Events> {
     mimeType: string,
     deleteSourceFile: boolean,
   ): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
-  /** iPhone only: imports the exact original of a Photos asset; [cacheUri] is the picker copy to remove. */
-  importAsset?(assetId: string, kind: ItemKind, cacheUri: string | null): Promise<{ id: string; safeToDeleteOriginal: boolean }>;
   recoverPending(): Promise<{ saved: number; waiting: number }>;
   importCapture(uri: string, kind: ItemKind): Promise<{ saved: boolean; waiting: number }>;
-  matchesOriginal(id: string, assetId: string, kind: ItemKind): Promise<boolean>;
   openVideo(id: string): Promise<string>;
   closeVideo(): void;
   delete(id: string): Promise<void>;
@@ -96,13 +97,8 @@ const Vault = native
       list: () => native.list(),
       importUri: (uri: string, kind: ItemKind, mimeType: string, deleteSourceFile: boolean) =>
         native.importUri(uri, kind, mimeType, deleteSourceFile),
-      /** Present only where the native side supports it (iPhone/iPad). */
-      importAsset: native.importAsset
-        ? (assetId: string, kind: ItemKind, cacheUri: string | null) => native.importAsset!(assetId, kind, cacheUri)
-        : undefined,
       recoverPending: () => native.recoverPending(),
       importCapture: (uri: string, kind: ItemKind) => native.importCapture(uri, kind),
-      matchesOriginal: (id: string, assetId: string, kind: ItemKind) => native.matchesOriginal(id, assetId, kind),
       /** Displayable URI of the thumbnail, or null. */
       thumbnailUri: async (id: string) => {
         const b64 = await native.thumbnail(id);
@@ -120,7 +116,6 @@ const Vault = native
     }
   : {
       ...DemoVault,
-      importAsset: undefined as undefined | ((assetId: string, kind: ItemKind, cacheUri: string | null) => Promise<{ id: string; safeToDeleteOriginal: boolean }>),
       thumbnailUri: async (id: string) => {
         const item = (await DemoVault.list()).find((i) => i.id === id);
         return item?.kind === 'PHOTO' ? DemoVault.uriOf(id) : null;

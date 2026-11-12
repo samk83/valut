@@ -39,3 +39,20 @@ class FakeHardwareKey : HardwareKey {
 }
 
 fun pin(text: String) = text.toCharArray()
+
+/** Controllable clock for the wait after wrong attempts. */
+class FakeClock(var elapsed: Long = 1_000_000L, var bootWall: Long = 1_700_000_000_000L) : MonotonicClock {
+    override fun elapsedMs() = elapsed
+
+    override fun wallMs() = bootWall + elapsed
+
+    fun advance(ms: Long) {
+        elapsed += ms
+    }
+
+    /** Phone restarted: time since boot starts again, the wall clock keeps going. */
+    fun reboot() {
+        bootWall += elapsed + 30_000
+        elapsed = 5_000
+    }
+}

@@ -1,10 +1,8 @@
 import AVFoundation
 import ExpoModulesCore
 import ImageIO
-import Photos
 import os
 import UIKit
-import UniformTypeIdentifiers
 
 /// Bridges the Swift vault core (ios/Core) to the React Native UI: the iPhone/iPad twin of
 /// android/.../VaultCoreModule.kt, with the same JS functions and result shapes.
@@ -38,7 +36,6 @@ public final class VaultCoreModule: Module {
   private var root: URL { support.appendingPathComponent("vault") }
   private var pendingDir: URL { support.appendingPathComponent("pending") }
   private var playDir: URL { support.appendingPathComponent("play") }
-  private var assetTmpDir: URL { support.appendingPathComponent("asset-import") }
   private var caches: URL { FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0] }
 
   public func definition() -> ModuleDefinition {
@@ -59,6 +56,7 @@ public final class VaultCoreModule: Module {
         "exists": v.exists(),
         "unlocked": v.isUnlocked,
         "remainingAttempts": v.remainingAttempts(),
+        "lockedForMs": Double(v.lockedForMs()),
         "hardware": self.hardwareKey.describeExisting(),
         // The Android field name is kept; on iPhone it reports the Secure Enclave.
         "strongBoxAvailable": IOSHardwareKey.secureEnclaveAvailable,
@@ -99,11 +97,11 @@ public final class VaultCoreModule: Module {
           return ["ok": true]
         } catch let e as VaultError {
           switch e {
-          case .wrongPin(let remaining): return ["ok": false, "error": "WRONG_PIN", "remaining": remaining]
-          case .destroyed:
-            self.clearPlayback()
-            self.destroyWaitingCaptures()
-            return ["ok": false, "error": "DESTROYED"]
+          case .wrongPin(let remaining, let waitMs):
+            return ["ok": false, "error": "WRONG_PIN", "remaining": remaining, "waitMs": Double(waitMs)]
+          case .lockedOut(let waitMs): return ["ok": false, "error": "LOCKED_OUT", "waitMs": Double(waitMs)]
+          // No vault key at all (nothing to open). Nothing is deleted here.
+          case .destroyed: return ["ok": false, "error": "DESTROYED"]
           case .incompleteEntry: return ["ok": false, "error": "INCOMPLETE"]
           case .keysUnavailable: return ["ok": false, "error": "KEYS_UNAVAILABLE"]
           case .state: return ["ok": false, "error": "INTERRUPTED"]
@@ -145,17 +143,6 @@ public final class VaultCoreModule: Module {
       }
     }.runOnQueue(queue)
 
-    /// Before an original is deleted from Photos, re-reads it and compares it with the
-    /// decrypted vault copy. Only an exact match may be deleted (SPEC AC-50e).
-    AsyncFunction("matchesOriginal") { (id: String, assetId: String, kind: String) -> Bool in
-      let v = try self.requireVault()
-      guard let itemKind = ItemKind(rawValue: kind), let resource = self.originalResource(assetId, itemKind, requireSingle: true) else { return false }
-      guard let originalSha = self.sha256(of: resource) else { return false }
-      let sink = DigestSink()
-      try v.read(id: id, output: sink)
-      return Primitives.equal(originalSha, sink.hasher.finish())
-    }.runOnQueue(queue)
-
     AsyncFunction("list") { () -> [[String: Any]] in
       try self.requireVault().list().map { item in
         [
@@ -191,30 +178,6 @@ public final class VaultCoreModule: Module {
       let thumb = self.makeThumbnail(url, itemKind)
       let r = try v.importItem(content: FileSource(url), meta: ItemMeta(kind: itemKind, mimeType: mimeType, createdAtEpochMs: self.nowMs()),
                                thumbnail: thumb, expectedSha256: sha)
-      return ["id": r.item.id, "safeToDeleteOriginal": r.safeToDeleteOriginal]
-    }.runOnQueue(queue)
-
-    /// iPhone only: imports the exact original bytes of a Photos asset (HEIC, MOV...), so
-    /// matchesOriginal can later confirm it and the original may be deleted. The picker's
-    /// own copy ([cacheUri]) is removed afterwards. Throws E_NO_ASSET when the asset cannot
-    /// be read (no Photos access); the app then falls back to importUri.
-    AsyncFunction("importAsset") { (assetId: String, kind: String, cacheUri: String?) -> [String: Any] in
-      let v = try self.requireVault()
-      guard let itemKind = ItemKind(rawValue: kind), let resource = self.originalResource(assetId, itemKind) else {
-        throw Exception(name: "E_NO_ASSET", description: "Photo library item not available")
-      }
-      try SecureFiles.mkdirs(self.assetTmpDir)
-      self.excludeFromBackup(self.assetTmpDir)
-      let tmp = self.assetTmpDir.appendingPathComponent(UUID().uuidString)
-      defer { SecureFiles.shred(tmp) }
-      try self.writeResource(resource, to: tmp)
-      let sha = try VaultCoreKitSha(tmp)
-      let thumb = self.makeThumbnail(tmp, itemKind)
-      let created = (PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject?.creationDate).map { Int64($0.timeIntervalSince1970 * 1000) } ?? self.nowMs()
-      let mime = UTType(resource.uniformTypeIdentifier)?.preferredMIMEType ?? (itemKind == .VIDEO ? "video/quicktime" : "image/jpeg")
-      let r = try v.importItem(content: FileSource(tmp), meta: ItemMeta(kind: itemKind, mimeType: mime, createdAtEpochMs: created),
-                               thumbnail: thumb, expectedSha256: sha)
-      if let c = cacheUri, let url = URL(string: c), url.isFileURL { self.deleteIfOurCache(url) }
       return ["id": r.item.id, "safeToDeleteOriginal": r.safeToDeleteOriginal]
     }.runOnQueue(queue)
 
@@ -289,11 +252,11 @@ public final class VaultCoreModule: Module {
       let v = try Vault(root: root, hardwareKey: hardwareKey, params: .phone)
       let box = PendingImports(dir: pendingDir)
       // The app container is deleted on uninstall but the Keychain is not: if the marker
-      // is missing this is a fresh install, so leftovers are wiped (SPEC AC-20).
+      // is missing this is a fresh install, so leftovers are wiped (SPEC AC-20). If vault files
+      // are still in the container only the marker was lost, and nothing is wiped.
       let marker = support.appendingPathComponent("installed.marker")
       if !SecureFiles.exists(marker) {
-        try v.wipeLeftoversForFreshInstall()
-        box.clear()
+        if try v.wipeLeftoversForFreshInstall() { box.clear() }
         try SecureFiles.writeAtomic(marker, Array("1".utf8))
       }
       vault = v
@@ -346,7 +309,8 @@ public final class VaultCoreModule: Module {
   /// delete. Camera output is NOT deleted here: it may be the only copy.
   private func clearPickerCaches() {
     SecureFiles.deleteTree(caches.appendingPathComponent("ImagePicker"))
-    for f in SecureFiles.list(assetTmpDir) { SecureFiles.shred(f) }
+    // Folder of an earlier version's Photos import; removed if one is left.
+    SecureFiles.deleteTree(support.appendingPathComponent("asset-import"))
   }
 
   /// Deletes [url] only when it is a plaintext copy inside our own caches folder.
@@ -384,7 +348,7 @@ public final class VaultCoreModule: Module {
     }
   }
 
-  /// Only after a destruction (3 wrong PINs or reset): captures must not reach a new vault.
+  /// Only after the owner destroys the vault: captures must not reach a new vault.
   private func destroyWaitingCaptures() {
     inbox?.clear()
     SecureFiles.deleteTree(caches.appendingPathComponent("Camera"))
@@ -407,52 +371,6 @@ public final class VaultCoreModule: Module {
     // 0 means "no limit known" (simulator, iPad app on a Mac): nothing to check.
     if available == 0 { return true }
     return available >= v.memoryNeededForUnlockKiB() * 1024 * 3 / 2
-  }
-
-  // MARK: - Photos originals
-
-  /// The asset's original photo or video file. With [requireSingle] (before deleting it),
-  /// only assets made of that one file qualify: a Live Photo's video, an edit or a RAW pair
-  /// would be deleted along with it but is not in the vault, so such assets are kept.
-  private func originalResource(_ assetId: String, _ kind: ItemKind, requireSingle: Bool = false) -> PHAssetResource? {
-    let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-    guard status == .authorized || status == .limited else { return nil }
-    guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil).firstObject else { return nil }
-    let resources = PHAssetResource.assetResources(for: asset)
-    if requireSingle && resources.count != 1 { return nil }
-    return resources.first(where: { $0.type == (kind == .VIDEO ? .video : .photo) })
-  }
-
-  private func writeResource(_ resource: PHAssetResource, to url: URL) throws {
-    let options = PHAssetResourceRequestOptions()
-    // Offline app: originals stored only in iCloud are not downloaded; the picker copy is
-    // imported instead (and that original is then kept, not deleted).
-    options.isNetworkAccessAllowed = false
-    let done = DispatchSemaphore(value: 0)
-    var failure: Error?
-    PHAssetResourceManager.default().writeData(for: resource, toFile: url, options: options) { error in
-      failure = error
-      done.signal()
-    }
-    if done.wait(timeout: .now() + 120) == .timedOut { throw Exception(name: "E_NO_ASSET", description: "Photos did not answer") }
-    if let e = failure { throw Exception(name: "E_NO_ASSET", description: e.localizedDescription) }
-  }
-
-  private func sha256(of resource: PHAssetResource) -> [UInt8]? {
-    let options = PHAssetResourceRequestOptions()
-    options.isNetworkAccessAllowed = false
-    let hasher = Sha256()
-    let done = DispatchSemaphore(value: 0)
-    var ok = false
-    PHAssetResourceManager.default().requestData(for: resource, options: options, dataReceivedHandler: { data in
-      hasher.update([UInt8](data))
-    }, completionHandler: { error in
-      ok = error == nil
-      done.signal()
-    })
-    // Never block the vault queue for long; a timeout just keeps the original.
-    if done.wait(timeout: .now() + 120) == .timedOut { return nil }
-    return ok ? hasher.finish() : nil
   }
 
   // MARK: - Thumbnails

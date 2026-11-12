@@ -3,16 +3,23 @@
 ## Owner 결정 필요
 1. ~~MVP 범위~~ → 확정: 사진 + 동영상 (2026-10-30)
 2. ~~첫 출시 OS~~ → 확정: iOS·Android 동시 개발 (2026-10-30)
-3. SPEC.md 초안 승인 (PIN 최소 4자리, 3회 오류 = 키 파기 정책)
+3. SPEC.md 초안 승인 (PIN 최소 4자리. 2026-11-12 변경: 3회 오류 파기 → 대기 시간, 가져오기는 복사만)
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
+
+## 사진 절대 손실 방지 (2026-11-12)
+- 점검 보고서: https://claude.ai/artifact/WhDrx6E4QTyYEeDRoDdoWo
+- Owner: PR 확인 후 Merge (PR #14 두 겹 잠금과 App.tsx·Settings.tsx·언어팩이 겹침 → 나중에 Merge하는 쪽에서 충돌 정리)
+- 실기기 확인: 3회 틀린 뒤 1분 대기 화면, 대기 중 입력 막힘, 재부팅 후 대기 다시 시작, 가져오기 후 원본이 갤러리에 그대로 있는지
+- 웹사이트(PR #16)·스토어 문구(docs/aso)도 같은 내용으로 맞춤 (다른 스레드)
+- 남은 위험(앱이 막을 수 없음): 앱 삭제, 휴대폰 분실·초기화, PIN 분실 → 설치 안내·첫 화면에 안내 중
 
 ## iPhone·iPad 출시 (2026-11-10, 2026-11-11 갱신)
 - **Owner 결정 (2026-11-11): 1.0을 따로 내지 않고 첫 출시를 1.1로 한 번에** (100개 무료 → 평생 프리미엄 결제). main에서 빌드(app.json version 1.1), App Store Connect 버전도 1.1, 인앱 구매 `com.jellydock.privatevault.premium`을 첫 버전과 함께 심사 제출 (docs/APP_STORE_LISTING.md 체크리스트)
 - 제출 전 막는 조건: Paid Apps 계약 Active 필요(2026-11-11 은행 계좌 Processing → Pending), EU DSA 판매자 상태 In Review
 - 출시 가이드: https://claude.ai/artifact/Y2XDe2fSG5gnmMCyQgZrcU (App Store Connect 앱 등록 완료, 앱 번호 6832844680)
 - Owner: PC에서 `cd valut` → `git pull` → `cd app` → `npm install` → `npx eas-cli build --platform ios --profile production` (Apple 로그인 1회) → `npx eas-cli submit --platform ios --latest` → TestFlight로 아이폰·아이패드 확인
-- 실기기 확인: Secure Enclave 표시, PIN 확인 시간(Argon2 64 MiB), 사진 앱 원본 가져오기·삭제, 카메라, 아이패드 회전·분할 화면
+- 실기기 확인: Secure Enclave 표시, PIN 확인 시간(Argon2 64 MiB), 사진 앱에서 복사 가져오기(원본 유지), 카메라, 아이패드 회전·분할 화면
 - 정식 심사 제출 전 결정: 화면 상단 "TEST BUILD" 경고 문구 제거 여부, 외부 보안 감사(Phase 4) 전 출시 여부 (Owner 결정)
 - 개인정보처리방침 URL: 소개 웹사이트(PR #3) 공개 필요 (GitHub Pages, Owner 승인)
 - 2027년 4월부터 iOS 27.1 SDK 이상 빌드는 iPhone Duo 스크린샷 필수 (준비됨)

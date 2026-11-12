@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import VaultCore from '../../modules/vault-core';
@@ -15,6 +15,7 @@ import {
   saveLockMethod,
 } from '../pattern';
 import { Key, spacing, t, tn, UPPERCASE } from '../i18n';
+import { formatWait } from '../wait';
 import { Body, Busy, Button, PinDots, Rich, s, Segmented, Title } from '../ui';
 import { TermsSheet } from './Terms';
 
@@ -345,61 +346,68 @@ export function CreatePin({ onDone, onLocked }: { onDone: () => void; onLocked: 
 
 function Attempts({ left }: { left: number }) {
   return (
-    <Rich text={t('unlock.attempts', { left })} style={[s.small, { textAlign: 'center' }]} strongStyle={{ color: C.brass, fontFamily: F.bold }} />
+    <Rich
+      text={left > 0 ? t('unlock.attempts', { left }) : t('unlock.attemptsWaiting')}
+      style={[s.small, { textAlign: 'center' }]}
+      strongStyle={{ color: C.brass, fontFamily: F.bold }}
+    />
   );
 }
 
-const Dash = ({ children }: { children: ReactNode }) => (
-  <View style={{ flexDirection: 'row', gap: 12 }}>
-    <Text style={[s.small, { color: C.brass }]}>—</Text>
-    <Text style={[s.small, { flex: 1, color: '#D9D4CA' }]}>{children}</Text>
-  </View>
-);
-
-function FinalWarning({ method, onContinue }: { method: LockMethod; onContinue: () => void }) {
-  const [paused, setPaused] = useState(false);
-  return (
-    <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, alignItems: 'center', paddingTop: 96, paddingHorizontal: 32 }]}>
-      <View style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: C.outline, borderTopColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontFamily: F.title, fontSize: 40, lineHeight: 48, color: C.ivory, includeFontPadding: false }}>1</Text>
-      </View>
-      <Text style={[s.label, { color: C.danger, marginTop: 26 }]}>{t('unlock.finalAttempt')}</Text>
-      <Text style={{ fontFamily: F.title, fontSize: 32, lineHeight: 37, color: C.ivory, marginTop: 10, textAlign: 'center' }}>{t('final.oneTry')}</Text>
-      <Body style={{ color: C.muted, textAlign: 'center', marginTop: 14 }}>
-        {t(method === 'pin' ? 'final.bodyPin' : 'final.bodyPattern')}
-      </Body>
-      <View style={[s.card, { width: '100%', gap: 12, marginTop: 28 }]}>
-        <Dash>{t('final.slowly')}</Dash>
-        <Dash>{t('final.incomplete')}</Dash>
-        <Dash>{t('final.noOne')}</Dash>
-      </View>
-      <View style={{ flex: 1, minHeight: 24 }} />
-      <View style={{ width: '100%', gap: 12 }}>
-        {paused && <Small>{t('final.paused')}</Small>}
-        <Button label={t('final.continue')} kind="light" onPress={onContinue} />
-        <Button label={t('final.notNow')} kind="ghost" onPress={() => setPaused(true)} style={{ height: 48 }} />
-      </View>
-    </ScrollView>
-  );
+/** Counts down to [until] (a Date.now() time). The vault itself enforces the wait. */
+function useCountdown(until: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    // Refresh right away too: a deadline that has already passed must not leave an old `now`
+    // behind, which would keep the input disabled.
+    const tick = () => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= until) clearInterval(id);
+    };
+    const first = setTimeout(tick, 0);
+    const id = setInterval(tick, 1000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+  }, [until]);
+  return Math.max(0, until - now);
 }
 
-export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: number; onUnlocked: () => void; onDestroyed: () => void }) {
+/**
+ * Wrong attempts never erase anything (owner decision 2026-11-12). After 3 wrong attempts
+ * each further try has to wait (1 min, 5 min, 15 min, then 1 hour); the input is disabled
+ * while the countdown runs.
+ */
+export function Unlock({
+  remaining,
+  lockedForMs,
+  onUnlocked,
+  onNoVault,
+}: {
+  remaining: number;
+  lockedForMs: number;
+  onUnlocked: () => void;
+  onNoVault: () => void;
+}) {
   const [pin, setPin] = useState('');
   const [left, setLeft] = useState(remaining);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // The final-attempt warning must be acknowledged before the last try is shown.
-  const [ackFinal, setAckFinal] = useState(false);
+  const [waitUntil, setWaitUntil] = useState(() => Date.now() + lockedForMs);
+  const waitLeft = useCountdown(waitUntil);
+  const waiting = waitLeft > 0;
   // A second tap before the busy state renders must not spend another attempt.
   const inFlight = useRef(false);
   // If the saved lock kind is lost, let the user pick the input instead of guessing:
-  // a pattern typed on a PIN pad would spend attempts and could erase the vault.
+  // a pattern typed on a PIN pad would only spend attempts and start waits.
   const [saved] = useState(readLockMethod);
   const [hideTrail] = useState(readHideTrail);
   const [method, setMethod] = useState<LockMethod>(saved ?? 'pin');
 
   const submit = async (secret: string) => {
-    if (inFlight.current) return;
+    if (inFlight.current || waiting) return;
     inFlight.current = true;
     setBusy(true);
     let r: Awaited<ReturnType<typeof VaultCore.unlock>>;
@@ -416,10 +424,16 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
     switch (r.error) {
       case 'WRONG_PIN':
         setLeft(r.remaining);
+        if (r.waitMs > 0) setWaitUntil(Date.now() + r.waitMs);
         setMsg(t(method === 'pin' ? 'unlock.wrongPin' : 'unlock.wrongPattern'));
         break;
+      case 'LOCKED_OUT':
+        setWaitUntil(Date.now() + r.waitMs);
+        setMsg(null);
+        break;
       case 'DESTROYED':
-        onDestroyed();
+        // There is no vault key here at all: nothing to open (and nothing was erased now).
+        onNoVault();
         break;
       case 'INCOMPLETE':
         setMsg(method === 'pin' ? t('unlock.incompletePin') : t('unlock.incompletePattern', { n: MIN_PATTERN_DOTS }));
@@ -433,13 +447,15 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
       default:
         // The count may have changed (or the vault been destroyed) without a clear answer.
         VaultCore.status()
-          .then((st) => (st.exists ? setLeft(st.remainingAttempts) : onDestroyed()))
+          .then((st) => {
+            if (!st.exists) return onNoVault();
+            setLeft(st.remainingAttempts);
+            setWaitUntil(Date.now() + st.lockedForMs);
+          })
           .catch(() => {});
         setMsg(t('unlock.error'));
     }
   };
-
-  if (left === 1 && !ackFinal) return <FinalWarning method={method} onContinue={() => setAckFinal(true)} />;
 
   return (
     <View style={[s.screen, { alignItems: 'center', paddingTop: 56, paddingHorizontal: 32 }]}>
@@ -457,21 +473,29 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
         </View>
       )}
       <Logo size={saved === null ? 56 : 72} />
-      <Text style={[s.label, { color: left === 1 ? C.danger : C.faint, marginTop: 20 }]}>{left === 1 ? t('unlock.finalAttempt') : t('unlock.locked')}</Text>
+      <Text style={[s.label, { color: waiting ? C.brass : C.faint, marginTop: 20 }]}>{waiting ? t('unlock.waitLabel') : t('unlock.locked')}</Text>
       <View style={{ marginTop: 8 }}>
         <Title>{method === 'pin' ? t('unlock.welcomeBack') : t('unlock.drawPattern')}</Title>
       </View>
       {method === 'pin' && <PinDots count={pin.length} />}
       <View style={{ marginTop: 8 }}>
-        <Attempts left={left} />
+        {waiting ? (
+          <Rich
+            text={t('unlock.waitFor', { time: formatWait(waitLeft) })}
+            style={[s.small, { textAlign: 'center' }]}
+            strongStyle={{ color: C.brass, fontFamily: F.bold }}
+          />
+        ) : (
+          <Attempts left={left} />
+        )}
       </View>
-      <Text style={[s.small, { textAlign: 'center', color: C.danger, minHeight: 20, marginTop: 4 }]}>{msg ?? ' '}</Text>
+      <Text style={[s.small, { textAlign: 'center', color: C.danger, minHeight: 20, marginTop: 4 }]}>{msg ?? (waiting ? t('unlock.waitSafe') : ' ')}</Text>
       <View style={{ flex: 1 }} />
       {method === 'pin' ? (
-        <KeyPad value={pin} onChange={(v) => { setMsg(null); setPin(v); }} onSubmit={() => submit(pin)} disabled={busy} />
+        <KeyPad value={pin} onChange={(v) => { setMsg(null); setPin(v); }} onSubmit={() => submit(pin)} disabled={busy || waiting} />
       ) : (
         <PatternPad
-          disabled={busy}
+          disabled={busy || waiting}
           hidePath={hideTrail}
           maxSize={300}
           onDone={(dots) => {
@@ -492,8 +516,9 @@ export function Unlock({ remaining, onUnlocked, onDestroyed }: { remaining: numb
   );
 }
 
-export function Destroyed({ cause, onNew }: { cause: 'attempts' | 'reset'; onNew: () => void }) {
-  const reason = cause === 'attempts' ? t('destroyed.attempts') : t('destroyed.reset');
+/** Shown only after the owner destroyed the vault in Settings (wrong attempts never erase). */
+export function Destroyed({ onNew }: { onNew: () => void }) {
+  const reason = t('destroyed.reset');
   return (
     <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, alignItems: 'center', paddingTop: 112, paddingHorizontal: 32 }]}>
       <View style={{ width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderStyle: 'dashed', borderColor: '#3A3F4A', alignItems: 'center', justifyContent: 'center' }}>
