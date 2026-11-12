@@ -169,7 +169,7 @@ export const s = StyleSheet.create({
   btnDanger: { borderWidth: 1, borderColor: C.danger, backgroundColor: '#2A1A14' },
   btnText: { fontFamily: F.bold, fontSize: 16, color: C.ivory },
   busy: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(11,13,18,0.92)', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  dots: { height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10 },
+  dots: { height: 40, flexDirection: 'row', alignItems: 'center', alignContent: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10 },
   dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: C.brass },
   pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14, marginTop: 8 },
   key: { width: '30%', aspectRatio: 1.45, borderRadius: 40, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center' },
