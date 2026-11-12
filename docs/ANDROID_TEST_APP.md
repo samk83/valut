@@ -10,7 +10,7 @@
 3. "출처를 알 수 없는 앱" 경고가 나오면 **Settings(설정)** → 지금 사용 중인 앱(예: Files, Chrome)에 대해 **Allow from this source(이 출처 허용)** 를 켭니다.
 4. **Install(설치)** 를 누릅니다.
 5. "Play 프로텍트" 경고가 나오면 **More details(세부정보)** → **Install anyway(무시하고 설치)** 를 누릅니다. 직접 만든 테스트 앱이라 Google에 등록되지 않아서 나오는 경고입니다.
-6. 앱 목록에서 **PrivateVault Test** (황동색 다이얼 아이콘)를 엽니다.
+6. 앱 목록에서 **Private Vision Vault** (황동색 다이얼 아이콘)를 엽니다.
 
 - 지원: Android 8.0 이상, 64비트(arm64) 휴대폰 (2017년 이후 대부분 기종)
 - Expo Go 앱으로는 열 수 없습니다. 보안칩을 쓰는 자체 코드가 들어 있어서 APK로 설치해야 합니다.

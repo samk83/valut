@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Changed (2026-11-12)
+- 앱 이름 표기를 Private Vision Vault로 통일 (app.json 표시 이름, 옮기기 오류 문구). slug·번들 ID는 그대로
+- 첫 화면 "인터넷 접근 없음" → "서버 없음" (11개 언어). 1.1은 새 폰으로 옮길 때 같은 Wi-Fi 직접 연결을 쓰므로
+
 ### Changed (2026-11-11)
 - 출시 계획: 1.0을 따로 내지 않고 첫 App Store 출시를 1.1로 (무료 100개 + 평생 Premium 인앱 구매 함께 제출). docs/APP_STORE_LISTING.md 설명·가격·제출 체크리스트, NEXT_STEPS.md 출시 순서 수정
 
