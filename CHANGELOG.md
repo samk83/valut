@@ -8,6 +8,10 @@
 - 11개 언어 문구 + iOS Face ID 권한 안내문
 - 내부 QA 수정: 화면 잠금 판단은 휴대폰 잠금 수준으로만 결정(오류 코드로 건너뛰지 않음), 열리는 애니메이션 중 앱을 나가면 1단계 화면이 사라지던 문제, 앱 복귀 시 다시 확인
 - Fixed: PIN 확인 중 앱을 나가면 돌아왔을 때 이미 열려 있을 수 있던 문제 → 다시 잠금 화면으로
+
+### Changed (2026-11-11)
+- 출시 계획: 1.0을 따로 내지 않고 첫 App Store 출시를 1.1로 (무료 100개 + 평생 Premium 인앱 구매 함께 제출). docs/APP_STORE_LISTING.md 설명·가격·제출 체크리스트, NEXT_STEPS.md 출시 순서 수정
+
 ### Added (2026-11-10)
 - 새 핸드폰으로 옮기기: 같은 Wi-Fi(또는 핫스팟)에서 두 폰을 QR 코드로 직접 연결, 암호화 전송. 서버·클라우드 없음. iPhone ↔ Android 가능 (docs/TRANSFER_PROTOCOL.md)
   - core/Transfer.kt + ios/Core/Transfer.swift: QR 1회용 비밀값 → 방향별 AES-256-GCM 키, 순번 nonce 프레임, 항목마다 SHA-256 확인 후 다음 항목
