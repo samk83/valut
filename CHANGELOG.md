@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-12) — App Store ASO
+- docs/aso/: 11개 언어 스토어 문구(listing.json → listing.md·store.config.json, build.py가 글자 수·키워드 중복 검사), ASO 전략 문서(ASO.md)
+- 스크린샷 자동 촬영(capture.js, 웹 미리보기)·문구 합성(compose.js) 도구. iPhone 6.9형·iPad 13형 × 11개 언어 × 7장 초안
+- 스토어 문구에서 3회 파기·원본 삭제 표현 제거, 대기 시간 잠금·복사 가져오기 기준으로 작성
 ### Changed (2026-11-11)
 - 출시 계획: 1.0을 따로 내지 않고 첫 App Store 출시를 1.1로 (무료 100개 + 평생 Premium 인앱 구매 함께 제출). docs/APP_STORE_LISTING.md 설명·가격·제출 체크리스트, NEXT_STEPS.md 출시 순서 수정
 

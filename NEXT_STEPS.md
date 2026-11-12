@@ -18,6 +18,13 @@
 - 2027년 4월부터 iOS 27.1 SDK 이상 빌드는 iPhone Duo 스크린샷 필수 (준비됨)
 - 새 핸드폰으로 금고 옮기기: 1.1에 포함되어 첫 출시에 들어감 (아래 1.1 항목, SPEC AC-70~79)
 
+## App Store ASO (2026-11-12)
+- 스토어 문구 원본: docs/aso/listing.json, 입력 시트: docs/aso/listing.md, 설명: docs/aso/ASO.md
+- feature/never-lose-photos 합류 후 스크린샷 최종 촬영 (가져오기·설정·첫 화면 문구 변경 반영)
+- PR #14 미합류 시 `TWO_STEP=0 python3 docs/aso/build.py` + 스크린샷 2번 제외
+- Owner: 웹사이트 공개 후 개인정보처리방침·지원 URL 입력, 중국 본토 판매 끄기 여부 결정(ICP 번호 필요)
+- 추천(미구현, 승인 필요): 첫 가져오기 후 평점 요청 창
+
 ## 1.1 프리미엄 + 새 폰 옮기기 (2026-11-10)
 - Owner 결정 (2026-11-11): 새 폰 옮기기 무료 확정. iPhone·iPad 먼저 출시, Android 출시는 나중
 - Owner: App Store Connect에 상품 등록 — docs/PREMIUM_SETUP.md 1장 (유료 앱 계약·상품). Play Console 상품 등록은 Android 출시 때
