@@ -229,6 +229,20 @@ class BackupTest {
     }
 
     @Test
+    fun `damage on the phone never overwrites the good backup copy`() {
+        val content = Aead.randomBytes(20_000)
+        val (v, ids) = vaultWith(content)
+        val rk = v.createRecoveryKey()
+        v.backupTo(folder())
+        File(tmp, "old/items/${ids[0]}/data").let { f -> f.writeBytes(f.readBytes().copyOf(f.length().toInt() - 100)) }
+        assertEquals(BackupReport(0, 0, 1), v.backupTo(folder()))
+        val fresh = phone("new")
+        fresh.create(pin("739201"))
+        assertEquals(RestoreReport(1, 0, 0), fresh.restoreFrom(folder(), rk))
+        assertContentEquals(content, read(fresh, ids[0]))
+    }
+
+    @Test
     fun `a damaged thumbnail never stops the photo from being backed up and restored`() {
         val content = Aead.randomBytes(8_000)
         val (v, ids) = vaultWith(content)

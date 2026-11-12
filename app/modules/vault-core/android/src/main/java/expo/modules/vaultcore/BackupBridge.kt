@@ -184,9 +184,17 @@ internal class BackupBridge(
                 vault().restoreFrom(folder, rk) { done, total ->
                   emit(mapOf("phase" to "restore-progress", "done" to done, "total" to total))
                 }
-              // Later backups continue into the folder the photos came from.
+              // Later backups continue into the folder the photos came from, but only if this
+              // vault's recovery key is the backup's (it may have its own key already).
               if (readState().optString("treeUri").isEmpty()) {
-                writeState { it.put("treeUri", treeUri).put("folderName", folder.displayName) }
+                val own = vault().recoveryKey()
+                try {
+                  if (own != null && own.contentEquals(rk)) {
+                    writeState { it.put("treeUri", treeUri).put("folderName", folder.displayName) }
+                  }
+                } finally {
+                  own?.fill(0)
+                }
               }
               writeState { it.put("restorePending", false) }
               mapOf("phase" to "restore-done", "restored" to report.restored, "alreadyHere" to report.alreadyHere, "damaged" to report.damaged)

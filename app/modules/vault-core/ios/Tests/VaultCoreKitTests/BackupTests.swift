@@ -144,6 +144,23 @@ final class BackupTests: XCTestCase {
     XCTAssertNil(try fresh.thumbnail(id: idB))
   }
 
+  func testDamageOnPhoneNeverOverwritesGoodBackup() throws {
+    let v = try phone("old")
+    try v.create(pin: pin)
+    let content = Primitives.randomBytes(20_000)
+    let id = try importBytes(v, content)
+    let rk = try v.createRecoveryKey()
+    _ = try v.backup(to: folder())
+    let data = tmp.appendingPathComponent("old/items/\(id)/data")
+    let bytes = try Data(contentsOf: data)
+    try bytes.prefix(bytes.count - 100).write(to: data)
+    XCTAssertEqual(try v.backup(to: folder()), BackupReport(written: 0, removed: 0, total: 1))
+    let fresh = try phone("new")
+    try fresh.create(pin: Array("739201".utf8))
+    XCTAssertEqual(try fresh.restore(from: folder(), recoveryKey: rk), RestoreReport(restored: 1, alreadyHere: 0, damaged: 0))
+    XCTAssertEqual(try read(fresh, id), content)
+  }
+
   func testDeleteOfICloudPlaceholderRemovesIt() throws {
     let dir = tmp.appendingPathComponent("icloud/Private Vision Vault Backup")
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

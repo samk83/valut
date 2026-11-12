@@ -388,8 +388,9 @@ class Vault(
                 var written = 0
                 for (id in live) {
                     // A copy with the wrong size (cut short by a provider) is written again.
-                    if (id in present && backupCopyLooksComplete(id, folder.size(id + BackupFormat.EXT))) continue
-                    if (writeBackupItem(id, bk, folder)) written++
+                    val replacing = id in present
+                    if (replacing && backupCopyLooksComplete(id, folder.size(id + BackupFormat.EXT))) continue
+                    if (writeBackupItem(id, bk, folder, replacing)) written++
                 }
                 BackupReport(written, removed, live.size)
             } finally {
@@ -425,6 +426,7 @@ class Vault(
         id: String,
         bk: ByteArray,
         folder: BackupFolder,
+        replacing: Boolean = false,
     ): Boolean {
         val dir = itemDir(id)
         val header =
@@ -443,6 +445,9 @@ class Vault(
                         } else {
                             runCatching { thumbFile.readBytes().also { Aead.open(fk, it, aad("thumb", idBytes)) } }.getOrNull()
                         }
+                    // Replacing a copy: the phone's own file may be the damaged one, so it must
+                    // decrypt completely before it may overwrite what may be the last good copy.
+                    if (replacing) FileInputStream(File(dir, "data")).use { ChunkedCipher.decrypt(it, NullOutput, fk, idBytes) }
                     BackupFormat.itemHeader(idBytes, BackupFormat.wrapKey(bk, fk, idBytes), meta, thumb)
                 }
             } catch (e: IntegrityException) {

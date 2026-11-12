@@ -162,9 +162,13 @@ final class BackupBridge {
             self.emit(["phase": "restore-progress", "done": done, "total": total])
           }
           // Later backups continue into the folder the photos came from.
-          if self.loadBookmark() == nil {
-            try? self.saveBookmark(picked)
-            self.writeState { $0["folderName"] = folder.dir.lastPathComponent }
+          // Only if this vault's recovery key is the backup's (it may have its own key already).
+          if self.loadBookmark() == nil, var own = try? v.recoveryKey() {
+            defer { own.wipe() }
+            if own == key {
+              try? self.saveBookmark(picked)
+              self.writeState { $0["folderName"] = folder.dir.lastPathComponent }
+            }
           }
           self.writeState { $0["restorePending"] = false }
           return ["phase": "restore-done", "restored": report.restored, "alreadyHere": report.alreadyHere, "damaged": report.damaged]

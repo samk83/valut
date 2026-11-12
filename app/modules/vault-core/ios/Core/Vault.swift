@@ -357,8 +357,9 @@ final class Vault {
     var written = 0
     for id in live {
       // A copy with the wrong size (cut short by a provider) is written again.
-      if present.contains(id), backupCopyLooksComplete(id, folder.size(id + BackupFormat.ext)) { continue }
-      if try writeBackupItem(id, bk, folder) { written += 1 }
+      let replacing = present.contains(id)
+      if replacing, backupCopyLooksComplete(id, folder.size(id + BackupFormat.ext)) { continue }
+      if try writeBackupItem(id, bk, folder, replacing: replacing) { written += 1 }
     }
     return BackupReport(written: written, removed: removed, total: live.count)
   }
@@ -397,7 +398,7 @@ final class Vault {
     return metas.contains { m in thumbs.contains { t in size == BackupFormat.headerSize(metaLen: m, thumbLen: t) + data } }
   }
 
-  private func writeBackupItem(_ id: String, _ bk: [UInt8], _ folder: BackupFolder) throws -> Bool {
+  private func writeBackupItem(_ id: String, _ bk: [UInt8], _ folder: BackupFolder, replacing: Bool = false) throws -> Bool {
     let dir = try itemDir(id)
     let header: [UInt8]
     do {
@@ -412,6 +413,11 @@ final class Vault {
         if SecureFiles.exists(thumbFile), let bytes = try? SecureFiles.readBytes(thumbFile),
            (try? open(fk, bytes, aad("thumb", idBytes))) != nil {
           thumb = bytes
+        }
+        // Replacing a copy: the phone's own file may be the damaged one, so it must decrypt
+        // completely before it may overwrite what may be the last good copy.
+        if replacing {
+          _ = try ChunkedCipher.decrypt(input: FileSource(dir.appendingPathComponent("data")), output: NullSink(), fileKey: fk, fileId: idBytes)
         }
         return BackupFormat.itemHeader(id: idBytes, wrappedKey: try BackupFormat.wrapKey(bk, fk, idBytes), sealedMeta: meta, sealedThumb: thumb)
       }
