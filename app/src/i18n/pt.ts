@@ -90,6 +90,12 @@ const pt: Pack = {
   'unlock.footerPatternVisible': 'Método de bloqueio: Padrão · rastro visível\nAltere nos Ajustes de Segurança.',
   'unlock.footerPatternHidden': 'Método de bloqueio: Padrão · rastro oculto\nAltere nos Ajustes de Segurança.',
   'unlock.checking': 'Verificando com o chip de segurança…',
+  'gate.step': 'Etapa 1 de 2',
+  'gate.checking': 'Confirmando que é você',
+  'gate.sub': 'Use o bloqueio do próprio celular: rosto, digital ou código.',
+  'gate.retry': 'Toque para tentar de novo',
+  'gate.prompt': 'Desbloquear o Private Vision Vault',
+  'gate.noLock': 'Este celular não tem bloqueio de tela, então a etapa 1 foi pulada. Defina um código nos ajustes do celular para ativá-la.',
 
   // Final attempt warning
   'final.oneTry': 'Resta uma tentativa',
@@ -256,6 +262,7 @@ const pt: Pack = {
   'settings.lockWhenLeaves': 'Bloquear ao sair da tela',
   'settings.always': 'Sempre',
   'settings.hideTrail': 'Ocultar rastro do padrão',
+  'settings.deviceGate': 'Bloqueio do celular primeiro',
   'settings.key': 'Chave',
   'settings.unlockWith': 'Desbloquear com',
   'settings.unknown': 'Desconhecido',

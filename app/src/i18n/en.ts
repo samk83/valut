@@ -94,6 +94,12 @@ const en = {
   'unlock.footerPatternVisible': 'Lock method: Pattern · trail visible\nChange it in Security Settings.',
   'unlock.footerPatternHidden': 'Lock method: Pattern · trail hidden\nChange it in Security Settings.',
   'unlock.checking': 'Checking with the security chip…',
+  'gate.step': 'Step 1 of 2',
+  'gate.checking': 'Confirming it\'s you',
+  'gate.sub': 'Use your phone\'s own lock: face, fingerprint or passcode.',
+  'gate.retry': 'Tap to try again',
+  'gate.prompt': 'Unlock Private Vision Vault',
+  'gate.noLock': 'This phone has no screen lock, so step 1 is skipped. Set a passcode in the phone\'s settings to add it.',
 
   // Final attempt warning
   'final.oneTry': 'One try left',
@@ -258,6 +264,7 @@ const en = {
   'settings.lockWhenLeaves': 'Lock when app leaves screen',
   'settings.always': 'Always',
   'settings.hideTrail': 'Hide pattern trail',
+  'settings.deviceGate': 'Phone\'s own lock first',
   'settings.key': 'Key',
   'settings.unlockWith': 'Unlock with',
   'settings.unknown': 'Unknown',
