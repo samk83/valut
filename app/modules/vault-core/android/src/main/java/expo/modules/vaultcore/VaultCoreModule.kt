@@ -1,5 +1,7 @@
 package expo.modules.vaultcore
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,6 +9,10 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.PersistableBundle
 import android.os.SystemClock
 import android.util.Base64
 import com.jellydock.privatevault.core.Argon2Params
@@ -56,6 +62,21 @@ class VaultCoreModule : Module() {
       Thread(r, "PhotoReader").apply { priority = Thread.MIN_PRIORITY }
     }
   private val transfer by lazy { TransferBridge({ vault }) { sendEvent("onTransfer", it) } }
+
+  /**
+   * E_LOCKED only when the vault really is locked (search stops); anything else (item deleted
+   * meanwhile, damaged item, full storage, out of memory) is E_READ and search skips that photo.
+   */
+  private fun rejectSearch(
+    promise: Promise,
+    e: Throwable,
+  ) {
+    if (vault.isUnlocked) {
+      promise.reject(CodedException("E_READ", "The photo could not be read", e))
+    } else {
+      promise.reject(CodedException("E_LOCKED", "The vault is locked", e))
+    }
+  }
 
   private val root: File get() = File(context.noBackupFilesDir, "vault")
   private val playDir: File get() = File(context.noBackupFilesDir, "play")
@@ -222,7 +243,7 @@ class VaultCoreModule : Module() {
           try {
             vault.readSearchNote(id)
           } catch (e: Exception) {
-            promise.reject(CodedException("E_LOCKED", "The vault is locked", e))
+            rejectSearch(promise, e)
             return@AsyncFunction
           }
         if (existing != null && PhotoReader.isCurrent(existing)) {
@@ -240,11 +261,8 @@ class VaultCoreModule : Module() {
               } finally {
                 bytes.fill(0)
               }
-            } catch (e: VaultStateException) {
-              promise.reject(CodedException("E_LOCKED", "The vault was locked", e))
-              return@execute
             } catch (e: Throwable) {
-              promise.reject(CodedException("E_READ", "The photo could not be read", e))
+              rejectSearch(promise, e)
               return@execute
             }
           try {
@@ -252,9 +270,28 @@ class VaultCoreModule : Module() {
             vault.writeSearchNote(id, note)
             promise.resolve(String(note, Charsets.UTF_8))
           } catch (e: Exception) {
-            promise.reject(CodedException("E_LOCKED", "The vault was locked", e))
+            rejectSearch(promise, e)
           }
         }
+      }
+
+      /**
+       * Copies text from a photo, marked sensitive (Android 13+ hides it in the copy preview)
+       * and cleared after 2 minutes if it is still the clipboard's content.
+       */
+      Function("copyText") { text: String ->
+        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("", text)
+        clip.description.extras = PersistableBundle().apply { putBoolean("android.content.extra.IS_SENSITIVE", true) }
+        val main = Handler(Looper.getMainLooper())
+        main.post { cm.setPrimaryClip(clip) }
+        main.postDelayed({
+          try {
+            if (Build.VERSION.SDK_INT >= 28 && cm.primaryClip?.getItemAt(0)?.text?.toString() == text) cm.clearPrimaryClip()
+          } catch (e: Exception) {
+            // Not readable from the background on newer Android; then it stays until replaced.
+          }
+        }, 120_000)
       }
 
       /** Saved search notes for many items at once (missing ones are left out). Never reads photos. */

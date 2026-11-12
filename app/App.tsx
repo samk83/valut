@@ -208,7 +208,11 @@ export default function App() {
       screen = (
         <Settings
           onBack={home}
-          onDestroyed={() => setRoute({ name: 'destroyed' })}
+          onDestroyed={() => {
+            searchIndex.reset();
+            clearThumbs();
+            setRoute({ name: 'destroyed' });
+          }}
           onPremium={() => setRoute({ name: 'premium', back: 'settings' })}
           onTransfer={() => setRoute({ name: 'transfer' })}
           suspendAutoLock={suspendAutoLock}

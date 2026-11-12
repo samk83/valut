@@ -400,7 +400,7 @@ const id: Pack = {
   'viewer.textTitle': "Teks di foto ini",
   'viewer.copyAll': "Salin semua",
   'viewer.copied': "Disalin",
-  'viewer.copiedBody': "Aplikasi lain dapat membaca teks yang disalin sampai Anda menyalin hal lain.",
+  'viewer.copiedBody': "Disalin hanya di ponsel ini. Dihapus dari papan klip setelah 2 menit.",
   'viewer.noText': "Tidak ada teks di foto ini.",
   'viewer.reading': "Membaca teks…",
   'viewer.readFailed': "Teks tidak dapat dibaca.",

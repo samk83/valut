@@ -30,15 +30,21 @@ type View_ = 'home' | 'importing' | 'result';
 /** Home, a full-screen gallery (photos or videos) or search. */
 type Mode = 'home' | ItemKind | 'search';
 // Kept while the app runs, so Back from a photo lands on the same gallery or search results.
-const remembered: { mode: Mode } = { mode: 'home' };
+const remembered: { mode: Mode; searchFrom: Mode } = { mode: 'home', searchFrom: 'home' };
 
 function rememberMode(m: Mode) {
+  if (m === 'search' && remembered.mode !== 'search') remembered.searchFrom = remembered.mode;
   remembered.mode = m;
 }
 
 /** After a lock the next unlock starts on Home. */
 export function resetHomeMode() {
   remembered.mode = 'home';
+  remembered.searchFrom = 'home';
+}
+
+function searchOrigin(): Mode {
+  return remembered.searchFrom;
 }
 
 export function Home({
@@ -98,7 +104,7 @@ export function Home({
   useEffect(() => {
     if (view !== 'home' || mode === 'home') return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setMode('home');
+      setMode(mode === 'search' ? searchOrigin() : 'home');
       return true;
     });
     return () => sub.remove();
@@ -300,7 +306,7 @@ export function Home({
     );
   }
   if (mode === 'search') {
-    return <Search items={items} onBack={() => setMode('home')} onOpen={(item, query) => onOpen(item, query)} />;
+    return <Search items={items} onBack={() => setMode(searchOrigin())} onOpen={(item, query) => onOpen(item, query)} />;
   }
 
   // Up to five rows of the newest items, edge to edge.

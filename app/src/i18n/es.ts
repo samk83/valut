@@ -399,7 +399,7 @@ const es: Pack = {
   'viewer.textTitle': "Texto en esta foto",
   'viewer.copyAll': "Copiar todo",
   'viewer.copied': "Copiado",
-  'viewer.copiedBody': "Otras apps pueden leer el texto copiado hasta que copies otra cosa.",
+  'viewer.copiedBody': "Copiado solo en este teléfono. Se borra del portapapeles después de 2 minutos.",
   'viewer.noText': "No se encontró texto en esta foto.",
   'viewer.reading': "Leyendo el texto…",
   'viewer.readFailed': "No se pudo leer el texto.",

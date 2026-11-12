@@ -18,9 +18,8 @@ let progress: Progress = { done: 0, total: 0, running: false };
 const listeners = new Set<() => void>();
 
 function publish() {
-  const total = photos.length;
-  const done = photos.filter((p) => notes.has(p.id) || failed.has(p.id)).length;
-  progress = { done, total, running };
+  // notes and failed only hold ids of photos in the current list (pruned in update()).
+  progress = { done: notes.size + failed.size, total: photos.length, running };
   for (const fn of listeners) fn();
 }
 
@@ -52,7 +51,7 @@ export async function noteFor(id: string): Promise<SearchNote | null> {
   if (known) return known;
   const gen = generation;
   const note = parseNote(await VaultCore.analyze(id));
-  if (note && gen === generation) {
+  if (note && gen === generation && photos.some((p) => p.id === id)) {
     notes.set(id, note);
     publish();
   }
@@ -65,9 +64,11 @@ export async function noteFor(id: string): Promise<SearchNote | null> {
  */
 export function update(items: VaultItem[]) {
   if (!VaultCore.canRead) return;
-  photos = items.filter((i) => i.kind === 'PHOTO');
+  // Newest first: the order photos are read in.
+  photos = items.filter((i) => i.kind === 'PHOTO').sort((a, b) => b.createdAt - a.createdAt);
   const live = new Set(photos.map((p) => p.id));
   for (const id of [...notes.keys()]) if (!live.has(id)) notes.delete(id);
+  for (const id of [...failed]) if (!live.has(id)) failed.delete(id);
   publish();
   if (!running) void run();
 }
@@ -88,13 +89,23 @@ async function run() {
       }
       publish();
     }
-    // Then read the rest, newest first. The list may grow meanwhile (imports): loop until done.
+    // Then read the rest, newest first. update() may replace the list meanwhile (import,
+    // delete): then the walk starts over on the new list.
+    let list = photos;
+    let at = 0;
     for (;;) {
-      const next = [...photos].sort((a, b) => b.createdAt - a.createdAt).find((p) => !notes.has(p.id) && !failed.has(p.id));
-      if (!next) break;
+      if (list !== photos) {
+        list = photos;
+        at = 0;
+      }
+      while (at < list.length && (notes.has(list[at].id) || failed.has(list[at].id))) at++;
+      if (at >= list.length) break;
+      const next = list[at];
       try {
         const n = parseNote(await VaultCore.analyze(next.id));
         if (gen !== generation) return;
+        // Deleted while it was being read: keep nothing for it.
+        if (!photos.some((p) => p.id === next.id)) continue;
         if (n) notes.set(next.id, n);
         else failed.add(next.id);
       } catch (e) {

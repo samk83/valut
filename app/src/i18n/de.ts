@@ -401,7 +401,7 @@ const de: Pack = {
   'viewer.textTitle': "Text in diesem Foto",
   'viewer.copyAll': "Alles kopieren",
   'viewer.copied': "Kopiert",
-  'viewer.copiedBody': "Andere Apps können kopierten Text lesen, bis du etwas anderes kopierst.",
+  'viewer.copiedBody': "Nur auf diesem Telefon kopiert. Nach 2 Minuten wird es aus der Zwischenablage gelöscht.",
   'viewer.noText': "In diesem Foto wurde kein Text gefunden.",
   'viewer.reading': "Text wird gelesen…",
   'viewer.readFailed': "Der Text konnte nicht gelesen werden.",

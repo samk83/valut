@@ -86,15 +86,30 @@ function fuzzyContains(hay: string, needle: string): boolean {
   return false;
 }
 
+// Each note's text is normalized once, not on every keystroke.
+const forms = new WeakMap<SearchNote, { exact: string; loose: string }>();
+function formsOf(note: SearchNote) {
+  let f = forms.get(note);
+  if (!f) {
+    const exact = normalize(note.text);
+    f = { exact, loose: loosen(exact) };
+    forms.set(note, f);
+  }
+  return f;
+}
+
+// One-letter-off matching is slow on long texts; long pages still match exactly or loosely.
+const FUZZY_MAX_CHARS = 3000;
+
 /** 3 = exact, 2 = OCR look-alike letters, 1 = one letter off, 0 = no match. */
 export function textScore(note: SearchNote, term: string): number {
   const q = normalize(term);
   if (!q) return 0;
-  const hay = normalize(note.text);
-  if (hay.includes(q)) return 3;
-  if (loosen(hay).includes(loosen(q))) return 2;
+  const hay = formsOf(note);
+  if (hay.exact.includes(q)) return 3;
+  if (hay.loose.includes(loosen(q))) return 2;
   // A one-letter slip only for words long enough that it cannot match by chance.
-  if (q.length >= 5 && fuzzyContains(hay, q)) return 1;
+  if (q.length >= 5 && hay.exact.length <= FUZZY_MAX_CHARS && fuzzyContains(hay.exact, q)) return 1;
   return 0;
 }
 
@@ -198,9 +213,9 @@ export function passesFilter(note: SearchNote, mimeType: string, filter: Filter)
     case 'all':
       return true;
     case 'text':
-      return normalize(note.text).length >= 3;
+      return formsOf(note).exact.length >= 3;
     case 'document':
-      return inCategory(note, 'document') || normalize(note.text).length >= 80;
+      return inCategory(note, 'document') || formsOf(note).exact.length >= 80;
     case 'screenshot':
       // Phone screenshots are PNG files; camera photos are JPEG or HEIC.
       return mimeType === 'image/png' || inCategory(note, 'screen');

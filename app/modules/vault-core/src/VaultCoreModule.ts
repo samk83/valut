@@ -77,6 +77,8 @@ declare class VaultCoreModule extends NativeModule<Events> {
   analyze(id: string): Promise<string | null>;
   /** Saved search notes of many items (missing ones left out). Never reads a photo. */
   searchNotes(ids: string[]): Promise<Record<string, string>>;
+  /** Copies text on this device only, cleared after 2 minutes. */
+  copyText(text: string): void;
   /** New phone: starts listening and returns the text for the QR code. */
   transferReceive(): Promise<string>;
   /** Old phone: connects to a scanned code and sends every item. */
@@ -117,6 +119,7 @@ const Vault = native
       canRead: true as const,
       analyze: (id: string) => native.analyze(id),
       searchNotes: (ids: string[]) => native.searchNotes(ids),
+      copyText: (text: string) => native.copyText(text),
       transferReceive: () => native.transferReceive(),
       transferSend: (code: string) => native.transferSend(code),
       transferCancel: () => native.transferCancel(),
@@ -135,6 +138,7 @@ const Vault = native
       canRead: false as const,
       analyze: async (_id: string): Promise<string | null> => null,
       searchNotes: async (_ids: string[]): Promise<Record<string, string>> => ({}),
+      copyText: (_text: string) => {},
       // The preview has nothing real to move, so the transfer screens explain that instead.
       transferReceive: async (): Promise<string> => {
         throw new Error('E_UNAVAILABLE');

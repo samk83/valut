@@ -28,7 +28,9 @@ dependencies {
   implementation "com.android.billingclient:billing:8.0.0"
   // Photo search: Google ML Kit with the models bundled in the app (works offline, nothing is
   // downloaded or sent). Text in Latin, Korean, Japanese, Chinese and Devanagari script, and
-  // on-device image labels.
+  // on-device image labels. Photos and their text never leave the phone. Note: like Play Billing
+  // and the camera's QR scanner already in the app, ML Kit links Google's usage-statistics
+  // library (datatransport); check with a network trace before the Android release.
   implementation "com.google.mlkit:text-recognition:16.0.1"
   implementation "com.google.mlkit:text-recognition-korean:16.0.1"
   implementation "com.google.mlkit:text-recognition-japanese:16.0.1"

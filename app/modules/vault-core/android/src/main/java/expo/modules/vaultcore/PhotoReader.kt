@@ -88,7 +88,8 @@ object PhotoReader {
     BitmapFactory.decodeByteArray(data, 0, data.size, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
     var sample = 1
-    while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= MAX_SIDE) sample *= 2
+    // Long side at most MAX_SIDE after sampling (a 48 MP photo decodes at about 4000 px, ~48 MB).
+    while (max(bounds.outWidth, bounds.outHeight) / sample > MAX_SIDE) sample *= 2
     val decoded =
       BitmapFactory.decodeByteArray(data, 0, data.size, BitmapFactory.Options().apply { inSampleSize = sample })
         ?: return null

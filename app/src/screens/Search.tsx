@@ -28,6 +28,10 @@ export function resetSearchScreen() {
   remembered.filter = 'all';
 }
 
+// Rows and tiles shown at most; the header still shows the full count.
+const MAX_ROWS = 200;
+const MAX_TILES = 300;
+
 const FILTERS: { key: Filter; label: Key }[] = [
   { key: 'all', label: 'search.filterAll' },
   { key: 'text', label: 'search.filterText' },
@@ -73,11 +77,13 @@ export function Search({ items, onBack, onOpen }: { items: VaultItem[]; onBack: 
   }, [query]);
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+  // While photos are being read, results refresh every 10 photos and when reading ends,
+  // not after every single one.
+  const fresh = progress.running ? Math.floor(progress.done / 10) : -1;
   const results = useMemo(
     () => searchNotes(entries(), settled, filter, names),
-    // progress.done changes whenever a newly read photo arrives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [settled, filter, names, progress.done, items],
+    [settled, filter, names, fresh, items],
   );
   const textHits = results.text.flatMap((h) => (byId.has(h.id) ? [byId.get(h.id)!] : []));
   const contentHits = results.content.flatMap((h) => (byId.has(h.id) ? [byId.get(h.id)!] : []));
@@ -184,7 +190,7 @@ export function Search({ items, onBack, onOpen }: { items: VaultItem[]; onBack: 
               <Grid items={textHits} tile={tile} onOpen={(i) => onOpen(i, '')} />
             ) : (
               <View style={{ gap: 2 }}>
-                {textHits.map((item) => {
+                {textHits.slice(0, MAX_ROWS).map((item) => {
                   const note = getNote(item.id);
                   const sn = note ? snippet(note, firstWord) : null;
                   return (
@@ -248,7 +254,7 @@ function SectionHeader({ icon, title, count }: { icon: keyof typeof Ionicons.gly
 function Grid({ items, tile, onOpen }: { items: VaultItem[]; tile: number; onOpen: (item: VaultItem) => void }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2 }}>
-      {items.slice(0, 300).map((item) => (
+      {items.slice(0, MAX_TILES).map((item) => (
         <Thumb key={item.id} item={item} onPress={() => onOpen(item)} style={{ width: tile, height: tile }} />
       ))}
     </View>

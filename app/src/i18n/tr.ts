@@ -399,7 +399,7 @@ const tr: Pack = {
   'viewer.textTitle': "Bu fotoğraftaki yazı",
   'viewer.copyAll': "Tümünü kopyala",
   'viewer.copied': "Kopyalandı",
-  'viewer.copiedBody': "Siz başka bir şey kopyalayana kadar diğer uygulamalar kopyalanan yazıyı okuyabilir.",
+  'viewer.copiedBody': "Yalnızca bu telefona kopyalandı. 2 dakika sonra panodan silinir.",
   'viewer.noText': "Bu fotoğrafta yazı bulunamadı.",
   'viewer.reading': "Yazı okunuyor…",
   'viewer.readFailed': "Yazı okunamadı.",

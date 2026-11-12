@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Clipboard from 'expo-clipboard';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { ComponentProps, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -8,7 +7,7 @@ import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
 import { month, spacing, t } from '../i18n';
 import { matchingLines, SearchNote, terms } from '../search';
-import { getNote, noteFor } from '../searchIndex';
+import { getNote, noteFor, useSearchProgress } from '../searchIndex';
 import { Busy, Button, s } from '../ui';
 
 const dayLabel = (ms: number) => {
@@ -153,6 +152,8 @@ export function PhotoViewer({ item: first, highlight, onClose, onDeleted }: { it
     };
   }, [item]);
 
+  // Re-render when background reading finishes this photo's note.
+  useSearchProgress();
   const mine = fetched?.id === item.id ? fetched : null;
   const note = getNote(item.id) ?? mine?.note ?? null;
   const reading = showText && !note && VaultCore.canRead ? (mine ? 'failed' : 'reading') : 'idle';
@@ -276,13 +277,11 @@ export function PhotoViewer({ item: first, highlight, onClose, onDeleted }: { it
             {!!note?.text && (
               <Pressable
                 accessibilityRole="button"
-                onPress={async () => {
-                  try {
-                    await Clipboard.setStringAsync(note.text);
-                    setCopiedId(item.id);
-                    clearTimeout(copyTimer.current);
-                    copyTimer.current = setTimeout(() => setCopiedId(null), 4000);
-                  } catch {}
+                onPress={() => {
+                  VaultCore.copyText(note.text);
+                  setCopiedId(item.id);
+                  clearTimeout(copyTimer.current);
+                  copyTimer.current = setTimeout(() => setCopiedId(null), 4000);
                 }}
                 style={({ pressed }) => [vs.copy, pressed && { opacity: 0.7 }]}
               >

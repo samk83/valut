@@ -197,13 +197,22 @@ public final class VaultCoreModule: Module {
                 try self.requireVault().writeSearchNote(id: id, note: note)
                 promise.resolve(String(decoding: note, as: UTF8.self))
               } catch {
-                promise.reject("E_LOCKED", "The vault was locked")
+                self.rejectSearch(promise)
               }
             }
           }
         } catch {
-          promise.reject("E_LOCKED", "The vault is locked")
+          self.rejectSearch(promise)
         }
+      }
+    }
+
+    /// Copies text from a photo: this device only (no Universal Clipboard to other devices) and
+    /// gone from the clipboard after 2 minutes.
+    Function("copyText") { (text: String) in
+      DispatchQueue.main.async {
+        UIPasteboard.general.setItems([["public.utf8-plain-text": text]],
+                                      options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
       }
     }
 
@@ -319,6 +328,16 @@ public final class VaultCoreModule: Module {
       collectStrayCaptures(minAge: 0)
     } catch {
       vault = nil
+    }
+  }
+
+  /// E_LOCKED only when the vault really is locked (search stops); anything else (item deleted
+  /// meanwhile, damaged item, full storage) is E_READ and search skips just that photo.
+  private func rejectSearch(_ promise: Promise) {
+    if vault?.isUnlocked == true {
+      promise.reject("E_READ", "The photo could not be read")
+    } else {
+      promise.reject("E_LOCKED", "The vault is locked")
     }
   }
 

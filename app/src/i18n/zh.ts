@@ -386,7 +386,7 @@ const zh: Pack = {
   'viewer.textTitle': "照片中的文字",
   'viewer.copyAll': "全部复制",
   'viewer.copied': "已复制",
-  'viewer.copiedBody': "在您复制其他内容之前，其他应用也能读取已复制的文字。",
+  'viewer.copiedBody': "仅复制到本机，2 分钟后从剪贴板清除。",
   'viewer.noText': "此照片中未找到文字。",
   'viewer.reading': "正在读取文字…",
   'viewer.readFailed': "无法读取文字。",

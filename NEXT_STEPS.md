@@ -7,6 +7,15 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## 전체화면 갤러리 + 사진 검색 (2026-11-12)
+- 시안: https://claude.ai/artifact/PrfdHManevnCtn5apLQsVn
+- Owner: PR 확인 후 Merge → 다음 iPhone 빌드(TestFlight)에서 확인
+- 실기기 확인: 영수증·메뉴판·화면 캡처 사진으로 한국어/영어 검색, 사진 보기 [글자] 박스 위치, 사진 많을 때 검색 준비 속도·배터리
+- 다음 단계 추천: 동영상 속 글자 검색, 설정에 "사진 검색 끄기"·"충전 중에만 읽기", 사진 옮기기·백업 후 검색 노트 다시 만들기 안내
+- 알려진 한계: iPhone 글자 인식은 힌디어 미지원(Apple), Android는 러시아어(키릴 문자) 미지원(ML Kit)
+- Android 출시 전 확인: Google ML Kit은 사진·글자는 보내지 않지만 익명 사용 통계 모듈(datatransport)을 함께 넣음. 이 모듈은 이미 Play 결제·QR 카메라 때문에 앱에 들어 있음. Android 출시 전에 네트워크 기록으로 실제 전송 여부 확인 후 차단 방법 결정 (iPhone은 해당 없음)
+- APK 크기: ML Kit 글자 모델 때문에 Android 앱이 약 60MB(arm64)로 커짐. 필요하면 언어별 모델 줄이기
+
 ## 사진 절대 손실 방지 (2026-11-12)
 - 점검 보고서: https://claude.ai/artifact/WhDrx6E4QTyYEeDRoDdoWo
 - Owner: PR 확인 후 Merge (PR #14 두 겹 잠금과 App.tsx·Settings.tsx·언어팩이 겹침 → 나중에 Merge하는 쪽에서 충돌 정리)

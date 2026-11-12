@@ -234,7 +234,7 @@ final class Vault {
   func writeSearchNote(id: String, note: [UInt8]) throws {
     try withFileKey(id) { fk, idBytes in
       let dir = try itemDir(id)
-      guard isLiveItem(dir) else { throw VaultError.state("No such item") }
+      guard isLiveItem(dir) else { throw VaultError.io("No such item") }
       try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.searchFile), try seal(fk, note, aad(Vault.searchFile, idBytes)))
     }
   }

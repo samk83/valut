@@ -410,7 +410,7 @@ const en = {
   'viewer.textTitle': "Text in this photo",
   'viewer.copyAll': "Copy all",
   'viewer.copied': "Copied",
-  'viewer.copiedBody': "Other apps can read copied text until you copy something else.",
+  'viewer.copiedBody': "Copied on this phone only. It is cleared from the clipboard after 2 minutes.",
   'viewer.noText': "No text found in this photo.",
   'viewer.reading': "Reading the text…",
   'viewer.readFailed': "The text could not be read.",

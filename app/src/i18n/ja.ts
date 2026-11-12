@@ -384,7 +384,7 @@ const ja: Pack = {
   'viewer.textTitle': "この写真の文字",
   'viewer.copyAll': "すべてコピー",
   'viewer.copied': "コピーしました",
-  'viewer.copiedBody': "コピーした文字は、別のものをコピーするまで他のアプリからも読めます。",
+  'viewer.copiedBody': "この端末にだけコピーされ、2分後にクリップボードから消えます。",
   'viewer.noText': "この写真に文字は見つかりませんでした。",
   'viewer.reading': "文字を読み取り中…",
   'viewer.readFailed': "文字を読み取れませんでした。",

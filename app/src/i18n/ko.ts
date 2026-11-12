@@ -384,7 +384,7 @@ const ko: Pack = {
   'viewer.textTitle': "사진 속 글자",
   'viewer.copyAll': "전체 복사",
   'viewer.copied': "복사됨",
-  'viewer.copiedBody': "복사한 글자는 다른 것을 복사하기 전까지 다른 앱에서도 읽을 수 있습니다.",
+  'viewer.copiedBody': "이 휴대폰에만 복사되며, 2분 뒤 클립보드에서 지워집니다.",
   'viewer.noText': "이 사진에서 글자를 찾지 못했습니다.",
   'viewer.reading': "글자를 읽는 중…",
   'viewer.readFailed': "글자를 읽지 못했습니다.",

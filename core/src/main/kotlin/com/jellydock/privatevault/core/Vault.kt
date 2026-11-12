@@ -263,9 +263,13 @@ class Vault(
         note: ByteArray,
     ) {
         withFileKey(id) { fk, idBytes ->
-            val dir = itemDir(id)
-            if (!isLiveItem(dir)) throw IOException("No such item")
-            SecureFiles.writeAtomic(File(dir, SEARCH), Aead.seal(fk, note, aad(SEARCH, idBytes)))
+            val sealed = Aead.seal(fk, note, aad(SEARCH, idBytes))
+            // Same lock as delete(): a note never lands in (or re-creates) a deleted item's folder.
+            synchronized(itemLock) {
+                val dir = itemDir(id)
+                if (!isLiveItem(dir)) throw IOException("No such item")
+                SecureFiles.writeAtomic(File(dir, SEARCH), sealed)
+            }
         }
     }
 
@@ -285,7 +289,9 @@ class Vault(
         }
 
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
-    fun delete(id: String) {
+    fun delete(id: String) = synchronized(itemLock) { deleteLocked(id) }
+
+    private fun deleteLocked(id: String) {
         requireUnlocked().wipe()
         val dir = itemDir(id)
         if (!dir.exists()) return
@@ -444,6 +450,8 @@ class Vault(
     }
 
     private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
+    private val itemLock = Any()
 
     private companion object {
         const val DELETED = "deleted"
