@@ -2,6 +2,7 @@
 
 `docs/aso/listing.json`에서 `python3 docs/aso/build.py`로 만든 파일입니다. 직접 고치지 말고 listing.json을 고친 뒤 다시 만드세요.
 두 겹 잠금 문장 포함: **예** (PR #14가 출시 빌드에 없으면 `TWO_STEP=0`으로 다시 만들기)
+암호화 백업 문장 포함: **예** (백업 기능이 출시 빌드에 없으면 `BACKUP=0`으로 다시 만들기)
 
 ## en-US
 
@@ -31,15 +32,16 @@ EVERYDAY USE
 
 NEW PHONE? BRING YOUR VAULT, FREE
 • Move to a new phone sends the vault directly from your old phone to your new one over your own Wi-Fi. It stays encrypted the whole way and never goes through the internet.
+• Optional encrypted backup to a folder you choose, such as iCloud Drive. If you delete the app or lose the phone, restore it with your 52-character recovery key. Free.
 
 PRICE
 • Free: up to 100 photos and videos, with every security feature.
 • Lifetime Premium: unlimited, for a single payment. No subscription. Family Sharing supported.
 
 PLEASE READ BEFORE YOU START
-• There is no PIN reset. If you forget your PIN or pattern, nobody, including the developer, can open the vault.
+• Nobody, including the developer, can reset your PIN or read your vault. Keep your recovery key somewhere safe: it is the only way to restore a backup.
 • After 3 wrong tries, you wait 1 minute before the next try, then 5 minutes, 15 minutes and 1 hour.
-• The vault is not included in iCloud or computer backups. Deleting the app or resetting the device erases it. Use Move to a new phone before you change phones.
+• The vault is not part of iCloud or computer backups. Turn on the app's encrypted backup and keep your recovery key, or deleting the app or resetting the device erases the vault.
 • Keep separate copies of anything you cannot afford to lose.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Unlimited photos and videos. Pay once.`
@@ -49,7 +51,7 @@ PLEASE READ BEFORE YOU START
 1. Hide photos & videos — In a vault only you can open
 2. Two locks, not one — Face ID or passcode, then your PIN
 3. Easy import — Copied in. Originals stay untouched.
-4. Nothing leaves your phone — No account, no cloud, no tracking
+4. No account, no servers — Nothing is sent to us. No tracking.
 5. New phone? Bring your vault — Phone to phone over your Wi-Fi. Free.
 6. 100 items free — Unlimited with one payment. No subscription.
 7. No back door — Not even we can open your vault
@@ -82,15 +84,16 @@ Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호
 
 새 폰으로 그대로, 무료
 • 새 휴대폰으로 옮기기: 내 Wi-Fi로 기존 폰에서 새 폰으로 직접 보냅니다. 옮기는 동안에도 암호화된 상태이고 인터넷을 거치지 않습니다.
+• 내가 고른 폴더(iCloud Drive 등)에 암호화 백업을 켤 수 있습니다. 앱을 지우거나 폰을 잃어버려도 52자리 복구 키로 되살릴 수 있습니다. 무료입니다.
 
 가격
 • 무료: 사진·동영상 100개까지, 모든 보안 기능 포함.
 • Lifetime Premium: 한 번 결제로 개수 제한 없음. 구독 아님. 가족 공유 지원.
 
 시작하기 전에 꼭 읽어 주세요
-• PIN 재설정 기능은 없습니다. PIN이나 패턴을 잊으면 개발자를 포함해 누구도 금고를 열 수 없습니다.
+• 개발자를 포함해 누구도 PIN을 재설정하거나 금고를 볼 수 없습니다. 복구 키는 백업을 되살리는 유일한 방법이니 안전한 곳에 보관하세요.
 • 3번 틀린 뒤에는 다음 시도까지 1분, 그다음 5분, 15분, 1시간을 기다려야 합니다.
-• 금고는 iCloud·컴퓨터 백업에 포함되지 않습니다. 앱을 지우거나 기기를 초기화하면 함께 지워집니다. 폰을 바꿀 때는 먼저 "새 휴대폰으로 옮기기"를 쓰세요.
+• 금고는 iCloud·컴퓨터 백업에 포함되지 않습니다. 앱의 암호화 백업을 켜고 복구 키를 보관하지 않으면, 앱을 지우거나 기기를 초기화할 때 금고도 지워집니다.
 • 잃으면 안 되는 자료는 따로 사본을 보관하세요.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `사진·동영상 무제한. 한 번만 결제.`
@@ -100,7 +103,7 @@ Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호
 1. 사진·동영상 숨기기 — 나만 열 수 있는 금고에
 2. 잠금은 두 겹 — Face ID 또는 암호, 그다음 내 PIN
 3. 간편한 가져오기 — 금고로 복사, 원본은 그대로
-4. 폰 밖으로 나가지 않아요 — 계정·클라우드·추적 없음
+4. 계정도 서버도 없어요 — 저희에게 아무것도 보내지 않아요. 추적 없음
 5. 새 폰으로 그대로 — 내 Wi-Fi로 폰끼리 직접. 무료
 6. 100개까지 무료 — 한 번 결제로 무제한. 구독 없음
 7. 뒷문은 없습니다 — 개발자도 금고를 열 수 없어요
@@ -133,15 +136,16 @@ Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗�
 
 新しいスマホへそのまま、無料
 • 「新しいスマートフォンに移行」で、お使いのWi-Fiを使って古い端末から新しい端末へ直接送ります。移行中も暗号化されたままで、インターネットを経由しません。
+• iCloud Driveなど、選んだフォルダに暗号化バックアップを作成できます（任意）。アプリを削除したり端末をなくしたりしても、52文字の復元キーで元に戻せます。無料です。
 
 料金
 • 無料：写真・動画100件まで、すべてのセキュリティ機能つき。
 • Lifetime Premium：1回の購入で無制限。サブスクリプションではありません。ファミリー共有対応。
 
 はじめる前に必ずお読みください
-• PINのリセット機能はありません。PINやパターンを忘れると、開発者を含め誰も金庫を開けられません。
+• 開発者を含め、誰もPINをリセットしたり金庫の中身を見たりできません。復元キーはバックアップを戻す唯一の手段なので、安全な場所に保管してください。
 • 3回間違えると、次に試せるまで1分、その後5分、15分、1時間待つ必要があります。
-• 金庫はiCloudやコンピュータのバックアップに含まれません。アプリの削除や端末の初期化で消去されます。機種変更の前に「新しいスマートフォンに移行」を使ってください。
+• 金庫はiCloudやコンピュータのバックアップに含まれません。アプリの暗号化バックアップを有効にして復元キーを保管しない場合、アプリの削除や端末の初期化で金庫も消去されます。
 • 失いたくないデータは別にコピーを保管してください。
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `写真・動画が無制限。支払いは1回だけ。`
@@ -151,7 +155,7 @@ Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗�
 1. 写真と動画を隠す — あなただけが開ける金庫に
 2. ロックは2つ — Face IDかパスコード、次にPIN
 3. かんたん取り込み — 金庫にコピー、元の写真はそのまま
-4. 端末の外に出ません — アカウント・クラウド・追跡なし
+4. アカウントもサーバーもなし — 私たちには何も送信されません。追跡なし
 5. 機種変更もそのまま — Wi-Fiで端末から端末へ直接。無料
 6. 100件まで無料 — 1回の購入で無制限。サブスクなし
 7. 裏口はありません — 開発者でも金庫は開けられません
@@ -184,15 +188,16 @@ Private Vision Vault 将你选择的照片和视频保存在 iPhone、iPad 本�
 
 换新手机，免费带走保险箱
 • “迁移到新手机”通过你自己的 Wi-Fi，把保险箱从旧手机直接发送到新手机。全程保持加密，不经过互联网。
+• 可选：加密备份到你选择的文件夹，例如 iCloud 云盘。即使删除 App 或丢失手机，也能用 52 位恢复密钥还原。免费。
 
 价格
 • 免费：最多 100 张照片和视频，包含全部安全功能。
 • Lifetime Premium：一次付费，数量不限。非订阅。支持家人共享。
 
 开始前请务必阅读
-• 没有 PIN 重置功能。忘记 PIN 或图案后，包括开发者在内，任何人都无法打开保险箱。
+• 包括开发者在内，任何人都无法重置你的 PIN 或查看你的保险箱。恢复密钥是还原备份的唯一方式，请妥善保管。
 • 输错 3 次后，每次重试前需等待 1 分钟，之后依次为 5 分钟、15 分钟和 1 小时。
-• 保险箱不包含在 iCloud 或电脑备份中。删除 App 或抹掉设备会将其一并清除。更换手机前请先使用“迁移到新手机”。
+• 保险箱不包含在 iCloud 或电脑备份中。若未开启 App 的加密备份并保管好恢复密钥，删除 App 或抹掉设备会一并清除保险箱。
 • 不能丢失的资料请另外保留副本。
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `照片和视频不限数量，只需付费一次。`
@@ -202,7 +207,7 @@ Private Vision Vault 将你选择的照片和视频保存在 iPhone、iPad 本�
 1. 隐藏照片和视频 — 放进只有你能打开的保险箱
 2. 双重锁定 — 先用面容 ID 或密码，再输入 PIN
 3. 轻松导入 — 复制进保险箱，原件不动
-4. 数据不出手机 — 无账户、无云端、无追踪
+4. 无账户，无服务器 — 不会向我们发送任何内容，无追踪
 5. 换新手机，一起带走 — 通过你的 Wi-Fi 手机直传，免费
 6. 免费存 100 项 — 一次付费，无限存储，非订阅
 7. 没有后门 — 连开发者也打不开你的保险箱
@@ -235,15 +240,16 @@ Private Vision Vault आपकी चुनी हुई फ़ोटो और 
 
 नया फ़ोन? तिजोरी साथ ले जाएँ, मुफ़्त
 • "नए फ़ोन पर ले जाएँ" आपके अपने Wi-Fi से पुराने फ़ोन से नए फ़ोन तक तिजोरी सीधे भेजता है। पूरे रास्ते यह एन्क्रिप्टेड रहती है और इंटरनेट से नहीं गुज़रती।
+• अपनी चुनी हुई फ़ोल्डर (जैसे iCloud Drive) में वैकल्पिक एन्क्रिप्टेड बैकअप। ऐप हटाने या फ़ोन खोने पर 52 अक्षरों की रिकवरी की से वापस पाएँ। मुफ़्त।
 
 कीमत
 • मुफ़्त: 100 फ़ोटो और वीडियो तक, सभी सुरक्षा सुविधाओं के साथ।
 • Lifetime Premium: एक बार भुगतान, असीमित। कोई सब्सक्रिप्शन नहीं। फ़ैमिली शेयरिंग समर्थित।
 
 शुरू करने से पहले ज़रूर पढ़ें
-• PIN रीसेट नहीं होता। PIN या पैटर्न भूलने पर डेवलपर समेत कोई भी तिजोरी नहीं खोल सकता।
+• डेवलपर समेत कोई भी आपका PIN रीसेट नहीं कर सकता या तिजोरी नहीं देख सकता। रिकवरी की संभालकर रखें: बैकअप वापस पाने का यही एकमात्र तरीका है।
 • 3 गलत कोशिशों के बाद अगली कोशिश से पहले 1 मिनट, फिर 5 मिनट, 15 मिनट और 1 घंटा इंतज़ार करना होता है।
-• तिजोरी iCloud या कंप्यूटर बैकअप में शामिल नहीं होती। ऐप हटाने या डिवाइस रीसेट करने पर यह मिट जाती है। फ़ोन बदलने से पहले "नए फ़ोन पर ले जाएँ" इस्तेमाल करें।
+• तिजोरी iCloud या कंप्यूटर बैकअप में शामिल नहीं होती। ऐप का एन्क्रिप्टेड बैकअप चालू करें और रिकवरी की रखें, वरना ऐप हटाने या डिवाइस रीसेट करने पर तिजोरी मिट जाती है।
 • जो चीज़ें आप खो नहीं सकते, उनकी अलग कॉपी रखें।
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `असीमित फ़ोटो और वीडियो। एक बार भुगतान।`
@@ -253,7 +259,7 @@ Private Vision Vault आपकी चुनी हुई फ़ोटो और 
 1. फ़ोटो और वीडियो छिपाएँ — ऐसी तिजोरी में जिसे सिर्फ़ आप खोलें
 2. एक नहीं, दो ताले — Face ID या पासकोड, फिर आपका PIN
 3. आसान इम्पोर्ट — तिजोरी में कॉपी, मूल फ़ाइलें वैसी ही
-4. कुछ भी फ़ोन से बाहर नहीं — न अकाउंट, न क्लाउड, न ट्रैकिंग
+4. न अकाउंट, न सर्वर — हमें कुछ नहीं भेजा जाता। कोई ट्रैकिंग नहीं
 5. नया फ़ोन? तिजोरी साथ ले जाएँ — अपने Wi-Fi से फ़ोन से फ़ोन तक। मुफ़्त
 6. 100 आइटम मुफ़्त — एक बार भुगतान, असीमित। सब्सक्रिप्शन नहीं
 7. कोई बैक डोर नहीं — हम भी आपकी तिजोरी नहीं खोल सकते
@@ -286,15 +292,16 @@ PENGGUNAAN SEHARI-HARI
 
 HP BARU? BAWA BRANKASMU, GRATIS
 • Pindah ke ponsel baru mengirim brankas langsung dari HP lama ke HP baru lewat Wi-Fi milikmu. Tetap terenkripsi sepanjang jalan dan tidak melewati internet.
+• Cadangan terenkripsi opsional ke folder pilihanmu, seperti iCloud Drive. Jika aplikasi dihapus atau ponsel hilang, pulihkan dengan kunci pemulihan 52 karakter. Gratis.
 
 HARGA
 • Gratis: hingga 100 foto dan video, dengan semua fitur keamanan.
 • Lifetime Premium: tanpa batas dengan sekali bayar. Bukan langganan. Mendukung Berbagi Keluarga.
 
 BACA SEBELUM MULAI
-• Tidak ada reset PIN. Jika lupa PIN atau pola, tidak ada siapa pun, termasuk pengembang, yang bisa membuka brankas.
+• Tidak ada siapa pun, termasuk pengembang, yang bisa mengatur ulang PIN atau melihat brankasmu. Simpan kunci pemulihan dengan aman: hanya itu cara memulihkan cadangan.
 • Setelah 3 kali salah, kamu menunggu 1 menit sebelum mencoba lagi, lalu 5 menit, 15 menit, dan 1 jam.
-• Brankas tidak termasuk dalam cadangan iCloud atau komputer. Menghapus aplikasi atau mereset perangkat akan menghapusnya. Gunakan Pindah ke ponsel baru sebelum berganti HP.
+• Brankas tidak termasuk dalam cadangan iCloud atau komputer. Aktifkan cadangan terenkripsi aplikasi dan simpan kunci pemulihan; jika tidak, menghapus aplikasi atau mereset perangkat akan menghapus brankas.
 • Simpan salinan terpisah untuk apa pun yang tidak boleh hilang.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Foto dan video tanpa batas. Sekali bayar.`
@@ -304,7 +311,7 @@ BACA SEBELUM MULAI
 1. Sembunyikan foto & video — Di brankas yang hanya bisa kamu buka
 2. Dua kunci, bukan satu — Face ID atau kode sandi, lalu PIN-mu
 3. Impor dengan mudah — Disalin ke brankas, asli tetap utuh
-4. Tak ada yang keluar dari HP — Tanpa akun, tanpa cloud, tanpa pelacakan
+4. Tanpa akun, tanpa server — Tidak ada yang dikirim ke kami. Tanpa pelacakan.
 5. HP baru? Bawa brankasmu — Langsung antar-HP lewat Wi-Fi-mu. Gratis.
 6. Gratis 100 item — Tanpa batas dengan sekali bayar. Bukan langganan.
 7. Tanpa pintu belakang — Kami pun tidak bisa membuka brankasmu
@@ -337,15 +344,16 @@ NO DIA A DIA
 
 CELULAR NOVO? LEVE O COFRE, GRÁTIS
 • Mudar para um celular novo envia o cofre direto do celular antigo para o novo pelo seu próprio Wi-Fi. Ele continua criptografado o caminho todo e não passa pela internet.
+• Backup criptografado opcional numa pasta que você escolher, como o iCloud Drive. Se apagar o app ou perder o celular, restaure com sua chave de recuperação de 52 caracteres. Grátis.
 
 PREÇO
 • Grátis: até 100 fotos e vídeos, com todos os recursos de segurança.
 • Lifetime Premium: ilimitado, com um único pagamento. Não é assinatura. Compatível com o Compartilhamento Familiar.
 
 LEIA ANTES DE COMEÇAR
-• Não existe redefinição de PIN. Se você esquecer o PIN ou padrão, ninguém, nem o desenvolvedor, consegue abrir o cofre.
+• Ninguém, nem o desenvolvedor, pode redefinir seu PIN ou ver seu cofre. Guarde a chave de recuperação em lugar seguro: é a única forma de restaurar um backup.
 • Depois de 3 tentativas erradas, você espera 1 minuto até a próxima, depois 5 minutos, 15 minutos e 1 hora.
-• O cofre não entra em backups do iCloud ou do computador. Apagar o app ou redefinir o aparelho o apaga. Use Mudar para um celular novo antes de trocar de celular.
+• O cofre não entra em backups do iCloud ou do computador. Ative o backup criptografado do app e guarde a chave de recuperação; sem isso, apagar o app ou redefinir o aparelho apaga o cofre.
 • Guarde cópias separadas de tudo o que você não pode perder.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Fotos e vídeos ilimitados. Pague uma vez.`
@@ -355,7 +363,7 @@ LEIA ANTES DE COMEÇAR
 1. Esconda fotos e vídeos — Num cofre que só você abre
 2. Duas trancas, não uma — Face ID ou código, depois seu PIN
 3. Importação fácil — Copiado para o cofre, originais intactos
-4. Nada sai do seu celular — Sem conta, sem nuvem, sem rastreamento
+4. Sem conta, sem servidores — Nada é enviado para nós. Sem rastreamento.
 5. Celular novo? Leve o cofre — De celular para celular pelo seu Wi-Fi. Grátis.
 6. 100 itens grátis — Ilimitado com um só pagamento. Sem assinatura.
 7. Sem porta dos fundos — Nem nós conseguimos abrir seu cofre
@@ -388,15 +396,16 @@ Private Vision Vault хранит выбранные вами фото и вид
 
 НОВЫЙ ТЕЛЕФОН? СЕЙФ С ВАМИ, БЕСПЛАТНО
 • «Перенос на новый телефон» отправляет сейф напрямую со старого телефона на новый через ваш Wi-Fi. Всё время остаётся зашифрованным и не проходит через интернет.
+• Необязательная зашифрованная резервная копия в выбранную вами папку, например iCloud Drive. Если удалите приложение или потеряете телефон, восстановите её 52-символьным ключом восстановления. Бесплатно.
 
 ЦЕНА
 • Бесплатно: до 100 фото и видео со всеми функциями безопасности.
 • Lifetime Premium: безлимит за один платёж. Не подписка. Поддерживается Семейный доступ.
 
 ПРОЧИТАЙТЕ ПЕРЕД НАЧАЛОМ
-• Сброса PIN-кода нет. Если вы забудете PIN-код или графический ключ, никто, включая разработчика, не сможет открыть сейф.
+• Никто, включая разработчика, не может сбросить ваш PIN-код или увидеть содержимое сейфа. Храните ключ восстановления надёжно: это единственный способ восстановить копию.
 • После 3 неверных попыток перед следующей нужно подождать 1 минуту, затем 5 минут, 15 минут и 1 час.
-• Сейф не входит в резервные копии iCloud и компьютера. Удаление приложения или сброс устройства стирают его. Перед сменой телефона используйте «Перенос на новый телефон».
+• Сейф не входит в резервные копии iCloud и компьютера. Включите зашифрованную копию в приложении и сохраните ключ восстановления, иначе удаление приложения или сброс устройства сотрут сейф.
 • Храните отдельные копии всего, что нельзя потерять.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Безлимит фото и видео. Оплата один раз.`
@@ -406,7 +415,7 @@ Private Vision Vault хранит выбранные вами фото и вид
 1. Скрывайте фото и видео — В сейфе, который откроете только вы
 2. Два замка вместо одного — Face ID или код-пароль, затем PIN
 3. Простой импорт — Копия в сейфе, оригиналы на месте
-4. Ничто не покидает телефон — Без аккаунта, облака и отслеживания
+4. Без аккаунта и серверов — Нам ничего не отправляется. Без отслеживания.
 5. Новый телефон? Сейф с вами — Напрямую по вашему Wi-Fi. Бесплатно.
 6. 100 файлов бесплатно — Безлимит за один платёж. Без подписки.
 7. Никаких лазеек — Даже мы не можем открыть ваш сейф
@@ -439,15 +448,16 @@ DÍA A DÍA
 
 ¿CELULAR NUEVO? LLEVA TU BÓVEDA, GRATIS
 • Mover a un teléfono nuevo envía la bóveda directo del teléfono anterior al nuevo por tu propio Wi-Fi. Sigue cifrada todo el camino y nunca pasa por internet.
+• Respaldo cifrado opcional en una carpeta que elijas, como iCloud Drive. Si borras la app o pierdes el teléfono, restáuralo con tu clave de recuperación de 52 caracteres. Gratis.
 
 PRECIO
 • Gratis: hasta 100 fotos y videos, con todas las funciones de seguridad.
 • Lifetime Premium: ilimitado con un solo pago. No es suscripción. Compatible con En Familia.
 
 LEE ANTES DE EMPEZAR
-• No hay restablecimiento de PIN. Si olvidas tu PIN o patrón, nadie, ni siquiera el desarrollador, puede abrir la bóveda.
+• Nadie, ni siquiera el desarrollador, puede restablecer tu PIN ni ver tu bóveda. Guarda tu clave de recuperación en un lugar seguro: es la única forma de restaurar un respaldo.
 • Después de 3 intentos fallidos, esperas 1 minuto antes del siguiente, luego 5 minutos, 15 minutos y 1 hora.
-• La bóveda no se incluye en respaldos de iCloud ni de la computadora. Borrar la app o restablecer el dispositivo la elimina. Usa Mover a un teléfono nuevo antes de cambiar de teléfono.
+• La bóveda no se incluye en respaldos de iCloud ni de la computadora. Activa el respaldo cifrado de la app y guarda tu clave de recuperación; si no, borrar la app o restablecer el dispositivo borra la bóveda.
 • Guarda copias aparte de todo lo que no puedas perder.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Fotos y videos ilimitados. Paga una vez.`
@@ -457,7 +467,7 @@ LEE ANTES DE EMPEZAR
 1. Oculta fotos y videos — En una bóveda que solo tú abres
 2. Dos candados, no uno — Face ID o código, y luego tu PIN
 3. Importación fácil — Se copia a la bóveda, tus originales no cambian
-4. Nada sale de tu teléfono — Sin cuenta, sin nube, sin rastreo
+4. Sin cuenta, sin servidores — No se nos envía nada. Sin rastreo.
 5. ¿Celular nuevo? Lleva tu bóveda — De teléfono a teléfono por tu Wi-Fi. Gratis.
 6. 100 elementos gratis — Ilimitado con un solo pago. Sin suscripción.
 7. Sin puerta trasera — Ni nosotros podemos abrir tu bóveda
@@ -490,15 +500,16 @@ IM ALLTAG
 
 NEUES HANDY? TRESOR MITNEHMEN, GRATIS
 • „Auf neues Telefon umziehen“ sendet den Tresor direkt vom alten auf das neue Handy über dein eigenes WLAN. Er bleibt den ganzen Weg verschlüsselt und geht nie über das Internet.
+• Optionales verschlüsseltes Backup in einen Ordner deiner Wahl, etwa iCloud Drive. Wenn du die App löschst oder das Handy verlierst, stellst du es mit deinem 52-stelligen Wiederherstellungsschlüssel wieder her. Gratis.
 
 PREIS
 • Gratis: bis zu 100 Fotos und Videos, mit allen Sicherheitsfunktionen.
 • Lifetime Premium: unbegrenzt mit einer einzigen Zahlung. Kein Abo. Familienfreigabe wird unterstützt.
 
 BITTE VOR DEM START LESEN
-• Es gibt kein Zurücksetzen der PIN. Wenn du PIN oder Muster vergisst, kann niemand, auch nicht der Entwickler, den Tresor öffnen.
+• Niemand, auch nicht der Entwickler, kann deine PIN zurücksetzen oder deinen Tresor einsehen. Bewahre den Wiederherstellungsschlüssel sicher auf: Nur damit lässt sich ein Backup wiederherstellen.
 • Nach 3 Fehlversuchen wartest du vor dem nächsten Versuch 1 Minute, dann 5 Minuten, 15 Minuten und 1 Stunde.
-• Der Tresor ist nicht in iCloud- oder Computer-Backups enthalten. Das Löschen der App oder Zurücksetzen des Geräts löscht ihn. Nutze vor einem Handywechsel „Auf neues Telefon umziehen“.
+• Der Tresor ist nicht in iCloud- oder Computer-Backups enthalten. Schalte das verschlüsselte Backup der App ein und bewahre den Schlüssel auf, sonst löscht das Entfernen der App oder Zurücksetzen des Geräts den Tresor.
 • Bewahre Kopien von allem auf, was du nicht verlieren darfst.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Unbegrenzt Fotos und Videos. Einmal zahlen.`
@@ -508,7 +519,7 @@ BITTE VOR DEM START LESEN
 1. Fotos & Videos verstecken — In einem Tresor, den nur du öffnest
 2. Zwei Schlösser statt einem — Face ID oder Code, dann deine PIN
 3. Einfach importieren — Kopie in den Tresor, Originale bleiben
-4. Nichts verlässt dein Handy — Kein Konto, keine Cloud, kein Tracking
+4. Kein Konto, keine Server — Nichts wird an uns gesendet. Kein Tracking.
 5. Neues Handy? Tresor mitnehmen — Direkt von Handy zu Handy per WLAN. Gratis.
 6. 100 Dateien gratis — Unbegrenzt mit einer Zahlung. Kein Abo.
 7. Keine Hintertür — Nicht einmal wir können deinen Tresor öffnen
@@ -541,15 +552,16 @@ GÜNLÜK KULLANIM
 
 YENİ TELEFON MU? KASANI TAŞI, ÜCRETSİZ
 • Yeni telefona taşı, kasayı kendi Wi-Fi'ın üzerinden eski telefondan yenisine doğrudan gönderir. Yol boyunca şifreli kalır ve internetten geçmez.
+• Seçtiğin bir klasöre (ör. iCloud Drive) isteğe bağlı şifreli yedek. Uygulamayı silsen ya da telefonu kaybetsen de 52 karakterlik kurtarma anahtarınla geri yükle. Ücretsiz.
 
 FİYAT
 • Ücretsiz: tüm güvenlik özellikleriyle 100 fotoğraf ve videoya kadar.
 • Lifetime Premium: tek ödemeyle sınırsız. Abonelik değil. Aile Paylaşımı desteklenir.
 
 BAŞLAMADAN ÖNCE OKU
-• PIN sıfırlama yoktur. PIN'ini veya desenini unutursan geliştirici dahil hiç kimse kasayı açamaz.
+• Geliştirici dahil hiç kimse PIN'ini sıfırlayamaz veya kasanı göremez. Kurtarma anahtarını güvenli bir yerde sakla: yedeği geri yüklemenin tek yolu odur.
 • 3 yanlış denemeden sonra bir sonraki deneme için 1 dakika, ardından 5 dakika, 15 dakika ve 1 saat beklersin.
-• Kasa iCloud veya bilgisayar yedeklerine dahil değildir. Uygulamayı silmek veya cihazı sıfırlamak onu siler. Telefon değiştirmeden önce Yeni telefona taşı'yı kullan.
+• Kasa iCloud veya bilgisayar yedeklerine dahil değildir. Uygulamanın şifreli yedeğini aç ve kurtarma anahtarını sakla; aksi halde uygulamayı silmek veya cihazı sıfırlamak kasayı siler.
 • Kaybetmeyi göze alamayacağın her şeyin ayrı bir kopyasını sakla.
 ```
 **In-App Purchase** (Lifetime Premium 현지화): Display Name `Lifetime Premium` / Description `Sınırsız fotoğraf ve video. Tek ödeme.`
@@ -559,7 +571,7 @@ BAŞLAMADAN ÖNCE OKU
 1. Fotoğraf ve videoları gizle — Sadece senin açabildiğin bir kasada
 2. Bir değil, iki kilit — Face ID veya parola, sonra PIN'in
 3. Kolay içe aktarma — Kasaya kopyalanır, orijinaller yerinde kalır
-4. Hiçbir şey telefondan çıkmaz — Hesap yok, bulut yok, takip yok
+4. Hesap yok, sunucu yok — Bize hiçbir şey gönderilmez. Takip yok.
 5. Yeni telefon mu? Kasanı taşı — Kendi Wi-Fi'ınla telefondan telefona. Ücretsiz.
 6. 100 öğe ücretsiz — Tek ödemeyle sınırsız. Abonelik yok.
 7. Arka kapı yok — Kasanı biz bile açamayız
