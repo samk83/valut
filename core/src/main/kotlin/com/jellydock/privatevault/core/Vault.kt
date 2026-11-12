@@ -39,6 +39,9 @@ data class ImportResult(val item: VaultItem, val safeToDeleteOriginal: Boolean)
  *   items/<id>/data      encrypted content ([ChunkedCipher])
  *   items/<id>/thumb     encrypted thumbnail (optional)
  *   staging/<id>/        imports in progress; never listed, cleared on start
+ *   recovery.key(.bak)   backup recovery key sealed with the master key ([Backup.kt])
+ *   backup.deletes       ids the user deleted, still to be removed from the backup folder
+ *   recovery.confirmed   present once the user confirmed they saved the recovery key
  */
 class Vault(
     private val root: File,
@@ -99,6 +102,8 @@ class Vault(
         val mk = keys.create(pin)
         // Only now is it safe to clear leftover ciphertext of a destroyed vault.
         SecureFiles.deleteTree(items)
+        // A recovery key left by a destroyed vault was sealed with its old master key.
+        clearBackupState()
         setMasterKey(mk, generation)
     }
 
@@ -267,6 +272,9 @@ class Vault(
         SecureFiles.shred(File(dir, "thumb"))
         SecureFiles.shred(File(dir, SOURCE))
         SecureFiles.deleteTree(dir)
+        // The user deleted it, so the next backup removes its copy too. Only ids listed here
+        // are ever removed from a backup: an item hidden by damage keeps its backup copy.
+        runCatching { synchronized(deletesLock) { deletesFile.appendText("$id\n") } }
     }
 
     /** Destroys the whole vault: master key first, then every file (PRD 9.3). */
@@ -275,6 +283,279 @@ class Vault(
         keys.destroy()
         SecureFiles.deleteTree(items)
         SecureFiles.deleteTree(staging)
+        // Backup files in the user's folder are left alone: they are the user's copy.
+        clearBackupState()
+    }
+
+    // --- Backup (owner decision 2026-11-12: photos must survive deleting the app) ---
+
+    private val recoveryFile = File(root, "recovery.key")
+    private val deletesFile = File(root, "backup.deletes")
+    private val backupLock = Any()
+
+    // Separate from [backupLock] so deleting a photo never waits for a long backup.
+    private val deletesLock = Any()
+
+    /** True when a recovery key is set up. Works while locked. */
+    fun hasRecoveryKey(): Boolean = recoveryFile.exists() || File(root, "recovery.key.bak").exists()
+
+    /** The recovery key, for showing it again. Needs the vault unlocked. */
+    fun recoveryKey(): ByteArray? {
+        val mk = requireUnlocked()
+        try {
+            if (!hasRecoveryKey()) return null
+            return openEither(root, "recovery.key") { Aead.open(mk, it, RECOVERY_AAD) }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    private val confirmedFile = File(root, "recovery.confirmed")
+
+    /** True once the user proved they saved the recovery key (or restored with it). */
+    fun isRecoveryKeyConfirmed(): Boolean = hasRecoveryKey() && confirmedFile.exists()
+
+    /** Records that the user saved the recovery key. Until then the app keeps asking. */
+    fun confirmRecoveryKey() {
+        if (!hasRecoveryKey()) throw NoRecoveryKeyException()
+        SecureFiles.writeAtomic(confirmedFile, ByteArray(0))
+    }
+
+    /** Returns the recovery key, creating it the first time. Needs the vault unlocked. */
+    @Synchronized
+    fun createRecoveryKey(): ByteArray {
+        recoveryKey()?.let { return it }
+        val rk = RecoveryKey.generate()
+        storeRecoveryKey(rk)
+        return rk
+    }
+
+    private fun storeRecoveryKey(rk: ByteArray) {
+        val mk = requireUnlocked()
+        try {
+            val sealed = Aead.seal(mk, rk, RECOVERY_AAD)
+            SecureFiles.writeAtomic(File(root, "recovery.key.bak"), sealed)
+            SecureFiles.writeAtomic(recoveryFile, sealed)
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    /**
+     * Copies every item not yet in [folder] there and removes the copies of items the user
+     * deleted. Safe to run often: items already in the folder are skipped. Stops (throws
+     * [VaultStateException]) if the vault is locked meanwhile; the next run continues.
+     */
+    fun backupTo(folder: BackupFolder): BackupReport =
+        synchronized(backupLock) {
+            val rk = recoveryKey() ?: throw NoRecoveryKeyException()
+            val bk = BackupFormat.backupKey(rk)
+            rk.wipe()
+            try {
+                val names = folder.list()
+                if (BackupFormat.INFO in names) {
+                    val info = folder.openRead(BackupFormat.INFO).use { it.readBytes() }
+                    // Another vault's backup: never mix two vaults in one folder.
+                    if (!BackupFormat.opensInfo(info, bk)) throw BackupKeyMismatchException()
+                } else {
+                    folder.write(BackupFormat.INFO) { it.write(BackupFormat.infoFile(bk)) }
+                }
+                names.filter { it.endsWith(BackupFormat.PART) }.forEach { runCatching { folder.delete(it) } }
+                val present = names.filter { it.endsWith(BackupFormat.EXT) }.map { it.removeSuffix(BackupFormat.EXT) }.toSet()
+                var removed = 0
+                val deleted =
+                    synchronized(
+                        deletesLock,
+                    ) { if (deletesFile.exists()) deletesFile.readLines().filter { isValidId(it) }.toSet() else emptySet() }
+                val handled = HashSet<String>()
+                val live = items.listFiles { f -> isLiveItem(f) }?.map { it.name } ?: emptyList()
+                val liveSet = live.toSet()
+                for (id in deleted) {
+                    // Gone from the folder already, or back in the vault (restored): nothing to remove.
+                    if (id !in present || id in liveSet) {
+                        handled += id
+                        continue
+                    }
+                    try {
+                        folder.delete(id + BackupFormat.EXT)
+                        removed++
+                        handled += id
+                    } catch (e: IOException) {
+                        // Stays in the log: the next backup tries again.
+                    }
+                }
+                if (handled.isNotEmpty()) forgetDeletes(handled)
+                var written = 0
+                for (id in live) {
+                    // A copy with the wrong size (cut short by a provider) is written again.
+                    if (id in present && backupCopyLooksComplete(id, folder.size(id + BackupFormat.EXT))) continue
+                    if (writeBackupItem(id, bk, folder)) written++
+                }
+                BackupReport(written, removed, live.size)
+            } finally {
+                bk.wipe()
+            }
+        }
+
+    /** Removes [ids] from the delete log, keeping any added meanwhile. */
+    private fun forgetDeletes(ids: Set<String>) =
+        synchronized(deletesLock) {
+            val left = if (deletesFile.exists()) deletesFile.readLines().filter { isValidId(it) && it !in ids } else emptyList()
+            if (left.isEmpty()) {
+                deletesFile.delete()
+            } else {
+                SecureFiles.writeAtomic(deletesFile, left.joinToString("") { "$it\n" }.toByteArray(Charsets.US_ASCII))
+            }
+        }
+
+    /** False if [size] (-1 = unknown) can't be a complete copy of item [id]. */
+    private fun backupCopyLooksComplete(
+        id: String,
+        size: Long,
+    ): Boolean {
+        if (size < 0) return true
+        val dir = itemDir(id)
+        val data = File(dir, "data").length()
+        val metas = listOf(File(dir, "meta"), File(dir, "meta.bak")).filter { it.isFile }.map { it.length() }
+        val thumbs = listOfNotNull(0L, File(dir, "thumb").takeIf { it.isFile }?.length())
+        return metas.any { m -> thumbs.any { t -> size == BackupFormat.headerSize(m, t) + data } }
+    }
+
+    private fun writeBackupItem(
+        id: String,
+        bk: ByteArray,
+        folder: BackupFolder,
+    ): Boolean {
+        val dir = itemDir(id)
+        val header =
+            try {
+                withFileKey(id) { fk, idBytes ->
+                    val meta =
+                        openEither(dir, "meta") { sealed ->
+                            Aead.open(fk, sealed, aad("meta", idBytes))
+                            sealed
+                        }
+                    // A damaged thumbnail is left out rather than making the photo unrestorable.
+                    val thumbFile = File(dir, "thumb")
+                    val thumb =
+                        if (!thumbFile.exists()) {
+                            null
+                        } else {
+                            runCatching { thumbFile.readBytes().also { Aead.open(fk, it, aad("thumb", idBytes)) } }.getOrNull()
+                        }
+                    BackupFormat.itemHeader(idBytes, BackupFormat.wrapKey(bk, fk, idBytes), meta, thumb)
+                }
+            } catch (e: IntegrityException) {
+                return false // A damaged item can't be backed up; it is never deleted either.
+            } catch (e: IOException) {
+                return false
+            }
+        folder.write(id + BackupFormat.EXT) { out ->
+            out.write(header)
+            FileInputStream(File(dir, "data")).use { it.copyTo(out, 256 * 1024) }
+        }
+        return true
+    }
+
+    /**
+     * Restores every item of the backup in [folder] that is not already here, keeping its id,
+     * and checks each one completely before it appears. Damaged files are skipped and counted.
+     * If this vault has no recovery key yet it adopts [recoveryKey], so later backups go on
+     * into the same folder.
+     */
+    fun restoreFrom(
+        folder: BackupFolder,
+        recoveryKey: ByteArray,
+        progress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ): RestoreReport {
+        requireUnlocked().wipe()
+        val bk = BackupFormat.backupKey(recoveryKey)
+        try {
+            checkBackupKey(folder, bk)
+            if (!hasRecoveryKey()) {
+                storeRecoveryKey(recoveryKey)
+                // The user just typed it from their copy, so it is saved somewhere.
+                SecureFiles.writeAtomic(confirmedFile, ByteArray(0))
+            }
+            val names = folder.list().filter { it.endsWith(BackupFormat.EXT) && isValidId(it.removeSuffix(BackupFormat.EXT)) }.sorted()
+            var restored = 0
+            var already = 0
+            var damaged = 0
+            names.forEachIndexed { index, name ->
+                val id = name.removeSuffix(BackupFormat.EXT)
+                val existing = File(items, id)
+                if (isLiveItem(existing)) {
+                    already++
+                } else if (existing.exists()) {
+                    // Being deleted by the user (tombstone): leave it to finish, don't count it.
+                } else {
+                    try {
+                        folder.openRead(name).use { restoreItem(id, it, bk) }
+                        restored++
+                    } catch (e: IntegrityException) {
+                        damaged++
+                    } catch (e: IOException) {
+                        damaged++
+                    }
+                }
+                progress(index + 1, names.size)
+            }
+            return RestoreReport(restored, already, damaged)
+        } finally {
+            bk.wipe()
+        }
+    }
+
+    private fun restoreItem(
+        id: String,
+        input: InputStream,
+        bk: ByteArray,
+    ) {
+        val idBytes = parseId(id)
+        val header = BackupFormat.readItemHeader(input, bk)
+        val fk = header.fileKey
+        val mk = requireUnlocked()
+        val stage = File(staging, id)
+        try {
+            if (!header.id.contentEquals(idBytes)) throw IntegrityException("Backup item name does not match its content")
+            decodeMeta(Aead.open(fk, header.sealedMeta, aad("meta", idBytes)))
+            // A thumbnail that does not open is dropped: the photo itself still restores.
+            val thumb = header.sealedThumb?.takeIf { runCatching { Aead.open(fk, it, aad("thumb", idBytes)) }.isSuccess }
+            SecureFiles.deleteTree(stage)
+            stage.mkdirs()
+            val dataFile = File(stage, "data")
+            FileOutputStream(dataFile).use { out ->
+                input.copyTo(out, 256 * 1024)
+                out.fd.sync()
+            }
+            // Every chunk must decrypt before the item appears (truncation or edits fail).
+            FileInputStream(dataFile).use { ChunkedCipher.decrypt(it, NullOutput, fk, idBytes) }
+            val sealedKey = Aead.seal(mk, fk, aad("key", idBytes))
+            SecureFiles.writeAtomic(File(stage, "meta"), header.sealedMeta)
+            SecureFiles.writeAtomic(File(stage, "meta.bak"), header.sealedMeta)
+            thumb?.let { SecureFiles.writeAtomic(File(stage, "thumb"), it) }
+            SecureFiles.writeAtomic(File(stage, "key.bak"), sealedKey)
+            SecureFiles.writeAtomic(File(stage, "key"), sealedKey)
+            SecureFiles.syncDir(stage)
+            keys.whileKeyIsLive(mk) {
+                items.mkdirs()
+                if (File(items, id).exists()) throw VaultStateException("Item already restored")
+                SecureFiles.moveAtomic(stage, File(items, id))
+            }
+        } catch (e: Exception) {
+            SecureFiles.deleteTree(stage)
+            throw e
+        } finally {
+            fk.wipe()
+            mk.wipe()
+        }
+    }
+
+    private fun clearBackupState() {
+        File(root, "recovery.confirmed").delete()
+        SecureFiles.shred(recoveryFile)
+        SecureFiles.shred(File(root, "recovery.key.bak"))
+        deletesFile.delete()
     }
 
     private fun <T> withFileKey(
@@ -412,8 +693,34 @@ class Vault(
 
     private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
 
-    private companion object {
-        const val DELETED = "deleted"
-        const val SOURCE = "source"
+    companion object {
+        private const val DELETED = "deleted"
+        private const val SOURCE = "source"
+        private val RECOVERY_AAD = "PrivateVault recovery key v1".toByteArray(Charsets.US_ASCII)
+
+        /** Throws unless [folder] holds a backup that [recoveryKey] opens. Needs no vault. */
+        fun checkBackup(
+            folder: BackupFolder,
+            recoveryKey: ByteArray,
+        ) {
+            val bk = BackupFormat.backupKey(recoveryKey)
+            try {
+                checkBackupKey(folder, bk)
+            } finally {
+                bk.wipe()
+            }
+        }
+
+        /** Number of items in the backup in [folder] (no key needed). */
+        fun backupItemCount(folder: BackupFolder): Int = folder.list().count { it.endsWith(BackupFormat.EXT) }
+
+        private fun checkBackupKey(
+            folder: BackupFolder,
+            bk: ByteArray,
+        ) {
+            if (BackupFormat.INFO !in folder.list()) throw NotABackupException()
+            val info = folder.openRead(BackupFormat.INFO).use { it.readBytes() }
+            if (!BackupFormat.opensInfo(info, bk)) throw BackupKeyMismatchException()
+        }
     }
 }

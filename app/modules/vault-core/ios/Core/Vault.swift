@@ -91,6 +91,8 @@ final class Vault {
     let mk = try keys.create(pin: pin)
     // Only now is it safe to clear leftover ciphertext of a destroyed vault.
     SecureFiles.deleteTree(items)
+    // A recovery key left by a destroyed vault was sealed with its old master key.
+    clearBackupState()
     try setMasterKey(mk, generation)
   }
 
@@ -236,6 +238,20 @@ final class Vault {
     try SecureFiles.writeAtomic(dir.appendingPathComponent(Vault.deletedMarker), [])
     for name in ["key", "key.bak", "meta", "meta.bak", "thumb", Vault.sourceFile] { SecureFiles.shred(dir.appendingPathComponent(name)) }
     SecureFiles.deleteTree(dir)
+    // The user deleted it, so the next backup removes its copy too. Only ids listed here are
+    // ever removed from a backup: an item hidden by damage keeps its backup copy.
+    deletesLock.lock()
+    defer { deletesLock.unlock() }
+    if let handle = FileHandle(forWritingAtPath: deletesFile.path) ?? createDeletesFile() {
+      handle.seekToEndOfFile()
+      handle.write(Data((id + "\n").utf8))
+      handle.closeFile()
+    }
+  }
+
+  private func createDeletesFile() -> FileHandle? {
+    FileManager.default.createFile(atPath: deletesFile.path, contents: nil)
+    return FileHandle(forWritingAtPath: deletesFile.path)
   }
 
   /// Destroys the whole vault: master key first, then every file (PRD 9.3).
@@ -244,6 +260,282 @@ final class Vault {
     try keys.destroy()
     SecureFiles.deleteTree(items)
     SecureFiles.deleteTree(staging)
+    // Backup files in the user's folder are left alone: they are the user's copy.
+    clearBackupState()
+  }
+
+  // MARK: - Backup (owner decision 2026-11-12: photos must survive deleting the app)
+
+  private var recoveryFile: URL { root.appendingPathComponent("recovery.key") }
+  private var deletesFile: URL { root.appendingPathComponent("backup.deletes") }
+  private let backupLock = NSRecursiveLock()
+  // Separate from backupLock so deleting a photo or making the key never waits for a long backup.
+  private let deletesLock = NSLock()
+  private let recoveryLock = NSLock()
+  private static let recoveryAad = Array("PrivateVault recovery key v1".utf8)
+
+  /// True when a recovery key is set up. Works while locked.
+  func hasRecoveryKey() -> Bool {
+    SecureFiles.exists(recoveryFile) || SecureFiles.exists(root.appendingPathComponent("recovery.key.bak"))
+  }
+
+  /// The recovery key, for showing it again. Needs the vault unlocked.
+  func recoveryKey() throws -> [UInt8]? {
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    guard hasRecoveryKey() else { return nil }
+    return try openEither(root, "recovery.key") { try open(mk, $0, Vault.recoveryAad) }
+  }
+
+  private var confirmedFile: URL { root.appendingPathComponent("recovery.confirmed") }
+
+  /// True once the user proved they saved the recovery key (or restored with it).
+  func isRecoveryKeyConfirmed() -> Bool { hasRecoveryKey() && SecureFiles.exists(confirmedFile) }
+
+  /// Records that the user saved the recovery key. Until then the app keeps asking.
+  func confirmRecoveryKey() throws {
+    guard hasRecoveryKey() else { throw VaultError.noRecoveryKey }
+    try SecureFiles.writeAtomic(confirmedFile, [])
+  }
+
+  /// Returns the recovery key, creating it the first time. Needs the vault unlocked.
+  func createRecoveryKey() throws -> [UInt8] {
+    recoveryLock.lock()
+    defer { recoveryLock.unlock() }
+    if let rk = try recoveryKey() { return rk }
+    let rk = RecoveryKey.generate()
+    try storeRecoveryKey(rk)
+    return rk
+  }
+
+  private func storeRecoveryKey(_ rk: [UInt8]) throws {
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    let sealed = try seal(mk, rk, Vault.recoveryAad)
+    try SecureFiles.writeAtomic(root.appendingPathComponent("recovery.key.bak"), sealed)
+    try SecureFiles.writeAtomic(recoveryFile, sealed)
+  }
+
+  /// Copies every item not yet in [folder] there and removes copies of items the user
+  /// deleted. Items already there are skipped, so it is safe to run often.
+  func backup(to folder: BackupFolder) throws -> BackupReport {
+    backupLock.lock()
+    defer { backupLock.unlock() }
+    guard var rk = try recoveryKey() else { throw VaultError.noRecoveryKey }
+    var bk = BackupFormat.backupKey(rk)
+    rk.wipe()
+    defer { bk.wipe() }
+    let names = try folder.list()
+    if names.contains(BackupFormat.info) {
+      let info = try BackupFormat.readAll(folder.openRead(BackupFormat.info))
+      // Another vault's backup: never mix two vaults in one folder.
+      guard BackupFormat.opensInfo(info, bk) else { throw VaultError.backupKeyMismatch }
+    } else {
+      let info = try BackupFormat.infoFile(bk)
+      try folder.write(BackupFormat.info) { try $0.write(info) }
+    }
+    for name in names where name.hasSuffix(BackupFormat.part) { try? folder.delete(name) }
+    let present = Set(names.filter { $0.hasSuffix(BackupFormat.ext) }.map { String($0.dropLast(BackupFormat.ext.count)) })
+    let deleted = readDeletes()
+    var handled: Set<String> = []
+    var removed = 0
+    let live = SecureFiles.list(items).filter(isLiveItem).map { $0.lastPathComponent }
+    let liveSet = Set(live)
+    for id in deleted {
+      // Gone from the folder already, or back in the vault (restored): nothing to remove.
+      guard present.contains(id), !liveSet.contains(id) else {
+        handled.insert(id)
+        continue
+      }
+      // A delete that fails stays in the log and is tried again next time.
+      if (try? folder.delete(id + BackupFormat.ext)) != nil {
+        removed += 1
+        handled.insert(id)
+      }
+    }
+    if !handled.isEmpty { forgetDeletes(handled) }
+    var written = 0
+    for id in live {
+      // A copy with the wrong size (cut short by a provider) is written again.
+      if present.contains(id), backupCopyLooksComplete(id, folder.size(id + BackupFormat.ext)) { continue }
+      if try writeBackupItem(id, bk, folder) { written += 1 }
+    }
+    return BackupReport(written: written, removed: removed, total: live.count)
+  }
+
+  private func readDeletes() -> Set<String> {
+    deletesLock.lock()
+    defer { deletesLock.unlock() }
+    guard let text = try? String(contentsOf: deletesFile, encoding: .utf8) else { return [] }
+    return Set(text.split(separator: "\n").map(String.init).filter(Vault.isValidId))
+  }
+
+  /// Removes [ids] from the delete log, keeping any added meanwhile.
+  private func forgetDeletes(_ ids: Set<String>) {
+    deletesLock.lock()
+    defer { deletesLock.unlock() }
+    let text = (try? String(contentsOf: deletesFile, encoding: .utf8)) ?? ""
+    let left = text.split(separator: "\n").map(String.init).filter { Vault.isValidId($0) && !ids.contains($0) }
+    if left.isEmpty {
+      unlink(deletesFile.path)
+    } else {
+      try? SecureFiles.writeAtomic(deletesFile, Array(left.map { $0 + "\n" }.joined().utf8))
+    }
+  }
+
+  /// False if [size] (-1 = unknown) can't be a complete copy of item [id].
+  private func backupCopyLooksComplete(_ id: String, _ size: Int64) -> Bool {
+    guard size >= 0, let dir = try? itemDir(id) else { return true }
+    func length(_ name: String) -> Int64? {
+      guard let attrs = try? FileManager.default.attributesOfItem(atPath: dir.appendingPathComponent(name).path),
+            let n = attrs[.size] as? NSNumber else { return nil }
+      return n.int64Value
+    }
+    guard let data = length("data") else { return true }
+    let metas = ["meta", "meta.bak"].compactMap(length)
+    let thumbs = [Int64(0)] + [length("thumb")].compactMap { $0 }
+    return metas.contains { m in thumbs.contains { t in size == BackupFormat.headerSize(metaLen: m, thumbLen: t) + data } }
+  }
+
+  private func writeBackupItem(_ id: String, _ bk: [UInt8], _ folder: BackupFolder) throws -> Bool {
+    let dir = try itemDir(id)
+    let header: [UInt8]
+    do {
+      header = try withFileKey(id) { fk, idBytes in
+        let meta = try openEither(dir, "meta") { sealed -> [UInt8] in
+          _ = try open(fk, sealed, aad("meta", idBytes))
+          return sealed
+        }
+        let thumbFile = dir.appendingPathComponent("thumb")
+        // A damaged thumbnail is left out rather than making the photo unrestorable.
+        var thumb: [UInt8]? = nil
+        if SecureFiles.exists(thumbFile), let bytes = try? SecureFiles.readBytes(thumbFile),
+           (try? open(fk, bytes, aad("thumb", idBytes))) != nil {
+          thumb = bytes
+        }
+        return BackupFormat.itemHeader(id: idBytes, wrappedKey: try BackupFormat.wrapKey(bk, fk, idBytes), sealedMeta: meta, sealedThumb: thumb)
+      }
+    } catch let e as VaultError {
+      switch e {
+      case .integrity, .io: return false // A damaged item can't be backed up; it is never deleted either.
+      default: throw e
+      }
+    }
+    let data = try FileSource(dir.appendingPathComponent("data"))
+    try folder.write(id + BackupFormat.ext) { sink in
+      try sink.write(header)
+      try BackupFormat.copy(data, sink)
+    }
+    return true
+  }
+
+  /// Throws unless [folder] holds a backup that [recoveryKey] opens. Needs no vault.
+  static func checkBackup(_ folder: BackupFolder, recoveryKey: [UInt8]) throws {
+    var bk = BackupFormat.backupKey(recoveryKey)
+    defer { bk.wipe() }
+    try checkBackupKey(folder, bk)
+  }
+
+  /// Number of items in the backup in [folder] (no key needed).
+  static func backupItemCount(_ folder: BackupFolder) throws -> Int {
+    try folder.list().filter { $0.hasSuffix(BackupFormat.ext) }.count
+  }
+
+  private static func checkBackupKey(_ folder: BackupFolder, _ bk: [UInt8]) throws {
+    guard try folder.list().contains(BackupFormat.info) else { throw VaultError.notABackup }
+    let info = try BackupFormat.readAll(folder.openRead(BackupFormat.info))
+    guard BackupFormat.opensInfo(info, bk) else { throw VaultError.backupKeyMismatch }
+  }
+
+  /// Restores every item of the backup in [folder] that is not already here, keeping its id,
+  /// and checks each one completely before it appears. Damaged files are skipped and counted.
+  /// A vault without a recovery key adopts [recoveryKey], so backups continue in that folder.
+  func restore(from folder: BackupFolder, recoveryKey: [UInt8], progress: (Int, Int) -> Void = { _, _ in }) throws -> RestoreReport {
+    var mk = try requireUnlocked()
+    mk.wipe()
+    var bk = BackupFormat.backupKey(recoveryKey)
+    defer { bk.wipe() }
+    try Vault.checkBackupKey(folder, bk)
+    if !hasRecoveryKey() {
+      try storeRecoveryKey(recoveryKey)
+      // The user just typed it from their copy, so it is saved somewhere.
+      try SecureFiles.writeAtomic(confirmedFile, [])
+    }
+    let names = try folder.list()
+      .filter { $0.hasSuffix(BackupFormat.ext) && Vault.isValidId(String($0.dropLast(BackupFormat.ext.count))) }
+      .sorted()
+    var restored = 0, already = 0, damaged = 0
+    for (index, name) in names.enumerated() {
+      let id = String(name.dropLast(BackupFormat.ext.count))
+      let existing = items.appendingPathComponent(id)
+      if isLiveItem(existing) {
+        already += 1
+      } else if SecureFiles.exists(existing) {
+        // Being deleted by the user (tombstone): leave it to finish, don't count it.
+      } else {
+        do {
+          try restoreItem(id, try folder.openRead(name), bk)
+          restored += 1
+        } catch let e as VaultError {
+          switch e {
+          case .integrity, .io: damaged += 1
+          default: throw e
+          }
+        }
+      }
+      progress(index + 1, names.count)
+    }
+    return RestoreReport(restored: restored, alreadyHere: already, damaged: damaged)
+  }
+
+  private func restoreItem(_ id: String, _ input: ByteSource, _ bk: [UInt8]) throws {
+    let idBytes = try Vault.parseId(id)
+    var header = try BackupFormat.readItemHeader(input, bk)
+    var mk = try requireUnlocked()
+    let stage = staging.appendingPathComponent(id)
+    defer {
+      header.fileKey.wipe()
+      mk.wipe()
+    }
+    do {
+      let fk = header.fileKey
+      guard header.id == idBytes else { throw VaultError.integrity("Backup item name does not match its content") }
+      _ = try Vault.decodeMeta(try open(fk, header.sealedMeta, aad("meta", idBytes)))
+      // A thumbnail that does not open is dropped: the photo itself still restores.
+      let thumb = header.sealedThumb.flatMap { t in (try? open(fk, t, aad("thumb", idBytes))) != nil ? t : nil }
+      SecureFiles.deleteTree(stage)
+      try SecureFiles.mkdirs(stage)
+      let dataFile = stage.appendingPathComponent("data")
+      do {
+        let sink = try FileSink(dataFile)
+        try BackupFormat.copy(input, sink)
+        try sink.sync()
+      }
+      // Every chunk must decrypt before the item appears (truncation or edits fail).
+      _ = try ChunkedCipher.decrypt(input: FileSource(dataFile), output: NullSink(), fileKey: fk, fileId: idBytes)
+      let sealedKey = try seal(mk, fk, aad("key", idBytes))
+      try SecureFiles.writeAtomic(stage.appendingPathComponent("meta"), header.sealedMeta)
+      try SecureFiles.writeAtomic(stage.appendingPathComponent("meta.bak"), header.sealedMeta)
+      if let thumb { try SecureFiles.writeAtomic(stage.appendingPathComponent("thumb"), thumb) }
+      try SecureFiles.writeAtomic(stage.appendingPathComponent("key.bak"), sealedKey)
+      try SecureFiles.writeAtomic(stage.appendingPathComponent("key"), sealedKey)
+      try SecureFiles.syncDir(stage)
+      try keys.whileKeyIsLive(mk) {
+        try SecureFiles.mkdirs(items)
+        if SecureFiles.exists(items.appendingPathComponent(id)) { throw VaultError.state("Item already restored") }
+        try SecureFiles.moveAtomic(stage, items.appendingPathComponent(id))
+      }
+    } catch {
+      SecureFiles.deleteTree(stage)
+      throw error
+    }
+  }
+
+  private func clearBackupState() {
+    unlink(confirmedFile.path)
+    SecureFiles.shred(recoveryFile)
+    SecureFiles.shred(root.appendingPathComponent("recovery.key.bak"))
+    unlink(deletesFile.path)
   }
 
   // MARK: - Internals

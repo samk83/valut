@@ -50,7 +50,32 @@ export type TransferEvent = {
   error?: 'BAD_CODE' | 'STORAGE_FULL' | 'LOCKED' | 'INTEGRITY' | 'CANCELLED' | 'OTHER' | 'WRONG_PEER' | 'CONNECTION';
 };
 
-type Events = { onTransfer: (event: TransferEvent) => void };
+/** Encrypted backup into a folder the user picked (owner decision 2026-11-12). */
+export type BackupStatus = {
+  hasRecoveryKey: boolean;
+  /** True once the user typed back the end of the key (or restored with it). */
+  keyConfirmed: boolean;
+  /** A restore was started and has not finished (offer to continue). */
+  restorePending: boolean;
+  /** Name of the backup folder, or null if none was chosen yet. */
+  folderName: string | null;
+  /** When the last backup finished (ms since 1970), 0 = never. */
+  lastBackupAt: number;
+  /** Why the last backup failed, or null. */
+  lastError: BackupError | null;
+  running: boolean;
+};
+
+export type BackupError = 'NOT_A_BACKUP' | 'WRONG_KEY' | 'BAD_KEY' | 'NO_KEY' | 'LOCKED' | 'NO_ACCESS' | 'FULL' | 'FOREIGN' | 'FAILED';
+
+export type BackupEvent =
+  | { phase: 'backup-done'; written: number; removed: number; total: number }
+  | { phase: 'backup-error'; error: BackupError }
+  | { phase: 'restore-progress'; done: number; total: number }
+  | { phase: 'restore-done'; restored: number; alreadyHere: number; damaged: number }
+  | { phase: 'restore-error'; error: BackupError };
+
+type Events = { onTransfer: (event: TransferEvent) => void; onBackup: (event: BackupEvent) => void };
 
 declare class VaultCoreModule extends NativeModule<Events> {
   status(): Promise<VaultStatus>;
@@ -78,6 +103,22 @@ declare class VaultCoreModule extends NativeModule<Events> {
   /** Old phone: connects to a scanned code and sends every item. */
   transferSend(code: string): Promise<void>;
   transferCancel(): void;
+  backupStatus(): Promise<BackupStatus>;
+  /** The recovery key in its written form, or null if none was created yet. */
+  recoveryKey(): Promise<string | null>;
+  /** Creates the recovery key the first time (returns the existing one after that). */
+  createRecoveryKey(): Promise<string>;
+  /** Records that the user checked their copy of the recovery key. */
+  confirmRecoveryKey(): Promise<void>;
+  /** The user chose not to continue an unfinished restore. */
+  dismissRestore(): Promise<void>;
+  /** Remembers a folder picked with the system folder picker. */
+  setBackupFolder(uri: string): Promise<{ ok: true; folderName: string } | { ok: false; error: BackupError }>;
+  /** Starts a backup in the background (false if one is running or none is set up). */
+  backupNow(): Promise<boolean>;
+  checkBackup(uri: string, key: string): Promise<{ ok: true; count: number } | { ok: false; error: BackupError }>;
+  /** Starts a restore; progress and the result arrive as onBackup events. */
+  restoreBackup(uri: string, key: string): Promise<boolean>;
 }
 
 const native = requireOptionalNativeModule<VaultCoreModule>('VaultCore');
@@ -113,6 +154,16 @@ const Vault = native
       transferSend: (code: string) => native.transferSend(code),
       transferCancel: () => native.transferCancel(),
       onTransfer: (fn: (e: TransferEvent) => void) => native.addListener('onTransfer', fn),
+      backupStatus: () => native.backupStatus(),
+      recoveryKey: () => native.recoveryKey(),
+      createRecoveryKey: () => native.createRecoveryKey(),
+      confirmRecoveryKey: () => native.confirmRecoveryKey(),
+      dismissRestore: () => native.dismissRestore(),
+      setBackupFolder: (uri: string) => native.setBackupFolder(uri),
+      backupNow: () => native.backupNow(),
+      checkBackup: (uri: string, key: string) => native.checkBackup(uri, key),
+      restoreBackup: (uri: string, key: string) => native.restoreBackup(uri, key),
+      onBackup: (fn: (e: BackupEvent) => void) => native.addListener('onBackup', fn),
     }
   : {
       ...DemoVault,
@@ -132,6 +183,27 @@ const Vault = native
       },
       transferCancel: () => {},
       onTransfer: (_fn: (e: TransferEvent) => void) => ({ remove: () => {} }),
+      // The preview keeps nothing on disk, so there is nothing to back up; the screens say so.
+      backupStatus: async (): Promise<BackupStatus> => ({
+        hasRecoveryKey: false,
+        keyConfirmed: false,
+        restorePending: false,
+        folderName: null,
+        lastBackupAt: 0,
+        lastError: null,
+        running: false,
+      }),
+      recoveryKey: async (): Promise<string | null> => null,
+      createRecoveryKey: async (): Promise<string> => {
+        throw new Error('E_UNAVAILABLE');
+      },
+      confirmRecoveryKey: async () => {},
+      dismissRestore: async () => {},
+      setBackupFolder: async (_uri: string): Promise<{ ok: false; error: BackupError }> => ({ ok: false, error: 'FAILED' }),
+      backupNow: async () => false,
+      checkBackup: async (_uri: string, _key: string): Promise<{ ok: false; error: BackupError }> => ({ ok: false, error: 'FAILED' }),
+      restoreBackup: async (_uri: string, _key: string) => false,
+      onBackup: (_fn: (e: BackupEvent) => void) => ({ remove: () => {} }),
     };
 
 export default Vault;

@@ -143,7 +143,7 @@ function methodOptions(value: LockMethod) {
   ];
 }
 
-export function Welcome({ onNext }: { onNext: () => void }) {
+export function Welcome({ onNext, onRestore }: { onNext: () => void; onRestore: () => void }) {
   return (
     <ScrollView style={{ backgroundColor: C.bg }} contentContainerStyle={[s.screen, { flexGrow: 1, paddingTop: 72, paddingHorizontal: 28 }]}>
       <Logo size={72} tile />
@@ -156,6 +156,7 @@ export function Welcome({ onNext }: { onNext: () => void }) {
       </View>
       <View style={{ flex: 1, minHeight: 32 }} />
       <Button label={t('welcome.create')} onPress={onNext} />
+      <Button label={t('welcome.restore')} kind="ghost" onPress={onRestore} style={{ marginTop: 10 }} />
       <Small style={{ marginTop: 14 }}>{t('welcome.requires')}</Small>
     </ScrollView>
   );

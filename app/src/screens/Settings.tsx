@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ReactNode, useEffect, useState } from 'react';
 import { Alert, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
-import VaultCore, { VaultItem, VaultStatus } from '../../modules/vault-core';
+import VaultCore, { BackupStatus, VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readDeviceGate, saveDeviceGate } from '../deviceGate';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
 import { FREE_LIMIT, restorePremium, usePremium } from '../premium';
@@ -57,12 +57,14 @@ export function Settings({
   onDestroyed,
   onPremium,
   onTransfer,
+  onBackup,
   suspendAutoLock,
 }: {
   onBack: () => void;
   onDestroyed: () => void;
   onPremium: () => void;
   onTransfer: () => void;
+  onBackup: () => void;
   suspendAutoLock: (on: boolean) => void;
 }) {
   const plan = usePremium();
@@ -75,7 +77,9 @@ export function Settings({
   const [deviceGate, setDeviceGate] = useState(() => readDeviceGate());
   const [showTerms, setShowTerms] = useState(false);
 
+  const [backup, setBackup] = useState<BackupStatus | null>(null);
   useEffect(() => {
+    VaultCore.backupStatus().then(setBackup).catch(() => {});
     VaultCore.status().then(setStatus).catch(() => {});
     VaultCore.list().then(setItems).catch(() => {});
   }, []);
@@ -175,6 +179,24 @@ export function Settings({
             const account = Platform.OS === 'ios' ? t('plan.accountApple') : t('plan.accountGoogle');
             Alert.alert(premium ? t('plan.restored') : t('plan.nothing'), premium ? t('plan.restoredBody') : t('plan.nothingBody', { account }));
           }}
+        />
+      </View>
+
+      <Text style={st.section}>{t('backup.title')}</Text>
+      <View style={st.group}>
+        <LinkRow
+          label={t('backup.settingsRow')}
+          value={
+            !backup
+              ? undefined
+              : backup.lastError || backup.restorePending
+                ? t('backup.stateProblem')
+                : backup.keyConfirmed && backup.folderName
+                  ? t('backup.stateOn')
+                  : t('backup.stateOff')
+          }
+          last
+          onPress={onBackup}
         />
       </View>
 
