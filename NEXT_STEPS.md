@@ -46,8 +46,6 @@
 ## 웹사이트 (website/)
 - 한국어 버전 공개: website/ko/ 의 noindex 제거, 언어 전환 링크 추가 (Owner가 원할 때)
 - 실제 소개 영상 제작 후 `website/assets`에 추가
-- 앱 Welcome 화면 문구 "no internet access"(app/src/i18n `welcome.nothingSub`)가 1.1 옮기기 기능과 맞지 않음: 앱 문구를 "no servers"로 고칠지 검토 (웹사이트 화면 그림은 이미 "no servers"로 수정)
-- 브랜드 표기 정리: 웹사이트는 "PrivateVault", 스토어 이름은 "Private Vision Vault" — 통일 여부 Owner 결정
 - 출시 시 스토어 링크·지원 OS 버전·가격 입력
 - 개인정보처리방침의 [ ] 항목 입력 (시행일, 사업자 정보, 보호책임자, 연락처 이메일, 호스팅 업체)
 - 호스팅 선택·배포 (L3: Owner 승인 필요, 무료 옵션 우선 검토)

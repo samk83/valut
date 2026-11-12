@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Privacy Policy · PrivateVault</title>
-<meta name="description" content="Privacy policy for the PrivateVault app and website. The app does not collect personal data or send it to us.">
+<title>Privacy Policy · Private Vision Vault</title>
+<meta name="description" content="Privacy policy for the Private Vision Vault app and website. The app does not collect personal data or send it to us.">
 <meta name="theme-color" content="#0B0D12">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
@@ -13,9 +13,9 @@
 <body>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="index.html" aria-label="PrivateVault home">
+    <a class="brand" href="index.html" aria-label="Private Vision Vault home">
       <img src="assets/favicon.svg" width="28" height="28" alt="">
-      PrivateVault
+      Private Vision Vault
     </a>
     <nav class="nav" aria-label="Site">
       <a class="nav-link" href="index.html#how">How it works</a>
@@ -29,13 +29,13 @@
 <main class="policy">
   <div class="wrap">
     <article class="policy-body">
-      <p class="eyebrow">PrivateVault</p>
+      <p class="eyebrow">Private Vision Vault</p>
       <h1>Privacy Policy</h1>
       <p class="policy-meta">Effective date: <span class="tbd">[launch date]</span> · Operated by JellyDock</p>
 
       <section class="policy-summary" aria-labelledby="sum-title">
         <h2 id="sum-title">Summary</h2>
-        <p>The PrivateVault app (listed in the app stores as Private Vision Vault) does not collect personal data and does not send it to us or anyone else. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored only on your phone. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone.</p>
+        <p>The Private Vision Vault app does not collect personal data and does not send it to us or anyone else. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored only on your phone. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone.</p>
       </section>
 
       <section>
@@ -44,7 +44,7 @@
         <ul>
           <li><strong>Photos and videos in the vault</strong>, with their file names, capture details and thumbnails. Each file is encrypted with its own key (AES-256-GCM) and kept in the app’s storage. Capture details of files imported from your photo library, including location, are kept as they are, encrypted.</li>
           <li><strong>Your PIN or pattern.</strong> It is never stored as entered. It is used only to derive the key that opens the vault (Argon2id), and the vault opens only together with a key held in your phone’s security chip.</li>
-          <li><strong>Failed unlock count and app settings</strong>, needed for the three-attempt key destruction and for the app to work.</li>
+          <li><strong>Failed unlock count and app settings</strong>, needed for the waiting time after wrong attempts and for the app to work.</li>
           <li><strong>Whether Lifetime Premium is active</strong>, as reported by the App Store or Google Play on your phone.</li>
         </ul>
       </section>
@@ -55,7 +55,7 @@
           <table>
             <thead><tr><th scope="col">Permission</th><th scope="col">Used for</th><th scope="col">If you decline</th></tr></thead>
             <tbody>
-              <tr><th scope="row">Photos</th><td>Importing the photos and videos you pick into the vault, and asking your library to delete the imported originals.</td><td data-label="If you decline">Importing, or asking to delete originals, is limited.</td></tr>
+              <tr><th scope="row">Photos</th><td>Copying the photos and videos you pick into the vault. The app never deletes anything from your photo library.</td><td data-label="If you decline">Importing is limited.</td></tr>
               <tr><th scope="row">Camera</th><td>Taking photos and videos with the vault camera. These are never saved to your photo library.</td><td data-label="If you decline">The vault camera can’t be used.</td></tr>
               <tr><th scope="row">Microphone</th><td>Recording sound when you shoot video with the vault camera.</td><td data-label="If you decline">Recording sound with video is limited.</td></tr>
               <tr><th scope="row">Local network (iPhone) / Network (Android)</th><td>Only for Move to a new phone: a direct connection between your two phones on the same Wi-Fi.</td><td data-label="If you decline">On iPhone, moving to a new phone can’t be used (on Android this is granted at install). Everything else works.</td></tr>
@@ -80,7 +80,7 @@
         <h2>4. Backups and moving to a new phone</h2>
         <p>Vault data and keys are excluded from iCloud and iTunes backups, Google backups and the phone’s own transfer tools. If you lose your phone, the vault can’t be restored.</p>
         <p>The only way to move the vault is Move to a new phone in the app, with both phones in your hands on the same Wi-Fi (or one phone’s hotspot). The new phone shows a one-time QR code and the old phone scans it. The two phones then connect directly, with no server or cloud in between, and everything sent is encrypted (AES-256-GCM) with a key derived from that code. Keys never leave a phone: the new phone re-encrypts each item with its own keys. The old phone deletes nothing; you reset it yourself once you’ve checked the new phone.</p>
-        <p>Originals you move into the vault may still exist in your photo library’s Recently Deleted (trash), or as copies already uploaded to iCloud Photos or Google Photos. The app can’t delete those copies. You need to delete them yourself.</p>
+        <p>Importing copies photos and videos into the vault; the originals stay in your photo library. If you want them gone, delete them yourself in your Photos app, including from Recently Deleted (trash) and any copies already uploaded to iCloud Photos or Google Photos. The app can’t delete those.</p>
       </section>
 
       <section>
@@ -88,7 +88,7 @@
         <p>Files in the vault stay on your phone until you delete them. Data or keys are deleted in these cases, and there is no way to recover them:</p>
         <ul>
           <li>When you permanently delete a file: its key, the encrypted file and its thumbnail are deleted.</li>
-          <li>When you reset the vault, or enter a wrong PIN or pattern three times in a row: the key that opens the vault is deleted.</li>
+          <li>When you choose Destroy entire vault in Settings and confirm it: the key that opens the vault and the vault files are deleted. Wrong PIN or pattern entries never delete anything; they only add a waiting time.</li>
           <li>When you delete the app: the app’s storage is erased. If you reinstall, any leftover keys are wiped and you start with a new vault.</li>
         </ul>
       </section>
@@ -143,7 +143,7 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <p>PrivateVault · JellyDock</p>
+    <p>Private Vision Vault · JellyDock</p>
     <p><a href="privacy.html" aria-current="page">Privacy Policy</a></p>
     <p>© 2026 JellyDock</p>
   </div>
