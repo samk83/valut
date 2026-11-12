@@ -90,6 +90,12 @@ const es: Pack = {
   'unlock.footerPatternVisible': 'Método de bloqueo: Patrón · trazo visible\nCámbialo en la configuración de seguridad.',
   'unlock.footerPatternHidden': 'Método de bloqueo: Patrón · trazo oculto\nCámbialo en la configuración de seguridad.',
   'unlock.checking': 'Verificando con el chip de seguridad…',
+  'gate.step': 'Paso 1 de 2',
+  'gate.checking': 'Confirmando que eres tú',
+  'gate.sub': 'Usa el bloqueo del propio teléfono: rostro, huella o código.',
+  'gate.retry': 'Toca para intentarlo de nuevo',
+  'gate.prompt': 'Desbloquear Private Vision Vault',
+  'gate.noLock': 'Este teléfono no tiene bloqueo de pantalla, así que se omite el paso 1. Configura un código en los ajustes del teléfono para activarlo.',
 
   // Final attempt warning
   'final.oneTry': 'Queda un intento',
@@ -256,6 +262,7 @@ const es: Pack = {
   'settings.lockWhenLeaves': 'Bloquear al salir de la pantalla',
   'settings.always': 'Siempre',
   'settings.hideTrail': 'Ocultar trazo del patrón',
+  'settings.deviceGate': 'Primero el bloqueo del teléfono',
   'settings.key': 'Clave',
   'settings.unlockWith': 'Desbloquear con',
   'settings.unknown': 'Desconocido',

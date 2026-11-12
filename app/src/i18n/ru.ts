@@ -101,6 +101,12 @@ const ru: Pack = {
   'unlock.footerPatternVisible': 'Способ блокировки: графический ключ · след виден\nИзменить можно в настройках безопасности.',
   'unlock.footerPatternHidden': 'Способ блокировки: графический ключ · след скрыт\nИзменить можно в настройках безопасности.',
   'unlock.checking': 'Проверка с помощью чипа безопасности…',
+  'gate.step': 'Шаг 1 из 2',
+  'gate.checking': 'Подтверждаем, что это вы',
+  'gate.sub': 'Используйте блокировку самого телефона: лицо, отпечаток или код-пароль.',
+  'gate.retry': 'Нажмите, чтобы повторить',
+  'gate.prompt': 'Разблокировать Private Vision Vault',
+  'gate.noLock': 'На этом телефоне нет блокировки экрана, поэтому шаг 1 пропущен. Задайте код-пароль в настройках телефона, чтобы включить его.',
 
   // Final attempt warning
   'final.oneTry': 'Осталась одна попытка',
@@ -272,6 +278,7 @@ const ru: Pack = {
   'settings.lockWhenLeaves': 'Блокировать при уходе с экрана',
   'settings.always': 'Всегда',
   'settings.hideTrail': 'Скрывать след ключа',
+  'settings.deviceGate': 'Сначала блокировка телефона',
   'settings.key': 'Ключ',
   'settings.unlockWith': 'Разблокировка',
   'settings.unknown': 'Неизвестно',

@@ -62,3 +62,9 @@
 4. Phase 3 MVP 개발
 5. Phase 4 Security QA + 외부 감사 (예산 승인 후)
 6. Phase 5 출시
+
+## 두 겹 잠금 (2026-11-12)
+- 시안: https://claude.ai/artifact/RdAJ3TwzJLkfFqeoKnqEum (Owner 선택: C안 자물쇠 열림 효과)
+- 실기기 확인 필요 (다음 iPhone 빌드·TestFlight): Face ID 통과·취소·실패 반복, 기기 암호로 대신 열기, 2단계에서 홈으로 나갔다 오기, 화면 잠금 없는 기기, 설정 스위치 끄기
+- Android: 흐림 효과는 어두운 반투명 화면으로 보임(실제 흐림은 Android 출시 때 다듬기)
+

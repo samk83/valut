@@ -90,6 +90,12 @@ const tr: Pack = {
   'unlock.footerPatternVisible': 'Kilit yöntemi: Desen · iz görünür\nGüvenlik Ayarları\'ndan değiştir.',
   'unlock.footerPatternHidden': 'Kilit yöntemi: Desen · iz gizli\nGüvenlik Ayarları\'ndan değiştir.',
   'unlock.checking': 'Güvenlik çipiyle denetleniyor…',
+  'gate.step': 'Adım 1 / 2',
+  'gate.checking': 'Sizin olduğunuz doğrulanıyor',
+  'gate.sub': 'Telefonun kendi kilidini kullanın: yüz, parmak izi veya parola.',
+  'gate.retry': 'Tekrar denemek için dokunun',
+  'gate.prompt': 'Private Vision Vault kilidini aç',
+  'gate.noLock': 'Bu telefonda ekran kilidi yok, bu yüzden 1. adım atlanıyor. Eklemek için telefon ayarlarından bir parola belirleyin.',
 
   // Final attempt warning
   'final.oneTry': 'Bir deneme kaldı',
@@ -256,6 +262,7 @@ const tr: Pack = {
   'settings.lockWhenLeaves': 'Uygulama ekrandan çıkınca kilitle',
   'settings.always': 'Her zaman',
   'settings.hideTrail': 'Desen izini gizle',
+  'settings.deviceGate': 'Önce telefonun kilidi',
   'settings.key': 'Anahtar',
   'settings.unlockWith': 'Kilit açma yöntemi',
   'settings.unknown': 'Bilinmiyor',
