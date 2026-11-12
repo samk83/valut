@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Private Vision Vault</title>
-<meta name="description" content="Private Vision Vault keeps your photos and videos encrypted on your phone. No account, no cloud, no servers.">
+<meta name="description" content="Private Vision Vault keeps your photos and videos encrypted on your phone. No account, no servers, nothing sent to us.">
 <meta name="theme-color" content="#0B0D12">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
@@ -79,7 +79,7 @@
       </svg>
       <p class="eyebrow">Private Vision Vault · iPhone · Android</p>
       <h1 id="hero-title">Your photos stay<br><em>on your phone.</em></h1>
-      <p class="hero-lede">Private Vision Vault encrypts your photos and videos on your phone. There is no account, no cloud and no server. The vault opens only with your PIN (or pattern) on this phone.</p>
+      <p class="hero-lede">Private Vision Vault encrypts your photos and videos on your phone. There is no account and no server, and nothing is sent to us. The vault opens only with your PIN (or pattern) on this phone.</p>
       <div class="stores" role="group" aria-label="Download the app (coming soon)">
         <button class="store" type="button" disabled aria-describedby="store-note-hero">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M10.5 18.5h3"></path></svg>
@@ -136,7 +136,7 @@
           <article class="step is-current" data-step="0">
             <p class="step-num">01 / 06</p>
             <h3>Create your vault.</h3>
-            <p>No sign-up and no email. A numeric PIN or a pattern creates a vault on this phone. Before you begin, you confirm you understand it can’t be recovered.</p>
+            <p>No sign-up and no email. A numeric PIN or a pattern creates a vault on this phone. Before you begin, you confirm you understand that nobody can reset your PIN.</p>
             <div class="tech"><span>No account</span><span>10+ digit PIN recommended</span></div>
             <div class="step-shot"></div>
           </article>
@@ -187,8 +187,8 @@
                 <h4>Your files.<br>Your device.<br>Your eyes only.</h4>
                 <div class="s-list">
                   <div class="s-li"><i></i><div><b>Encrypted on this phone</b><span>AES-256, sealed with your PIN or pattern and the phone’s security chip.</span></div></div>
-                  <div class="s-li"><i></i><div><b>Nothing ever leaves</b><span>No account, no cloud, no sharing, no servers.</span></div></div>
-                  <div class="s-li"><i class="warn"></i><div><b>No PIN reset, ever</b><span>Nobody can reset a forgotten PIN or pattern. Lose your phone or delete the app, and the files are gone.</span></div></div>
+                  <div class="s-li"><i></i><div><b>Nothing is sent to us</b><span>No account, no servers, no sharing. Backups stay encrypted in a folder you choose.</span></div></div>
+                  <div class="s-li"><i class="warn"></i><div><b>No PIN reset, ever</b><span>Nobody can reset a forgotten PIN or pattern. Set up the encrypted backup so deleting the app or losing the phone doesn’t lose your files.</span></div></div>
                 </div>
                 <div class="s-btn">Create my vault</div>
                 <p class="s-foot">Requires a device passcode and a hardware security chip.</p>
@@ -286,7 +286,7 @@
         </article>
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4v16"></path><path d="M10 14l6 6 6-6"></path><path d="M5 26h22"></path></svg>
-          <div><h3>A one-way vault</h3><span class="tag">one-way import</span><p>Share, export and open-in-another-app don’t exist in the code. Files that enter the vault can only be viewed inside the app, or moved, still encrypted, to your own new phone.</p></div>
+          <div><h3>A one-way vault</h3><span class="tag">one-way import</span><p>Share, export and open-in-another-app don’t exist in the code. Files that enter the vault can only be viewed inside the app, or copied, still encrypted, to your own new phone or your own backup folder.</p></div>
         </article>
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11h5l3-4h6l3 4h5v15H5z"></path><circle cx="16" cy="18" r="5"></circle></svg>
@@ -294,7 +294,7 @@
         </article>
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M26 16a10 10 0 1 1-3-7.1"></path><path d="M26 5v6h-6"></path></svg>
-          <div><h3>Reinstalling won’t open it</h3><span class="tag">device-only keys</span><p>Keys are stored with a device-only protection setting, so they’re left out of backups and the phone’s own transfer tools. Delete and reinstall the app and you start with a new, empty vault.</p></div>
+          <div><h3>A backup only you can open</h3><span class="tag">256-bit recovery key</span><p>Off until you set it up. The app copies the vault’s already-encrypted files to a folder you pick, such as iCloud Drive or Google Drive, and seals each file key with a key derived from your 52-character recovery key (HKDF-SHA256). Without that recovery key, nobody can open the backup, including us.</p></div>
         </article>
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="24" height="16" rx="2"></rect><path d="M11 27h10"></path><path d="M9 12h14M9 17h8"></path></svg>
@@ -313,7 +313,7 @@
         <p>No app can promise it can never be broken, and Private Vision Vault doesn’t. Here is what it protects, and what it can’t.</p>
       </div>
       <div class="limit-list">
-        <article class="limit"><h3>There is no PIN reset</h3><p>Forget your PIN or pattern and the vault can’t be opened. Lose your phone or delete the app and the files are gone. We can’t open them for you either. To change phones, use Move to a new phone while you still have the old one.</p></article>
+        <article class="limit"><h3>There is no PIN reset</h3><p>Nobody can reset a forgotten PIN or pattern. If you delete the app or lose your phone, you can restore everything only from the encrypted backup with your recovery key. Without the backup, or if you lose both the phone and the recovery key, nobody can recover the photos, including us. Anyone who has both your backup folder and your recovery key can open the backup, so keep the key private. To change phones, use Move to a new phone while you still have the old one.</p></article>
         <article class="limit"><h3>Jailbroken or rooted phones</h3><p>The waiting times hold on an unmodified phone. An attacker with a jailbroken or rooted phone, or professional forensic tools, can get around it. The app blocks access to the vault when it detects such a phone, and we recommend a PIN of 10 or more digits.</p></article>
         <article class="limit"><h3>While the vault is open</h3><p>If someone takes control of the phone while the vault is open, no app can stop them. Lock the vault when you’re done.</p></article>
         <article class="limit"><h3>Your originals stay put</h3><p>Importing copies; it never deletes. If you want the originals gone, delete them in your Photos app, then from Recently Deleted (or Trash) and any cloud photo backup.</p></article>
@@ -331,14 +331,15 @@
       <dl class="specs">
         <div class="spec-row"><dt>Encryption</dt><dd><strong>AES-256-GCM with a separate key per file</strong><span>Covers file names, capture details and thumbnails</span><span class="mono">video: chunked, unique nonce + auth tag per chunk</span></dd></div>
         <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>About 1 second per check with 256 MiB of memory (target, to be finalized after on-device testing)</span></dd></div>
-        <div class="spec-row"><dt>Key storage</dt><dd><strong>iPhone: Secure Enclave · Android: StrongBox</strong><span>Device-only, left out of backups and the phone’s own transfer tools. Keys never move between phones.</span><span>On Android, the app won’t create a vault on a device without StrongBox and rollback-resistant keys.</span></dd></div>
+        <div class="spec-row"><dt>Key storage</dt><dd><strong>iPhone: Secure Enclave · Android: StrongBox</strong><span>Device-only, left out of the phone’s own backups and transfer tools, and never in the app’s backup. Keys never move between phones.</span><span>On Android, the app won’t create a vault on a device without StrongBox and rollback-resistant keys.</span></dd></div>
         <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits (10+ recommended) or a pattern of 6+ points</strong><span>Common PINs and simple patterns are rejected</span><span>Face ID, fingerprint or the device passcode alone can’t open the vault.</span></dd></div>
         <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Timed by the phone’s time since start-up, so changing the clock doesn’t skip it</span></dd></div>
         <div class="spec-row"><dt>Auto-lock</dt><dd><strong>The moment you leave the app</strong><span>Contents hidden in the app switcher</span></dd></div>
         <div class="spec-row"><dt>File types</dt><dd><strong>Photos and videos</strong><span>Documents (PDF) and folders are planned for a later version</span></dd></div>
         <div class="spec-row"><dt>Getting files in</dt><dd><strong>Copy from your photo library · shoot with the vault camera</strong><span>Import copies only: the app never deletes your originals</span></dd></div>
         <div class="spec-row"><dt>Export</dt><dd><strong>None</strong><span>No share, save, print, copy or open-in</span></dd></div>
-        <div class="spec-row"><dt>Network and account</dt><dd><strong>No servers or accounts</strong><span>No cloud sync or backups · everything except moving to a new phone works in airplane mode</span></dd></div>
+        <div class="spec-row"><dt>Network and account</dt><dd><strong>No servers or accounts</strong><span>No cloud sync · everything except moving to a new phone works in airplane mode</span></dd></div>
+        <div class="spec-row"><dt>Backup and recovery</dt><dd><strong>Optional encrypted backup to a folder you choose</strong><span>iCloud Drive, the Files app, Google Drive or another Android folder · off until you set it up, then automatic while the app is open</span><span>Restore on any phone, iPhone or Android, with your 52-character recovery key (256-bit) · a lost recovery key can’t be reset</span></dd></div>
         <div class="spec-row"><dt>Move to a new phone</dt><dd><strong>Direct, phone to phone, on the same Wi-Fi</strong><span>Pair by scanning a one-time QR code · AES-256-GCM with a key from that code · private network addresses only</span><span>The new phone re-encrypts everything with its own keys · works between iPhone and Android</span></dd></div>
         <div class="spec-row"><dt>Permissions</dt><dd><strong>Photos (import), Camera, Microphone (video sound)</strong><span>Local network (only to move to a new phone) · no location or contacts</span></dd></div>
         <div class="spec-row"><dt>Ads and tracking</dt><dd><strong>None</strong><span>PINs, file names and keys are never written to logs</span></dd></div>
