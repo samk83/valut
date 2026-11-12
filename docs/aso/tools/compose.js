@@ -32,6 +32,8 @@ const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>':
     const shots = listing.locales[loc].shots;
     const out = path.join(outDir, dv, loc);
     fs.mkdirSync(out, { recursive: true });
+    // Start clean so a rerun (e.g. with TWO_STEP=0) leaves no old or misnumbered images behind.
+    for (const f of fs.readdirSync(out)) if (f.endsWith('.png')) fs.unlinkSync(path.join(out, f));
     let n = 0;
     for (let i = 0; i < ORDER.length; i++) {
       if (SKIP.has(ORDER[i])) continue;
