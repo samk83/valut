@@ -3,7 +3,8 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault は、暗号化された保管庫に直接保存される写真とビデオを撮影するためにカメラを使用します。",
     "NSMicrophoneUsageDescription": "Private Vision Vault は、保管庫カメラで撮影するビデオの音声を録音するためにマイクを使用します。",
-    "NSPhotoLibraryUsageDescription": "Private Vision Vault では、暗号化された保管庫に移す写真とビデオを選択できます。オリジナルの削除を指示した場合は、まずそれぞれが保管庫のコピーと同一であることを確認します。",
-    "NSLocalNetworkUsageDescription": "Private Vision Vault は、暗号化された保管庫を移行するため、同じ Wi-Fi 上のもう一方のスマートフォンに直接接続します。インターネットを経由するものは一切ありません。"
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault では、暗号化された保管庫にコピーする写真とビデオを選択できます。オリジナルは写真ライブラリにそのまま残ります。",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault は、暗号化された保管庫を移行するため、同じ Wi-Fi 上のもう一方のスマートフォンに直接接続します。インターネットを経由するものは一切ありません。",
+    "NSFaceIDUsageDescription": "Private Vision Vault は、保管庫の PIN またはパターンを入力する前の最初のロックとして Face ID を使用します。Face ID だけで保管庫が開くことはありません。"
   }
 }

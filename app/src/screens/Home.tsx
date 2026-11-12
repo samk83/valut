@@ -1,23 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library/legacy';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, Image, Platform, Pressable, ScrollView, SectionList, Switch, Text, useWindowDimensions, View } from 'react-native';
+import { BackHandler, Image, Pressable, ScrollView, SectionList, Text, useWindowDimensions, View } from 'react-native';
 
 import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
 import { fitToSlots, FREE_LIMIT, freeSlots, refreshPremium, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { monthStandalone, t, tn } from '../i18n';
-import { Body, Bullet, Button, READABLE_WIDTH, Rich, s, Segmented, TestBanner, Title } from '../ui';
+import { Body, Button, READABLE_WIDTH, s, Segmented, TestBanner, Title } from '../ui';
 
-type Imported = { id: string; kind: ItemKind; assetId?: string | null; safe: boolean };
+// Import only copies: the originals always stay in the gallery, and the user deletes them
+// there if they want to (owner decision 2026-11-12). The app never deletes from the gallery.
 type Result = {
   ok: number;
   failed: number;
-  deleted: number;
-  kept: number;
-  note: string | null;
-  deleteChosen: boolean;
   photos: number;
   videos: number;
   cancelled: boolean;
@@ -25,7 +21,7 @@ type Result = {
   leftOut: number;
 };
 type Progress = { index: number; total: number; sealed: number; sealedCurrent: boolean };
-type View_ = 'home' | 'options' | 'importing' | 'deleting' | 'result';
+type View_ = 'home' | 'importing' | 'result';
 
 let lastTab: ItemKind = 'PHOTO';
 
@@ -60,7 +56,6 @@ export function Home({
   };
   const importing = useRef(false);
   const [view, setView] = useState<View_>('home');
-  const [deleteAfter, setDeleteAfter] = useState(true);
   const [progress, setProgress] = useState<Progress>({ index: 0, total: 0, sealed: 0, sealedCurrent: false });
   const [result, setResult] = useState<Result | null>(null);
   const cancelRef = useRef(false);
@@ -83,54 +78,18 @@ export function Home({
     load();
   }, [load, refreshKey]);
 
-  // Android back: leave the options page or the result page instead of closing the app.
+  // Android back: leave the result page instead of closing the app.
   useEffect(() => {
     if (view === 'home') return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (view === 'options') setView('home');
       if (view === 'result') {
         setResult(null);
         setView('home');
       }
-      return true; // never leave while importing or deleting
+      return true; // never leave while importing
     });
     return () => sub.remove();
   }, [view]);
-
-  /** Deletes the gallery originals of verified imports. Only exact matches are removed. */
-  const deleteOriginals = async (imported: Imported[]): Promise<{ deleted: number; kept: number; note: string | null }> => {
-    if (VaultCore.isDemo) {
-      return { deleted: 0, kept: imported.length, note: t('note.preview') };
-    }
-    const candidates = imported.filter((d) => d.safe && d.assetId);
-    const unknown = imported.length - candidates.length;
-    if (candidates.length === 0) {
-      return { deleted: 0, kept: imported.length, note: imported.length ? t('note.notIdentified') : null };
-    }
-    suspendAutoLock(true);
-    try {
-      const perm = await MediaLibrary.requestPermissionsAsync();
-      if (!perm.granted) return { deleted: 0, kept: imported.length, note: t('note.noAccess') };
-      // Re-read each original and compare it with the vault copy; only exact matches go.
-      const ids: string[] = [];
-      for (const d of candidates) {
-        if (await VaultCore.matchesOriginal(d.id, d.assetId as string, d.kind).catch(() => false)) ids.push(d.assetId as string);
-      }
-      if (ids.length > 0 && !(await MediaLibrary.deleteAssetsAsync(ids))) {
-        return { deleted: 0, kept: imported.length, note: t('note.deleteCancelled') };
-      }
-      const kept = imported.length - ids.length;
-      return {
-        deleted: ids.length,
-        kept,
-        note: kept > 0 ? tn(unknown ? 'note.keptUnconfirmedOrUnknown' : 'note.keptUnconfirmed', kept) : null,
-      };
-    } catch {
-      return { deleted: 0, kept: imported.length, note: t('note.deleteFailed') };
-    } finally {
-      suspendAutoLock(false);
-    }
-  };
 
   /** Free plan full: show Premium instead. Asks the store again first, in case it just changed. */
   const roomLeft = async (): Promise<number> => {
@@ -142,29 +101,23 @@ export function Home({
     return slots;
   };
 
-  const importFromGallery = async (deleteChosen: boolean) => {
+  const importFromGallery = async () => {
     // A second tap while the picker is opening must not start another import.
     if (importing.current) return;
     importing.current = true;
     try {
-      await runImport(deleteChosen);
+      await runImport();
     } finally {
       importing.current = false;
     }
   };
 
-  const runImport = async (deleteChosen: boolean) => {
+  const runImport = async () => {
     const slots = await roomLeft();
     if (slots === 0) return;
     suspendAutoLock(true);
     let picked: ImagePicker.ImagePickerResult;
-    // iPhone: the exact original is imported straight from Photos (so it can be verified and
-    // deleted later), which needs Photos access. Asked before the picker opens.
-    let fromAsset = false;
     try {
-      if (Platform.OS === 'ios' && deleteChosen && VaultCore.importAsset) {
-        fromAsset = (await MediaLibrary.requestPermissionsAsync().catch(() => ({ granted: false }))).granted;
-      }
       picked = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
         allowsMultipleSelection: true,
@@ -173,6 +126,8 @@ export function Home({
         selectionLimit: Number.isFinite(slots) ? slots : 0,
         quality: 1,
         exif: false,
+        // iPhone: keep the photo's own format (HEIC stays HEIC) instead of a converted copy.
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current,
         legacy: true,
       });
     } catch {
@@ -188,7 +143,8 @@ export function Home({
     const total = assets.length;
     let ok = 0;
     let failed = 0;
-    const imported: Imported[] = [];
+    let photosAdded = 0;
+    let videosAdded = 0;
     let stoppedEarly = false;
     for (const [i, a] of assets.entries()) {
       if (cancelRef.current) {
@@ -199,32 +155,22 @@ export function Home({
       const isVideo = a.type === 'video';
       try {
         const kind: ItemKind = isVideo ? 'VIDEO' : 'PHOTO';
-        let r: { id: string; safeToDeleteOriginal: boolean } | null = null;
-        if (fromAsset && a.assetId && VaultCore.importAsset) {
-          r = await VaultCore.importAsset(a.assetId, kind, a.uri).catch(() => null);
-        }
-        // The picker hands us a plaintext copy in the app cache; the native side deletes it.
-        if (!r) r = await VaultCore.importUri(a.uri, kind, a.mimeType ?? (isVideo ? 'video/mp4' : 'image/jpeg'), true);
+        // The picker hands us a plaintext copy in the app cache; the native side deletes that
+        // temporary copy afterwards (never the gallery original, which stays where it was).
+        await VaultCore.importUri(a.uri, kind, a.mimeType ?? (isVideo ? 'video/mp4' : 'image/jpeg'), true);
         ok++;
-        imported.push({ id: r.id, kind: isVideo ? 'VIDEO' : 'PHOTO', assetId: a.assetId, safe: r.safeToDeleteOriginal });
+        if (isVideo) videosAdded++;
+        else photosAdded++;
         setProgress({ index: i + 1, total, sealed: ok, sealedCurrent: true });
       } catch {
         failed++;
       }
     }
-    let gone = { deleted: 0, kept: 0, note: null as string | null };
-    // Only the items that were sealed reach this step; failed or skipped ones are never touched.
-    if (deleteChosen && imported.length > 0) {
-      setView('deleting');
-      gone = await deleteOriginals(imported);
-    }
     setResult({
       ok,
       failed,
-      ...gone,
-      deleteChosen,
-      photos: imported.filter((d) => d.kind === 'PHOTO').length,
-      videos: imported.filter((d) => d.kind === 'VIDEO').length,
+      photos: photosAdded,
+      videos: videosAdded,
       cancelled: stoppedEarly,
       leftOut,
     });
@@ -240,15 +186,10 @@ export function Home({
   const cols = Math.max(3, Math.min(8, Math.floor(width / 130)));
   const sections = useMemo(() => byMonth(shown, cols), [shown, cols]);
 
-  if (view === 'options') {
-    return <ImportOptions deleteAfter={deleteAfter} setDeleteAfter={setDeleteAfter} onBack={() => setView('home')} onChoose={() => importFromGallery(deleteAfter)} />;
-  }
-  if (view === 'importing' || view === 'deleting') {
+  if (view === 'importing') {
     return (
       <Importing
         progress={progress}
-        deleting={view === 'deleting'}
-        deleteChosen={deleteAfter}
         cancelling={cancelling}
         onCancel={() => {
           cancelRef.current = true;
@@ -378,7 +319,7 @@ export function Home({
         <Pressable
           accessibilityRole="button"
           onPress={async () => {
-            if ((await roomLeft()) > 0) setView('options');
+            await importFromGallery();
           }}
           style={({ pressed }) => [{ flex: 1, height: 52, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderRadius: 16 }, pressed && { backgroundColor: C.surface2 }]}
         >
@@ -484,87 +425,9 @@ function InfoRow({ icon, color, children }: { icon: keyof typeof Ionicons.glyphM
   );
 }
 
-function ImportOptions({
-  deleteAfter,
-  setDeleteAfter,
-  onBack,
-  onChoose,
-}: {
-  deleteAfter: boolean;
-  setDeleteAfter: (v: boolean) => void;
-  onBack: () => void;
-  onChoose: () => void;
-}) {
-  return (
-    <Page footer={<Button label={t('import.choose')} onPress={onChoose} />}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t('common.back')} onPress={onBack} style={{ alignSelf: 'flex-start', padding: 8, marginLeft: -8, marginBottom: 12 }}>
-        <Ionicons name="chevron-back" size={26} color={C.ivory} />
-      </Pressable>
-      <Text style={s.label}>{t('import.beforeYouPick')}</Text>
-      <View style={{ height: 8 }} />
-      <Title>{t('import.title')}</Title>
-      <Body style={{ color: C.muted, marginBottom: 20 }}>{t('import.intro')}</Body>
-
-      <View style={[s.card, { borderColor: deleteAfter ? C.brassDim : C.line }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Text style={[s.body, { flex: 1, fontFamily: F.bold }]}>{t('import.deleteOriginals')}</Text>
-          <Switch
-            value={deleteAfter}
-            onValueChange={setDeleteAfter}
-            trackColor={{ true: C.brass, false: C.outline }}
-            thumbColor={C.ivory}
-            ios_backgroundColor={C.outline}
-            accessibilityLabel={t('import.deleteOriginals')}
-          />
-        </View>
-        <Text style={[s.small, { marginTop: 8 }]}>
-          {deleteAfter
-            ? t('import.deleteOn')
-            : t('import.deleteOff')}
-        </Text>
-      </View>
-
-      <Text style={[s.label, { color: C.faint, marginTop: 24, marginBottom: 6 }]}>{t('import.forEach')}</Text>
-      <Step n={1} label={t('import.stepEncrypt')} state="active" />
-      <Step n={2} label={t('import.stepVerify')} state="active" />
-      <Step n={3} label={deleteAfter ? t('import.stepDelete') : t('import.stepKeep')} state="active" />
-      <Text style={[s.small, { marginTop: 8 }]}>{t('import.failKeeps')}</Text>
-
-      <View style={{ height: 20 }} />
-      <InfoRow icon="information-circle-outline" color={C.faint}>
-        <Text style={s.small}>{t('import.systemDialog')}</Text>
-      </InfoRow>
-    </Page>
-  );
-}
-
-function Importing({
-  progress,
-  deleting,
-  deleteChosen,
-  cancelling,
-  onCancel,
-}: {
-  progress: Progress;
-  deleting: boolean;
-  deleteChosen: boolean;
-  cancelling: boolean;
-  onCancel: () => void;
-}) {
+function Importing({ progress, cancelling, onCancel }: { progress: Progress; cancelling: boolean; onCancel: () => void }) {
   const { index, total, sealed, sealedCurrent } = progress;
   const pct = total ? Math.round(((index - 1 + (sealedCurrent ? 1 : 0.5)) / total) * 100) : 0;
-  if (deleting) {
-    return (
-      <View style={[s.screen, { alignItems: 'center', justifyContent: 'center' }]}>
-        <Ionicons name="trash-outline" size={40} color={C.brass} />
-        <View style={{ height: 16 }} />
-        <Title>{t('importing.deleting')}</Title>
-        <Body style={{ color: C.muted, textAlign: 'center' }}>
-          {t('importing.deletingBody')}
-        </Body>
-      </View>
-    );
-  }
   return (
     <Page
       footer={
@@ -585,10 +448,10 @@ function Importing({
       <Text style={s.label}>{t('importing.sealing')}</Text>
       <View style={{ height: 8 }} />
       <Title>{t('importing.progress', { index, total })}</Title>
-      {deleteChosen && <Body style={{ color: C.muted, marginBottom: 12 }}>{t('importing.deleteNote')}</Body>}
+      <Body style={{ color: C.muted, marginBottom: 12 }}>{t('importing.copyNote')}</Body>
       <Step n={1} label={t('import.stepEncrypt')} state={sealedCurrent ? 'done' : 'active'} />
       <Step n={2} label={t('import.stepVerify')} state={sealedCurrent ? 'done' : 'todo'} />
-      <Step n={3} label={deleteChosen ? t('import.stepDelete') : t('import.stepKeep')} state={sealedCurrent ? (deleteChosen ? 'active' : 'done') : 'todo'} />
+      <Step n={3} label={t('import.stepKeep')} state={sealedCurrent ? 'done' : 'todo'} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
         <Ionicons name="lock-closed" size={14} color={C.ok} />
         <Text style={[s.body, { color: C.ok }]}>{t('importing.sealed', { n: sealed })}</Text>
@@ -598,22 +461,13 @@ function Importing({
 }
 
 function ImportResult({ result, onDone }: { result: Result; onDone: () => void }) {
-  const [help, setHelp] = useState(false);
   const r = result;
   return (
-    <Page
-      footer={
-        <>
-          <Button label={t('result.howToEmpty')} kind="ghost" onPress={() => setHelp((h) => !h)} />
-          <View style={{ height: 10 }} />
-          <Button label={t('result.backToVault')} onPress={onDone} />
-        </>
-      }
-    >
+    <Page footer={<Button label={t('result.backToVault')} onPress={onDone} />}>
       <View style={{ height: 24 }} />
       <Text style={s.label}>{t('result.complete')}</Text>
       <View style={{ height: 8 }} />
-      <Title>{r.deleteChosen ? t('result.titleDeleted', { ok: r.ok, deleted: r.deleted }) : t('result.title', { ok: r.ok })}</Title>
+      <Title>{t('result.title', { ok: r.ok })}</Title>
       <Text style={[s.small, { marginBottom: 20 }]}>
         {tn('result.photos', r.photos)} · {tn('result.videos', r.videos)}
         {r.cancelled ? t('result.cancelled') : ''}
@@ -626,20 +480,10 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
             <Text style={s.small}>{t('result.allStored', { n: r.ok })}</Text>
           </InfoRow>
         )}
-        {r.deleted > 0 && (
-          <InfoRow icon="checkmark-circle" color={C.ok}>
-            <Text style={[s.body, { fontFamily: F.bold }]}>{t('result.originalsDeleted')}</Text>
-          </InfoRow>
-        )}
         {r.failed > 0 && (
           <InfoRow icon="alert-circle" color={C.danger}>
             <Text style={[s.body, { fontFamily: F.bold, color: C.danger }]}>{t('result.failed', { n: r.failed })}</Text>
             <Text style={s.small}>{t('result.failedBody')}</Text>
-          </InfoRow>
-        )}
-        {r.note && (
-          <InfoRow icon="information-circle-outline" color={C.faint}>
-            <Text style={s.small}>{r.note}</Text>
           </InfoRow>
         )}
         {r.leftOut > 0 && (
@@ -650,26 +494,13 @@ function ImportResult({ result, onDone }: { result: Result; onDone: () => void }
             <Text style={s.small}>{t('plan.leftOutBody', { max: FREE_LIMIT })}</Text>
           </InfoRow>
         )}
-        {!r.deleteChosen && (
-          <InfoRow icon="information-circle-outline" color={C.faint}>
-            <Text style={s.small}>{t('result.stillInGallery')}</Text>
+        {r.ok > 0 && (
+          <InfoRow icon="images-outline" color={C.faint}>
+            <Text style={[s.body, { fontFamily: F.bold }]}>{t('result.stillInGallery')}</Text>
+            <Text style={s.small}>{t('result.deleteYourself')}</Text>
           </InfoRow>
         )}
       </View>
-
-      <View style={[s.card, { marginTop: 24, gap: 6 }]}>
-        <Text style={[s.body, { fontFamily: F.bold, marginBottom: 4 }]}>{t('result.copiesTitle')}</Text>
-        <Bullet>{t('result.copiesRecent')}</Bullet>
-        <Bullet>{t('result.copiesCloud')}</Bullet>
-        <Bullet>{t('result.copiesSent')}</Bullet>
-      </View>
-
-      {help && (
-        <View style={[s.card, { marginTop: 12, gap: 8 }]}>
-          <Rich text={t('result.helpIphone')} style={s.small} strongStyle={{ fontFamily: F.bold, color: C.ivory }} />
-          <Rich text={t('result.helpAndroid')} style={s.small} strongStyle={{ fontFamily: F.bold, color: C.ivory }} />
-        </View>
-      )}
     </Page>
   );
 }

@@ -3,7 +3,8 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault, doğrudan şifreli kasana giden fotoğraf ve videolar çekmek için kamerayı kullanır.",
     "NSMicrophoneUsageDescription": "Private Vision Vault, kasa kamerasıyla çektiğin videolarda ses kaydetmek için mikrofonu kullanır.",
-    "NSPhotoLibraryUsageDescription": "Private Vision Vault, şifreli kasana taşımak üzere fotoğraf ve video seçmeni sağlar. Orijinalleri kaldırmasını istersen önce her birinin kasa kopyasıyla aynı olduğunu denetler.",
-    "NSLocalNetworkUsageDescription": "Private Vision Vault, şifreli kasanı taşımak için aynı Wi-Fi ağındaki diğer telefonuna doğrudan bağlanır. Hiçbir şey internet üzerinden gitmez."
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault, şifreli kasana kopyalamak üzere fotoğraf ve video seçmeni sağlar. Orijinaller fotoğraf arşivinde kalır.",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault, şifreli kasanı taşımak için aynı Wi-Fi ağındaki diğer telefonuna doğrudan bağlanır. Hiçbir şey internet üzerinden gitmez.",
+    "NSFaceIDUsageDescription": "Private Vision Vault, kasa PIN’inizi veya deseninizi girmeden önce ilk kilit olarak Face ID kullanır. Face ID tek başına kasayı asla açmaz."
   }
 }

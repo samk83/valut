@@ -38,14 +38,15 @@ final class Vault {
   private static let deletedMarker = "deleted"
   private static let sourceFile = "source"
 
-  init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize) throws {
+  init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize,
+       clock: MonotonicClock = SystemMonotonicClock()) throws {
     self.root = root
     items = root.appendingPathComponent("items")
     staging = root.appendingPathComponent("staging")
     self.chunkSize = chunkSize
     keys = VaultKeyManager(envelopeFile: root.appendingPathComponent("vault.key"),
                            counter: FileAttemptCounter(file: root.appendingPathComponent("attempts")),
-                           hardwareKey: hardwareKey, params: params)
+                           hardwareKey: hardwareKey, params: params, clock: clock)
     try SecureFiles.mkdirs(root)
     // An interrupted import leaves only ciphertext in staging; discard it (PRD 14).
     SecureFiles.deleteTree(staging)
@@ -69,10 +70,19 @@ final class Vault {
 
   func memoryNeededForUnlockKiB() -> Int { keys.memoryNeededKiB() }
 
-  func wipeLeftoversForFreshInstall() throws {
+  /// How long until the next PIN attempt is allowed (0 = now).
+  func lockedForMs() -> Int64 { keys.lockedForMs() }
+
+  /// Removes Keychain / Secure Enclave keys left by an earlier install. Uninstalling deletes
+  /// this folder, so if vault files are still here it is NOT a fresh install (only the marker
+  /// went missing): nothing is touched and false is returned. A vault is never wiped on a guess.
+  @discardableResult
+  func wipeLeftoversForFreshInstall() throws -> Bool {
+    if keys.hasKeyFiles() || !SecureFiles.list(items).isEmpty { return false }
     lock()
     try keys.wipeLeftoversForFreshInstall()
     SecureFiles.deleteTree(items)
+    return true
   }
 
   func create(pin: [UInt8]) throws {
@@ -88,12 +98,12 @@ final class Vault {
   func unlock(pin: [UInt8]) throws {
     lock()
     let generation = currentGeneration()
-    let mk = try destroyingItemsOnLockout { try keys.unlock(pin: pin) }
+    let mk = try keys.unlock(pin: pin)
     try setMasterKey(mk, generation)
   }
 
   func changePin(current: [UInt8], new newPin: [UInt8]) throws {
-    try destroyingItemsOnLockout { try keys.changePin(current: current, new: newPin) }
+    try keys.changePin(current: current, new: newPin)
   }
 
   /// Drops the master key from memory. Call when the app leaves the screen (SPEC AC-07).
@@ -326,18 +336,6 @@ final class Vault {
     }
     masterKey?.wipe()
     masterKey = mk
-  }
-
-  /// Ciphertext is removed only after a real 3-strike destruction, never on a key glitch.
-  private func destroyingItemsOnLockout<T>(_ block: () throws -> T) throws -> T {
-    do {
-      return try block()
-    } catch VaultError.destroyed {
-      lock()
-      SecureFiles.deleteTree(items)
-      SecureFiles.deleteTree(staging)
-      throw VaultError.destroyed
-    }
   }
 
   private func aad(_ purpose: String, _ id: [UInt8]) -> [UInt8] { Array("PrivateVault item \(purpose) v1".utf8) + id }

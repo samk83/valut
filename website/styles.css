@@ -497,3 +497,7 @@ p { margin: 0; }
 .scr-destroyed .s-icon { margin-top: 0; opacity: 1; }
 .scr-destroyed h4 { margin-top: calc(10 * var(--u)); line-height: 1.15; }
 .s-info { margin-top: calc(26 * var(--u)); width: 100%; padding: calc(16 * var(--u)); border-radius: calc(16 * var(--u)); background: #13171F; border: 1px solid #232834; font-size: calc(13 * var(--u)); color: #D9D4CA; text-align: left; }
+
+/* longer brand name ("Private Vision Vault"): keep it on one line on narrow phones */
+.brand { white-space: nowrap; }
+@media (max-width: 380px) { .brand { font-size: 16px; gap: 8px; } .nav-cta { padding-left: 12px; padding-right: 12px; } }

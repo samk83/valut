@@ -103,17 +103,21 @@ final class VaultTests: XCTestCase {
   private var chip: FakeHardwareKey!
   private let pin = Array("8024".utf8)
   private let small = try! Argon2Params(memoryKiB: 64, iterations: 1, parallelism: 1)
+  private var clock: FakeClock!
 
   override func setUpWithError() throws {
     root = FileManager.default.temporaryDirectory.appendingPathComponent("vault-test-\(UUID().uuidString)")
     chip = FakeHardwareKey()
+    clock = FakeClock()
   }
 
   override func tearDownWithError() throws {
     try? FileManager.default.removeItem(at: root)
   }
 
-  private func vault(chunk: Int = 1024) throws -> Vault { try Vault(root: root, hardwareKey: chip, params: small, chunkSize: chunk) }
+  private func vault(chunk: Int = 1024) throws -> Vault {
+    try Vault(root: root, hardwareKey: chip, params: small, chunkSize: chunk, clock: clock)
+  }
 
   private func importBytes(_ v: Vault, _ data: [UInt8], kind: ItemKind = .PHOTO) throws -> ImportResult {
     try v.importItem(content: MemorySource(data), meta: ItemMeta(kind: kind, mimeType: "image/jpeg", createdAtEpochMs: 1),
@@ -154,18 +158,49 @@ final class VaultTests: XCTestCase {
     }
   }
 
-  func testThreeWrongPinsDestroyEverything() throws {
+  func testWrongPinsNeverEraseAndWaitsGrow() throws {
     let v = try vault()
     try v.create(pin: pin)
-    _ = try importBytes(v, [1, 2, 3])
+    let data: [UInt8] = [1, 2, 3]
+    let id = try importBytes(v, data).item.id
     v.lock()
-    XCTAssertThrowsError(try v.unlock(pin: Array("1357".utf8))) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 2)) }
-    XCTAssertThrowsError(try v.unlock(pin: Array("1357".utf8))) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 1)) }
-    XCTAssertThrowsError(try v.unlock(pin: Array("1357".utf8))) { XCTAssertEqual($0 as? VaultError, .destroyed) }
-    XCTAssertFalse(chip.exists())
-    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .destroyed) }
-    XCTAssertFalse(v.exists())
-    XCTAssertTrue(SecureFiles.list(root.appendingPathComponent("items")).isEmpty)
+    let wrong = Array("1357".utf8)
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 2, waitMs: 0)) }
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 1, waitMs: 0)) }
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 0, waitMs: 60_000)) }
+    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .lockedOut(waitMs: 60_000)) }
+    clock.advance(60_000)
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 0, waitMs: 300_000)) }
+    clock.advance(300_000)
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 0, waitMs: 900_000)) }
+    clock.advance(900_000)
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 0, waitMs: 3_600_000)) }
+    clock.advance(3_600_000)
+    XCTAssertThrowsError(try v.unlock(pin: wrong)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 0, waitMs: 3_600_000)) }
+    XCTAssertTrue(chip.exists())
+    XCTAssertTrue(v.exists())
+    // A reboot or a clock change restarts the wait instead of ending it.
+    clock.advance(3_000_000)
+    clock.reboot()
+    XCTAssertEqual(v.lockedForMs(), 3_600_000)
+    clock.advance(3_600_000)
+    try v.unlock(pin: pin)
+    let out = MemorySink()
+    try v.read(id: id, output: out)
+    XCTAssertEqual(out.bytes, data)
+    XCTAssertEqual(v.remainingAttempts(), 3)
+  }
+
+  func testCorrectPinOpensWhenCountCannotBeReset() throws {
+    let file = FileAttemptCounter(file: root.appendingPathComponent("attempts"))
+    let v = try vault()
+    try v.create(pin: pin)
+    v.lock()
+    let keys = VaultKeyManager(envelopeFile: root.appendingPathComponent("vault.key"), counter: NoResetCounter(file), hardwareKey: chip,
+                               params: small, clock: clock)
+    for _ in 0..<6 { var mk = try keys.unlock(pin: pin); mk.wipe() }
+    XCTAssertGreaterThanOrEqual(keys.remainingAttempts(), 2)
+    XCTAssertEqual(keys.lockedForMs(), 0)
   }
 
   func testCorrectPinResetsCount() throws {
@@ -186,14 +221,16 @@ final class VaultTests: XCTestCase {
     XCTAssertEqual(v.remainingAttempts(), 3)
   }
 
-  /// A recorded final attempt whose check never finished (app killed) destroys on next try.
-  func testKilledDuringFinalAttemptStillDestroys() throws {
+  /// An attempt recorded whose check never finished (app killed) still waits, never erases.
+  func testKilledDuringThirdAttemptWaitsAndKeepsVault() throws {
     let v = try vault()
     try v.create(pin: pin)
     v.lock()
     try FileAttemptCounter(file: root.appendingPathComponent("attempts")).write(3)
-    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .destroyed) }
-    XCTAssertFalse(chip.exists())
+    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .lockedOut(waitMs: 60_000)) }
+    XCTAssertTrue(chip.exists())
+    clock.advance(60_000)
+    try v.unlock(pin: pin)
   }
 
   func testChipErrorGivesAttemptBack() throws {
@@ -241,7 +278,7 @@ final class VaultTests: XCTestCase {
       b[20] ^= 1 // inside the salt: the header is authenticated
       try Data(b).write(to: url)
     }
-    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 2)) }
+    XCTAssertThrowsError(try v.unlock(pin: pin)) { XCTAssertEqual($0 as? VaultError, .wrongPin(remaining: 2, waitMs: 0)) }
   }
 
   func testTamperedOrTruncatedDataIsRejected() throws {
@@ -278,25 +315,48 @@ final class VaultTests: XCTestCase {
     XCTAssertEqual(try v.list().count, 0)
   }
 
-  func testFreshInstallWipesLeftovers() throws {
+  func testFreshInstallWipesLeftoverChipKeysOnlyWhenFolderIsEmpty() throws {
     let v = try vault()
-    try v.create(pin: pin)
-    _ = try importBytes(v, [1])
-    try v.wipeLeftoversForFreshInstall()
-    XCTAssertFalse(v.exists())
+    try chip.create() // left in the Keychain by an earlier install
+    XCTAssertTrue(try v.wipeLeftoversForFreshInstall())
     XCTAssertFalse(chip.exists())
-    try v.create(pin: pin)
-    XCTAssertEqual(try v.list().count, 0)
   }
 
-  func testCounterSplitLeavesOneAttemptMaximum() throws {
+  func testLostInstallMarkerNeverWipesAVaultThatIsStillHere() throws {
+    let v = try vault()
+    try v.create(pin: pin)
+    let id = try importBytes(v, [1]).item.id
+    v.lock()
+    XCTAssertFalse(try v.wipeLeftoversForFreshInstall())
+    XCTAssertTrue(chip.exists())
+    try v.unlock(pin: pin)
+    XCTAssertEqual(try v.list().map(\.id), [id])
+    for name in ["vault.key", "vault.key.bak", "vault.key.check"] { try FileManager.default.removeItem(at: root.appendingPathComponent(name)) }
+    XCTAssertFalse(try v.wipeLeftoversForFreshInstall())
+    XCTAssertTrue(SecureFiles.exists(root.appendingPathComponent("items/\(id)")))
+  }
+
+  func testCounterSplitUsesTheHigherCopy() throws {
     let c = FileAttemptCounter(file: root.appendingPathComponent("attempts"))
+    let bak = root.appendingPathComponent("attempts.bak")
     try SecureFiles.mkdirs(root)
+    try c.write(10)
+    // Editing one copy never shortens a wait.
+    try Data([0, 0, 0, 0]).write(to: bak)
+    XCTAssertEqual(c.read(), 10)
+    // A backup that cannot be written is removed, so the stale higher copy cannot win.
+    try FileManager.default.removeItem(at: bak)
+    try FileManager.default.createDirectory(at: bak, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(at: bak.appendingPathComponent("keep"), withIntermediateDirectories: true)
     try c.write(0)
-    try Data([0, 0, 0, 2]).write(to: root.appendingPathComponent("attempts.bak"))
-    XCTAssertEqual(c.read(), 2)
+    XCTAssertEqual(c.read(), 0)
+    try FileManager.default.removeItem(at: bak)
+    try c.write(0)
+    try Data([0, 0, 0, 10]).write(to: bak)
+    XCTAssertEqual(c.read(), 10)
+    // Both copies gone leaves one attempt.
     try FileManager.default.removeItem(at: root.appendingPathComponent("attempts"))
-    try FileManager.default.removeItem(at: root.appendingPathComponent("attempts.bak"))
+    try FileManager.default.removeItem(at: bak)
     XCTAssertEqual(c.read(), 2)
   }
 
@@ -374,5 +434,30 @@ final class ReviewFixTests: XCTestCase {
     try Data(data).write(to: dir.appendingPathComponent("a"))
     try SecureFiles.copySynced(from: dir.appendingPathComponent("a"), to: dir.appendingPathComponent("b"))
     XCTAssertEqual(try SecureFiles.readBytes(dir.appendingPathComponent("b")), data)
+  }
+}
+
+/// Controllable clock for the wait after wrong attempts.
+final class FakeClock: MonotonicClock {
+  var elapsed: Int64 = 1_000_000
+  var bootWall: Int64 = 1_700_000_000_000
+  func elapsedMs() -> Int64 { elapsed }
+  func wallMs() -> Int64 { bootWall + elapsed }
+  func advance(_ ms: Int64) { elapsed += ms }
+  /// Phone restarted: time since boot starts again, the wall clock keeps going.
+  func reboot() {
+    bootWall += elapsed + 30_000
+    elapsed = 5_000
+  }
+}
+
+/// A counter whose reset to 0 always fails, like a nearly full disk.
+final class NoResetCounter: AttemptCounter {
+  private let inner: FileAttemptCounter
+  init(_ inner: FileAttemptCounter) { self.inner = inner }
+  func read() -> Int { inner.read() }
+  func write(_ value: Int) throws {
+    if value == 0 { throw VaultError.io("disk full") }
+    try inner.write(value)
   }
 }

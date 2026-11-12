@@ -3,7 +3,8 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault menggunakan kamera untuk mengambil foto dan video yang langsung masuk ke brankas terenkripsi Anda.",
     "NSMicrophoneUsageDescription": "Private Vision Vault menggunakan mikrofon untuk merekam suara pada video yang Anda ambil dengan kamera brankas.",
-    "NSPhotoLibraryUsageDescription": "Private Vision Vault memungkinkan Anda memilih foto dan video untuk dipindahkan ke brankas terenkripsi Anda. Jika Anda memintanya menghapus file asli, app terlebih dahulu memeriksa bahwa setiap file identik dengan salinan di brankas.",
-    "NSLocalNetworkUsageDescription": "Private Vision Vault terhubung langsung ke ponsel Anda yang lain di Wi-Fi yang sama untuk memindahkan brankas terenkripsi Anda. Tidak ada yang melewati internet."
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault memungkinkan Anda memilih foto dan video untuk disalin ke brankas terenkripsi Anda. File asli tetap ada di perpustakaan foto Anda.",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault terhubung langsung ke ponsel Anda yang lain di Wi-Fi yang sama untuk memindahkan brankas terenkripsi Anda. Tidak ada yang melewati internet.",
+    "NSFaceIDUsageDescription": "Private Vision Vault menggunakan Face ID sebagai kunci pertama sebelum Anda memasukkan PIN atau pola brankas. Face ID saja tidak pernah membuka brankas."
   }
 }

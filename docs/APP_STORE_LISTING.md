@@ -33,12 +33,12 @@ WHAT IT DOES
 • Works without an account, a server or a cloud copy. The app does not send your photos, videos or PIN anywhere.
 • Move to a new phone directly over your own Wi-Fi: the vault stays encrypted the whole way and nothing goes through the internet. Works between iPhone and Android.
 • Take photos and videos with the in-app camera; they go straight into the vault and are not saved to your photo library.
-• Move items in from your photo library. If you choose, the original is removed from the library only after the app has checked that the vault copy is identical.
+• Copy items in from your photo library. The app never deletes your originals; you decide what to remove in the Photos app.
 • Locks the moment you leave the app and blurs its preview in the app switcher.
 • Grid layout adapts to iPad and larger screens.
 
 PLEASE READ BEFORE YOU START
-• There is no recovery. Three wrong PIN or pattern attempts in a row permanently erase the vault.
+• There is no PIN reset. Wrong attempts never erase anything; after three, each further try has to wait longer (up to an hour).
 • Nobody, including the developer, can reset your PIN or open your vault.
 • The vault is not included in iCloud or computer backups. To change phones, use Move to a new phone in Settings before you reset or give away the old one. Deleting the app or resetting the device erases it.
 • Keep separate copies of anything you cannot afford to lose.
@@ -73,12 +73,12 @@ Private Vision Vault는 고른 사진과 동영상을 이 기기 안의 암호�
 • 계정·서버·클라우드 없이 동작합니다. 앱은 사진·동영상·PIN을 어디로도 보내지 않습니다.
 • 새 핸드폰으로 옮기기: 내 Wi-Fi로 두 폰을 직접 연결해 옮깁니다. 옮기는 동안에도 암호화된 상태이고 인터넷을 거치지 않습니다. iPhone과 Android 사이에서도 됩니다.
 • 앱 안 카메라로 찍은 사진·동영상은 사진 앱에 저장되지 않고 바로 금고에 들어갑니다.
-• 사진 앱에서 가져올 수 있고, 원하면 금고 사본이 원본과 똑같은지 확인한 뒤에만 원본을 지웁니다.
+• 사진 앱에서 복사해 가져옵니다. 앱은 원본을 지우지 않으며, 원본 정리는 사진 앱에서 직접 하세요.
 • 앱을 벗어나는 순간 잠기고, 앱 전환 화면에서는 흐리게 가려집니다.
 • iPad와 큰 화면에 맞게 사진 칸 수가 바뀝니다.
 
 시작하기 전에 꼭 읽어 주세요
-• 복구 기능은 없습니다. PIN·패턴을 연속 3번 틀리면 금고가 영구 삭제됩니다.
+• PIN 재설정 기능은 없습니다. 잘못 입력해도 아무것도 지워지지 않고, 3번 틀린 뒤에는 다음 시도까지 기다려야 합니다(최대 1시간).
 • 개발자를 포함해 누구도 PIN을 재설정하거나 금고를 열 수 없습니다.
 • 금고는 iCloud·컴퓨터 백업에 포함되지 않습니다. 폰을 바꿀 때는 기존 폰을 초기화하거나 넘기기 전에 설정의 "새 핸드폰으로 옮기기"를 쓰세요. 앱을 지우거나 기기를 초기화하면 함께 지워집니다.
 • 잃으면 안 되는 자료는 따로 사본을 보관하세요.
@@ -93,8 +93,8 @@ Private Vision Vault는 고른 사진과 동영상을 이 기기 안의 암호�
 ## App Review 메모 (Notes)
 ```
 Private Vision Vault is a fully offline vault for photos and videos. No account and no network are used.
-On first launch, tick the consent box (3 wrong attempts permanently erase the vault; Terms of Use), then create a PIN of 4+ digits (avoid simple ones like 1234) or a pattern.
-IMPORTANT: 3 wrong PIN entries permanently erase the vault by design (security feature).
+On first launch, tick the consent box (a forgotten PIN cannot be reset; Terms of Use), then create a PIN of 4+ digits (avoid simple ones like 1234) or a pattern.
+Note: wrong PIN entries never erase data. After 3 wrong entries the app asks you to wait (1 min, then 5 min, 15 min, 1 hour) before the next try.
 To test: create a PIN, tap "Import from Photos" to add a photo, or use the camera button; open an item to view it.
 Encryption: AES-256-GCM via Apple CryptoKit, used only to protect the user's own data on the device.
 ```

@@ -9,7 +9,7 @@ import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Owns the vault master key (MK) and the 3-strike rule.
+ * Owns the vault master key (MK) and the wait after wrong attempts ([LockoutPolicy]).
  *
  * Key hierarchy:
  *   A   = Argon2id(PIN, salt, params)
@@ -19,13 +19,19 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * The PIN alone cannot open the envelope (H is needed), and the device key alone cannot
  * either (A is needed). There is no recovery key of any kind (PRD PV-SEC-001).
+ *
+ * Wrong attempts never destroy anything (SPEC AC-04): only [destroy] (the owner's own reset)
+ * and [wipeLeftoversForFreshInstall] remove keys.
  */
 class VaultKeyManager(
     private val envelopeFile: File,
     private val counter: AttemptCounter,
     private val hardwareKey: HardwareKey,
     private val params: Argon2Params = Argon2Params.DEFAULT,
+    clock: MonotonicClock = SystemMonotonicClock,
 ) {
+    private val lastAttempt = LockoutRecord(File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".wait"), clock)
+
     private val lockFile = File(envelopeFile.absoluteFile.parentFile, envelopeFile.name + ".lock")
 
     // Identifies the current master key without revealing it, so an object holding a master
@@ -40,7 +46,14 @@ class VaultKeyManager(
 
     fun exists(): Boolean = hasEnvelope() && hardwareKey.exists()
 
-    fun remainingAttempts(): Int = (MAX_ATTEMPTS - counter.read()).coerceAtLeast(0)
+    /** True if any key file of a vault is on disk here (used to tell a real fresh install). */
+    fun hasKeyFiles(): Boolean = hasEnvelope() || checkFile.exists()
+
+    /** Wrong attempts left before a wait starts. */
+    fun remainingAttempts(): Int = (LockoutPolicy.FREE_ATTEMPTS - counter.read()).coerceAtLeast(0)
+
+    /** How long until the next attempt is allowed (0 = now). */
+    fun lockedForMs(): Long = exclusive { lastAttempt.remainingMs(counter.read()) }
 
     /** Creates a new vault and returns its master key. The caller must wipe it when done. */
     fun create(pin: CharArray): ByteArray =
@@ -62,8 +75,8 @@ class VaultKeyManager(
         }
 
     /**
-     * Checks [pin] and returns the master key. On the third consecutive wrong PIN the keys
-     * are destroyed and [VaultDestroyedException] is thrown.
+     * Checks [pin] and returns the master key. A wrong PIN throws [WrongPinException]; while a
+     * wait is running [LockedOutException] is thrown without checking or counting anything.
      */
     fun unlock(pin: CharArray): ByteArray = exclusive { unlockLocked(pin) }
 
@@ -111,6 +124,7 @@ class VaultKeyManager(
             SecureFiles.shred(backupFile)
             SecureFiles.shred(checkFile)
             counter.write(0)
+            lastAttempt.clear()
         }
 
     /**
@@ -127,49 +141,42 @@ class VaultKeyManager(
     private fun unlockLocked(pin: CharArray): ByteArray {
         if (!PinPolicy.isCompleteEntry(pin)) throw IncompleteEntryException()
         val used = counter.read()
-        if (used >= MAX_ATTEMPTS) {
-            // Either the final attempt was recorded but the process died before it finished,
-            // or a destruction was interrupted halfway. Giving the attempt again would let an
-            // attacker kill the app after each wrong final guess and retry forever, so the
-            // destruction is (re)done.
-            destroyLocked()
-            throw VaultDestroyedException()
-        }
+        // After too many wrong attempts the next one must wait. Nothing is checked, counted
+        // or erased while waiting (SPEC AC-04).
+        val wait = lastAttempt.remainingMs(used)
+        if (wait > 0) throw LockedOutException(wait)
         val hasEnvelope = hasEnvelope()
         val hasChipKey = hardwareKey.exists()
         if (!hasEnvelope && !hasChipKey) throw VaultDestroyedException()
         // Half the key material is missing: nothing can open the vault, but this is not a
-        // completed wrong guess, so nothing is destroyed or counted.
+        // completed wrong guess, so nothing is counted.
         if (!hasEnvelope || !hasChipKey) throw KeysUnavailableException()
         // Both envelope copies are unreadable as envelopes (storage damage, not a PIN
         // question): no PIN could open them, so this must not use up an attempt (AC-50).
         val copies = readEnvelopeCopies()
         if (copies.isEmpty()) throw KeysUnavailableException()
         // Count first, check second (SPEC AC-03). If the process is killed during the check,
-        // the attempt stays counted.
-        counter.write(used + 1)
+        // the attempt stays counted and its wait starts from this moment.
+        // If the time cannot be stored, the next wait starts when it is first needed instead.
+        runCatching { lastAttempt.markNow() }
+        counter.write(minOf(used + 1, LockoutPolicy.MAX_COUNT))
         val mk =
             try {
                 openEnvelope(pin, copies)
             } catch (e: IntegrityException) {
-                if (used + 1 >= MAX_ATTEMPTS) {
-                    destroyLocked()
-                    throw VaultDestroyedException()
-                }
-                throw WrongPinException(MAX_ATTEMPTS - (used + 1))
+                val failures = used + 1
+                throw WrongPinException((LockoutPolicy.FREE_ATTEMPTS - failures).coerceAtLeast(0), LockoutPolicy.delayMs(failures))
             } catch (e: Throwable) {
                 // The check did not complete (out of memory, security chip error). No answer
                 // was learned, so the attempt is given back instead of being counted.
                 runCatching { counter.write(used) }.exceptionOrNull()?.let(e::addSuppressed)
                 throw e
             }
-        try {
-            counter.write(0)
-            repairCopies(mk)
-        } catch (e: Throwable) {
-            mk.wipe()
-            throw e
-        }
+        // The PIN is right: the vault opens even if the count cannot be reset right now (for
+        // example storage is full). Then at least this attempt is taken back, so a correct
+        // PIN never leaves the count raised as if it had been wrong.
+        runCatching { counter.write(0) }.onFailure { runCatching { counter.write(used) } }
+        repairCopies(mk)
         return mk
     }
 
@@ -198,8 +205,6 @@ class VaultKeyManager(
             .distinctBy { it.toList() }
 
     private fun destroyLocked() {
-        // The count is set first so an interruption still leaves the vault refusing entry.
-        counter.write(MAX_ATTEMPTS)
         if (hardwareKey.exists()) hardwareKey.destroy()
         SecureFiles.shred(envelopeFile)
         SecureFiles.shred(backupFile)
@@ -207,6 +212,8 @@ class VaultKeyManager(
         // Temp copies of an envelope (left by a crash during a write) open with the same keys.
         envelopeFile.absoluteFile.parentFile?.listFiles { f -> f.name.startsWith(envelopeFile.name + ".") && f.name.endsWith(".tmp") }
             ?.forEach { SecureFiles.shred(it) }
+        counter.write(0)
+        lastAttempt.clear()
     }
 
     /**
@@ -325,8 +332,6 @@ class VaultKeyManager(
     }
 
     companion object {
-        const val MAX_ATTEMPTS = 3
-
         // One monitor per vault folder: two manager objects for the same files must also
         // wait for each other (a JVM cannot hold two file locks on one file).
         private val monitors = ConcurrentHashMap<String, Any>()
