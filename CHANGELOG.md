@@ -11,6 +11,9 @@
 - 설치 표시 파일(installed.marker)만 없어져도 멀쩡한 금고를 "새 설치"로 보고 지우던 위험. 앱 폴더에 금고 파일이 있으면 지우지 않음
 - 금고 키가 없을 때 앱 카메라 대기함의 촬영본을 지우던 동작 제거 (다음 금고로 저장)
 - 내부 QA 수정: Android 대기 시간이 화면 꺼짐(잠자기) 중에도 흐르도록 elapsedRealtime 사용 / 시도 횟수 두 사본이 다르면 큰 값 사용(한쪽만 고쳐 대기를 건너뛰는 것 방지), 두 번째 사본 쓰기 실패 시 낡은 사본 삭제 / 2분 이내 자동 시간 보정은 재부팅으로 보지 않음 / 대기 끝나면 카운트다운 타이머 정지
+### Changed (2026-11-11)
+- 출시 계획: 1.0을 따로 내지 않고 첫 App Store 출시를 1.1로 (무료 100개 + 평생 Premium 인앱 구매 함께 제출). docs/APP_STORE_LISTING.md 설명·가격·제출 체크리스트, NEXT_STEPS.md 출시 순서 수정
+
 ### Added (2026-11-10)
 - 새 핸드폰으로 옮기기: 같은 Wi-Fi(또는 핫스팟)에서 두 폰을 QR 코드로 직접 연결, 암호화 전송. 서버·클라우드 없음. iPhone ↔ Android 가능 (docs/TRANSFER_PROTOCOL.md)
   - core/Transfer.kt + ios/Core/Transfer.swift: QR 1회용 비밀값 → 방향별 AES-256-GCM 키, 순번 nonce 프레임, 항목마다 SHA-256 확인 후 다음 항목

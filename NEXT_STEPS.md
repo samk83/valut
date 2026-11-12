@@ -14,20 +14,22 @@
 - 웹사이트(PR #16)·스토어 문구(docs/aso)도 같은 내용으로 맞춤 (다른 스레드)
 - 남은 위험(앱이 막을 수 없음): 앱 삭제, 휴대폰 분실·초기화, PIN 분실 → 설치 안내·첫 화면에 안내 중
 
-## iPhone·iPad 출시 (2026-11-10)
+## iPhone·iPad 출시 (2026-11-10, 2026-11-11 갱신)
+- **Owner 결정 (2026-11-11): 1.0을 따로 내지 않고 첫 출시를 1.1로 한 번에** (100개 무료 → 평생 프리미엄 결제). main에서 빌드(app.json version 1.1), App Store Connect 버전도 1.1, 인앱 구매 `com.jellydock.privatevault.premium`을 첫 버전과 함께 심사 제출 (docs/APP_STORE_LISTING.md 체크리스트)
+- 제출 전 막는 조건: Paid Apps 계약 Active 필요(2026-11-11 은행 계좌 Processing → Pending), EU DSA 판매자 상태 In Review
 - 출시 가이드: https://claude.ai/artifact/Y2XDe2fSG5gnmMCyQgZrcU (App Store Connect 앱 등록 완료, 앱 번호 6832844680)
-- Owner: PC에서 `cd valut\app` → `npm install` → `npx eas-cli build --platform ios --profile production` (Apple 로그인 1회) → `npx eas-cli submit --platform ios --latest` → TestFlight로 아이폰·아이패드 확인
+- Owner: PC에서 `cd valut` → `git pull` → `cd app` → `npm install` → `npx eas-cli build --platform ios --profile production` (Apple 로그인 1회) → `npx eas-cli submit --platform ios --latest` → TestFlight로 아이폰·아이패드 확인
 - 실기기 확인: Secure Enclave 표시, PIN 확인 시간(Argon2 64 MiB), 사진 앱에서 복사 가져오기(원본 유지), 카메라, 아이패드 회전·분할 화면
 - 정식 심사 제출 전 결정: 화면 상단 "TEST BUILD" 경고 문구 제거 여부, 외부 보안 감사(Phase 4) 전 출시 여부 (Owner 결정)
 - 개인정보처리방침 URL: 소개 웹사이트(PR #3) 공개 필요 (GitHub Pages, Owner 승인)
 - 2027년 4월부터 iOS 27.1 SDK 이상 빌드는 iPhone Duo 스크린샷 필수 (준비됨)
-- 1.1 계획 (Owner 결정 2026-11-10): 새 핸드폰으로 금고 옮기기 → 개발함 (아래 1.1 항목, SPEC AC-70~79)
+- 새 핸드폰으로 금고 옮기기: 1.1에 포함되어 첫 출시에 들어감 (아래 1.1 항목, SPEC AC-70~79)
 
 ## 1.1 프리미엄 + 새 폰 옮기기 (2026-11-10)
 - Owner 결정 (2026-11-11): 새 폰 옮기기 무료 확정. iPhone·iPad 먼저 출시, Android 출시는 나중
 - Owner: App Store Connect에 상품 등록 — docs/PREMIUM_SETUP.md 1장 (유료 앱 계약·상품). Play Console 상품 등록은 Android 출시 때
 - 실기기 확인: 100개 제한, 샌드박스 구매·복원, 두 폰 옮기기(iPhone→iPhone, Android→iPhone, iPhone→Android), 옮기는 중 Wi-Fi 끊김 후 이어 받기
-- 출시 순서: PR #7 → #6 → #8 → #9 Merge 완료(2026-11-11) → #10 Merge 완료(2026-11-11) → iPhone 빌드·심사 제출 (L3 승인)
+- 출시 순서: PR #6~#10 Merge 완료(2026-11-11) → main에서 iPhone 1.1 빌드 → TestFlight 확인 → Paid Apps Active 확인 → 1.1 + 인앱 구매 함께 심사 제출 (L3 승인)
 - 언어팩 통합 완료 (2026-11-11): 1.1 문구 98개를 11개 언어로 번역(AI 번역, 원어민 검토 권장)
 - 남은 개선: Android 17 로컬 네트워크 권한 대응(대상 SDK 37 올릴 때), 구매 영수증 서명 확인(현재 스토어 앱 결과 신뢰), 대용량(수천 개) 옮기기 실측
 
