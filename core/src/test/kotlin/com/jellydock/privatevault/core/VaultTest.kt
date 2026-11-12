@@ -19,7 +19,9 @@ class VaultTest {
 
     private val hw = FakeHardwareKey()
 
-    private fun newVault() = Vault(dir, hw, TEST_PARAMS, chunkSize = 4096)
+    private val clock = FakeClock()
+
+    private fun newVault() = Vault(dir, hw, TEST_PARAMS, chunkSize = 4096, clock = clock)
 
     private val photo = ItemMeta(ItemKind.PHOTO, "image/jpeg", 1_700_000_000_000)
 
@@ -106,17 +108,21 @@ class VaultTest {
     }
 
     @Test
-    fun `three wrong PINs erase the vault and a new one can be created`() {
+    fun `wrong PINs never erase the photos, they only make the next try wait`() {
         val v = newVault()
         v.create(pin("482915"))
-        v.importItem(Aead.randomBytes(100).inputStream(), photo)
+        val content = Aead.randomBytes(100)
+        val id = v.importItem(content.inputStream(), photo).item.id
         v.lock()
-        assertFailsWith<WrongPinException> { v.unlock(pin("000001")) }
-        assertFailsWith<WrongPinException> { v.unlock(pin("000002")) }
-        assertFailsWith<VaultDestroyedException> { v.unlock(pin("000003")) }
-        assertFalse(File(dir, "items").exists())
-        v.create(pin("592016"))
-        assertTrue(v.list().isEmpty())
+        repeat(6) {
+            v.lockedForMs().let { w -> if (w > 0) clock.advance(w) }
+            assertFailsWith<WrongPinException> { v.unlock(pin("00000$it")) }
+        }
+        assertFailsWith<LockedOutException> { v.unlock(pin("482915")) }
+        assertTrue(File(dir, "items/$id").exists())
+        clock.advance(v.lockedForMs())
+        v.unlock(pin("482915"))
+        assertContentEquals(content, readAll(v, id))
     }
 
     @Test
@@ -176,14 +182,13 @@ class VaultTest {
     }
 
     @Test
-    fun `third wrong PIN during PIN change also erases the photos`() {
+    fun `wrong PINs during PIN change never erase the photos`() {
         val v = newVault()
         v.create(pin("482915"))
         v.importItem(Aead.randomBytes(100).inputStream(), photo)
-        repeat(2) { assertFailsWith<WrongPinException> { v.changePin(pin("00000$it"), pin("73920184")) } }
-        assertFailsWith<VaultDestroyedException> { v.changePin(pin("000009"), pin("73920184")) }
-        assertFalse(v.isUnlocked)
-        assertFalse(File(dir, "items").exists())
+        repeat(3) { assertFailsWith<WrongPinException> { v.changePin(pin("00000$it"), pin("73920184")) } }
+        assertFailsWith<LockedOutException> { v.changePin(pin("000009"), pin("73920184")) }
+        assertEquals(1, File(dir, "items").listFiles()!!.size)
     }
 
     @Test
@@ -228,13 +233,30 @@ class VaultTest {
     }
 
     @Test
-    fun `fresh install wipes keys and old ciphertext`() {
+    fun `fresh install wipes leftover chip keys when the folder is empty`() {
+        val v = newVault()
+        hw.create() // left in the security chip by an earlier install
+        assertTrue(v.wipeLeftoversForFreshInstall())
+        assertFalse(hw.exists())
+    }
+
+    @Test
+    fun `a lost install marker never wipes a vault that is still here`() {
         val v = newVault()
         v.create(pin("482915"))
-        v.importItem(Aead.randomBytes(100).inputStream(), photo)
-        v.wipeLeftoversForFreshInstall()
-        assertFalse(v.exists())
-        assertFalse(File(dir, "items").exists())
+        val content = Aead.randomBytes(100)
+        val id = v.importItem(content.inputStream(), photo).item.id
+        v.lock()
+        assertFalse(v.wipeLeftoversForFreshInstall())
+        assertTrue(hw.exists())
+        v.unlock(pin("482915"))
+        assertContentEquals(content, readAll(v, id))
+        // Photos without key files (keys lost) are kept too: only the owner may remove them.
+        File(dir, "vault.key").delete()
+        File(dir, "vault.key.bak").delete()
+        File(dir, "vault.key.check").delete()
+        assertFalse(v.wipeLeftoversForFreshInstall())
+        assertTrue(File(dir, "items/$id").exists())
     }
 
     @Test

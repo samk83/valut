@@ -3,7 +3,8 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "Private Vision Vault 使用相机拍摄照片和视频，并将其直接存入你的加密保险库。",
     "NSMicrophoneUsageDescription": "Private Vision Vault 使用麦克风，在你用保险库相机拍摄视频时录制声音。",
-    "NSPhotoLibraryUsageDescription": "Private Vision Vault 让你选择要移入加密保险库的照片和视频。如果你要求移除原件，它会先检查每一项是否与保险库中的副本完全相同。",
-    "NSLocalNetworkUsageDescription": "Private Vision Vault 会通过同一 Wi-Fi 直接连接你的另一部手机，以迁移你的加密保险库。不会经过互联网传输任何内容。"
+    "NSPhotoLibraryUsageDescription": "Private Vision Vault 让你选择要复制到加密保险库的照片和视频。原件会保留在你的照片图库中。",
+    "NSLocalNetworkUsageDescription": "Private Vision Vault 会通过同一 Wi-Fi 直接连接你的另一部手机，以迁移你的加密保险库。不会经过互联网传输任何内容。",
+    "NSFaceIDUsageDescription": "Private Vision Vault 在你输入保险库 PIN 或图案之前，使用面容 ID 作为第一道锁。仅凭面容 ID 永远无法打开保险库。"
   }
 }
