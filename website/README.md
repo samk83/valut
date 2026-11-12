@@ -1,4 +1,4 @@
-# PrivateVault 소개 웹사이트
+# Private Vision Vault 소개 웹사이트
 
 정적 웹사이트(HTML·CSS·JS 파일만, 빌드 도구 없음)입니다. 디자인은 앱 최종 시안 **Obsidian & Brass**([docs/DESIGN.md](../docs/DESIGN.md))를 따릅니다.
 

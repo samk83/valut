@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PrivateVault</title>
-<meta name="description" content="PrivateVault keeps your photos and videos encrypted on your phone. No account, no cloud, no servers.">
+<title>Private Vision Vault</title>
+<meta name="description" content="Private Vision Vault keeps your photos and videos encrypted on your phone. No account, no cloud, no servers.">
 <meta name="theme-color" content="#0B0D12">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
@@ -46,9 +46,9 @@
 
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="PrivateVault home">
+    <a class="brand" href="#top" aria-label="Private Vision Vault home">
       <svg aria-hidden="true"><use href="#dial"></use></svg>
-      PrivateVault
+      Private Vision Vault
     </a>
     <nav class="nav" aria-label="Page sections">
       <a class="nav-link" href="#how">How it works</a>
@@ -63,7 +63,7 @@
   <!-- Hero -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
-      <svg class="hero-dial" viewBox="0 0 360 360" role="img" aria-label="PrivateVault app icon: a brass vault dial with a keyhole">
+      <svg class="hero-dial" viewBox="0 0 360 360" role="img" aria-label="Private Vision Vault app icon: a brass vault dial with a keyhole">
         <rect x="0" y="0" width="360" height="360" rx="80" fill="url(#pvBg)"></rect>
         <rect x="1.5" y="1.5" width="357" height="357" rx="78.5" fill="none" stroke="url(#pvMetal)" stroke-opacity="0.45" stroke-width="3"></rect>
         <circle cx="180" cy="186" r="124" fill="#000000" opacity="0.45"></circle>
@@ -77,9 +77,9 @@
         <path d="M170 176 L162 222 L198 222 L190 176 Z" fill="url(#pvMetal)"></path>
         <path d="M80 0 H280 A80 80 0 0 1 360 80 V150 C260 120 100 120 0 160 V80 A80 80 0 0 1 80 0 Z" fill="url(#pvGloss)"></path>
       </svg>
-      <p class="eyebrow">PrivateVault · iPhone · Android</p>
+      <p class="eyebrow">Private Vision Vault · iPhone · Android</p>
       <h1 id="hero-title">Your photos stay<br><em>on your phone.</em></h1>
-      <p class="hero-lede">PrivateVault encrypts your photos and videos on your phone. There is no account, no cloud and no server. The vault opens only with your PIN (or pattern) on this phone.</p>
+      <p class="hero-lede">Private Vision Vault encrypts your photos and videos on your phone. There is no account, no cloud and no server. The vault opens only with your PIN (or pattern) on this phone.</p>
       <div class="stores" role="group" aria-label="Download the app (coming soon)">
         <button class="store" type="button" disabled aria-describedby="store-note-hero">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M10.5 18.5h3"></path></svg>
@@ -114,7 +114,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="#0B0D12"></path></svg>
             <span class="sr-only">Play the intro film</span>
           </button>
-          <h2 class="film-title" id="film-title">PrivateVault in 90 seconds</h2>
+          <h2 class="film-title" id="film-title">Private Vision Vault in 90 seconds</h2>
           <p class="film-sub">From creating a vault to moving photos and the vault camera</p>
           <p class="film-status" id="film-status" aria-live="polite"></p>
         </div>
@@ -143,15 +143,15 @@
           <article class="step" data-step="1">
             <p class="step-num">02 / 06</p>
             <h3>A PIN alone<br>won’t open it.</h3>
-            <p>Your PIN is turned into a key with Argon2id, then combined with a key held inside the phone’s security chip. The vault opens only when both are there. Your remaining attempts are always on screen.</p>
+            <p>Your PIN is turned into a key with Argon2id, then combined with a key held inside the phone’s security chip. The vault opens only when both are there. After three wrong tries, you have to wait before the next one.</p>
             <div class="tech"><span>Argon2id</span><span>Secure Enclave</span><span>StrongBox</span></div>
             <div class="step-shot"></div>
           </article>
           <article class="step" data-step="2">
             <p class="step-num">03 / 06</p>
-            <h3>Move photos<br>into the vault.</h3>
-            <p>Each photo and video you pick is encrypted with its own key, then decrypted again to check it. If you turned on “Delete originals after import”, only then does the app ask your photo library to delete the original. If anything fails, the original stays where it was.</p>
-            <div class="tech"><span>AES-256-GCM</span><span>Per-file keys</span><span>Delete after verify</span></div>
+            <h3>Copy photos<br>into the vault.</h3>
+            <p>Each photo and video you pick is copied into the vault, encrypted with its own key, then decrypted again to check it. The app never deletes your originals. They stay in your photo library, and you can delete them yourself in your Photos app if you want to.</p>
+            <div class="tech"><span>AES-256-GCM</span><span>Per-file keys</span><span>Originals left untouched</span></div>
             <div class="step-shot"></div>
           </article>
           <article class="step" data-step="3">
@@ -170,9 +170,9 @@
           </article>
           <article class="step" data-step="5">
             <p class="step-num">06 / 06</p>
-            <h3>Three wrong tries<br>and the key is gone.</h3>
-            <p>After three wrong PINs in a row, the key that opens the vault is erased from the phone. From then on, neither the right PIN nor a reinstall will open the files.</p>
-            <div class="tech"><span>Key erased after 3 tries</span><span>Reinstall can’t reach old files</span></div>
+            <h3>Wrong guesses<br>slow down. Files stay.</h3>
+            <p>After three wrong tries, each new try has to wait: 1 minute, then 5, then 15, then an hour every time. The wait runs on the phone’s time since start-up, so changing the clock doesn’t skip it. Wrong guesses never erase your vault.</p>
+            <div class="tech"><span>Waits 1 · 5 · 15 · 60 min</span><span>Never erased by wrong tries</span></div>
             <div class="step-shot"></div>
           </article>
         </div>
@@ -188,7 +188,7 @@
                 <div class="s-list">
                   <div class="s-li"><i></i><div><b>Encrypted on this phone</b><span>AES-256, sealed with your PIN or pattern and the phone’s security chip.</span></div></div>
                   <div class="s-li"><i></i><div><b>Nothing ever leaves</b><span>No account, no cloud, no sharing, no servers.</span></div></div>
-                  <div class="s-li"><i class="warn"></i><div><b>No recovery, ever</b><span>Forget your PIN or pattern, lose your phone or delete the app, and the files are gone for good.</span></div></div>
+                  <div class="s-li"><i class="warn"></i><div><b>No PIN reset, ever</b><span>Nobody can reset a forgotten PIN or pattern. Lose your phone or delete the app, and the files are gone.</span></div></div>
                 </div>
                 <div class="s-btn">Create my vault</div>
                 <p class="s-foot">Requires a device passcode and a hardware security chip.</p>
@@ -199,25 +199,25 @@
                 <p class="s-eyebrow" style="color: var(--faint); margin-top: calc(20 * var(--u))">Vault locked</p>
                 <h4>Welcome back</h4>
                 <div class="s-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
-                <p class="s-attempts"><b>2 of 3</b> attempts remaining</p>
+                <p class="s-attempts"><b>2</b> tries before a 1-minute wait</p>
                 <div class="s-keys">
                   <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="blank"></span><span>0</span><span class="del">←</span>
                 </div>
-                <p class="s-foot">Three wrong attempts permanently destroys this vault.<br>There is no recovery.</p>
+                <p class="s-foot">Wrong attempts never erase your vault.<br>Nobody can reset your PIN.</p>
               </div>
               <!-- 2 Importing -->
               <div class="scr scr-import" data-screen="2">
                 <svg class="s-ring" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86" fill="none" stroke="#1C2029" stroke-width="8"></circle><circle cx="100" cy="100" r="86" fill="none" stroke="url(#pvMetal)" stroke-width="8" stroke-linecap="round" stroke-dasharray="345.8 540.4" transform="rotate(-90 100 100)"></circle><text x="100" y="114" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="44" fill="#F2EEE6">64%</text></svg>
                 <p class="s-eyebrow" style="margin-top: calc(30 * var(--u))">Sealing</p>
                 <h4>Encrypting 9 of 14</h4>
-                <p class="s-sub">Each original is deleted from your gallery only after its encrypted copy is verified.</p>
+                <p class="s-sub">Copies only. Your originals stay in your gallery.</p>
                 <div class="s-card">
                   <div class="s-stage"><span class="ic ok">✓</span><div>1&nbsp; Encrypt into the vault</div></div>
                   <div class="s-stage"><span class="ic">…</span><div>2&nbsp; Verify the encrypted copy</div></div>
-                  <div class="s-stage dim"><span class="ic">3</span><div>3&nbsp; Delete the original</div></div>
-                  <div class="s-tally"><span>8 sealed</span><span>8 originals deleted</span></div>
+                  <div class="s-stage dim"><span class="ic">3</span><div>3&nbsp; Add it to the vault</div></div>
+                  <div class="s-tally"><span>8 sealed</span><span>Originals untouched</span></div>
                 </div>
-                <p class="s-foot">Keep the app open. If it closes, any original not yet verified stays in your gallery.</p>
+                <p class="s-foot">Keep the app open. If it closes, your originals are still in your gallery.</p>
               </div>
               <!-- 3 Camera -->
               <div class="scr scr-camera" data-screen="3">
@@ -228,21 +228,20 @@
               </div>
               <!-- 4 Home -->
               <div class="scr scr-home" data-screen="4">
-                <div class="s-top"><p class="s-eyebrow" style="color: var(--faint)">PrivateVault</p><h4>Your Vault</h4></div>
+                <div class="s-top"><p class="s-eyebrow" style="color: var(--faint)">Private Vision Vault</p><h4>Your Vault</h4></div>
                 <div class="s-pills"><span><span class="dot"></span>Encrypted on device</span><span>Offline · no cloud</span><span>Locks in 1:00</span></div>
                 <div class="s-seg"><b><svg viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="9.5" r="1.8"></circle><path d="m21 16-5-5-9 9"></path></svg>Photos <em>112</em></b><span><svg viewBox="0 0 24 24" fill="none" stroke="#8F897F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2.5"></rect><path d="m15.5 10.5 6-3.5v10l-6-3.5"></path></svg>Videos <em>16</em></span></div>
                 <p class="s-month">October</p>
                 <div class="s-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="s-dock"><span>Import from Photos</span><span class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0D12" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span></div>
               </div>
-              <!-- 5 Destroyed -->
+              <!-- 5 Waiting after wrong tries (reuses .scr-destroyed layout) -->
               <div class="scr scr-destroyed" data-screen="5">
-                <svg class="s-icon" viewBox="0 0 360 360"><circle cx="180" cy="180" r="150" fill="none" stroke="#3A3F4A" stroke-width="14" stroke-dasharray="40 22"></circle><path d="M120 120 L240 240 M240 120 L120 240" stroke="#6B7078" stroke-width="16" stroke-linecap="round"></path></svg>
-                <p class="s-eyebrow" style="color: var(--faint); margin-top: calc(30 * var(--u))">Key destroyed</p>
-                <h4>This vault is sealed forever</h4>
-                <p>Three wrong attempts were entered. The encryption key was erased, so the previous files can no longer be opened by anyone.</p>
-                <div class="s-info">You can start over with a new, empty vault. Nothing from the old vault will be carried across.</div>
-                <div class="s-btn">Create a new vault</div>
+                <svg class="s-icon" viewBox="0 0 360 360"><circle cx="180" cy="180" r="150" fill="none" stroke="#3A3F4A" stroke-width="14"></circle><circle cx="180" cy="180" r="150" fill="none" stroke="url(#pvMetal)" stroke-width="14" stroke-linecap="round" stroke-dasharray="300 642" transform="rotate(-90 180 180)"></circle><path d="M180 105 V180 L228 208" fill="none" stroke="url(#pvMetal)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <p class="s-eyebrow" style="color: var(--faint); margin-top: calc(30 * var(--u))">Too many wrong tries</p>
+                <h4>Try again in 14:52</h4>
+                <p>Five wrong attempts were entered. Your vault and its files are untouched.</p>
+                <div class="s-info">Each further wrong try waits longer, up to an hour. Nobody, including us, can reset your PIN.</div>
               </div>
             </div>
           </div>
@@ -279,7 +278,7 @@
       <div class="features">
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="13" width="22" height="15" rx="3"></rect><path d="M10 13V9a6 6 0 0 1 12 0v4"></path><circle cx="16" cy="20" r="2"></circle></svg>
-          <div><h3>Three tries, then the key is destroyed</h3><span class="tag">attempt counter written first</span><p>Each attempt is recorded <em>before</em> the PIN is checked, so force-quitting the app mid-check doesn’t reset the count.</p></div>
+          <div><h3>Waits that grow, files that stay</h3><span class="tag">attempt counter written first</span><p>Each attempt is recorded <em>before</em> the PIN is checked, so force-quitting the app mid-check doesn’t reset the count. After three wrong tries, guessing slows to one try an hour, and wrong tries never erase anything.</p></div>
         </article>
         <article class="feature">
           <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 12a17 17 0 0 1 24 0"></path><path d="M8.5 16.5a11 11 0 0 1 15 0"></path><path d="M13 21a5 5 0 0 1 6 0"></path><path d="M5 5l22 22"></path></svg>
@@ -311,13 +310,13 @@
       <div class="section-head">
         <p class="eyebrow">Good to know</p>
         <h2 id="limits-title">A strong vault<br>still has limits.</h2>
-        <p>No app can promise it can never be broken, and PrivateVault doesn’t. Here is what it protects, and what it can’t.</p>
+        <p>No app can promise it can never be broken, and Private Vision Vault doesn’t. Here is what it protects, and what it can’t.</p>
       </div>
       <div class="limit-list">
-        <article class="limit"><h3>There is no recovery</h3><p>Forget your PIN, lose your phone or delete the app, and the files can’t be opened again. We can’t open them for you either. To change phones, use Move to a new phone while you still have the old one.</p></article>
-        <article class="limit"><h3>Jailbroken or rooted phones</h3><p>The three-try limit holds on an unmodified phone. An attacker with a jailbroken or rooted phone, or professional forensic tools, can get around it. The app blocks access to the vault when it detects such a phone, and we recommend a PIN of 10 or more digits.</p></article>
+        <article class="limit"><h3>There is no PIN reset</h3><p>Forget your PIN or pattern and the vault can’t be opened. Lose your phone or delete the app and the files are gone. We can’t open them for you either. To change phones, use Move to a new phone while you still have the old one.</p></article>
+        <article class="limit"><h3>Jailbroken or rooted phones</h3><p>The waiting times hold on an unmodified phone. An attacker with a jailbroken or rooted phone, or professional forensic tools, can get around it. The app blocks access to the vault when it detects such a phone, and we recommend a PIN of 10 or more digits.</p></article>
         <article class="limit"><h3>While the vault is open</h3><p>If someone takes control of the phone while the vault is open, no app can stop them. Lock the vault when you’re done.</p></article>
-        <article class="limit"><h3>Copies left elsewhere</h3><p>You need to delete copies left in Recently Deleted (or Trash) and in cloud photo backups yourself. The app reminds you after each import.</p></article>
+        <article class="limit"><h3>Your originals stay put</h3><p>Importing copies; it never deletes. If you want the originals gone, delete them in your Photos app, then from Recently Deleted (or Trash) and any cloud photo backup.</p></article>
       </div>
     </div>
   </section>
@@ -326,7 +325,7 @@
   <section class="section" id="specs" aria-labelledby="specs-title">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">PrivateVault</p>
+        <p class="eyebrow">Private Vision Vault</p>
         <h2 id="specs-title">Tech specs</h2>
       </div>
       <dl class="specs">
@@ -334,14 +333,14 @@
         <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>About 1 second per check with 256 MiB of memory (target, to be finalized after on-device testing)</span></dd></div>
         <div class="spec-row"><dt>Key storage</dt><dd><strong>iPhone: Secure Enclave · Android: StrongBox</strong><span>Device-only, left out of backups and the phone’s own transfer tools. Keys never move between phones.</span><span>On Android, the app won’t create a vault on a device without StrongBox and rollback-resistant keys.</span></dd></div>
         <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits (10+ recommended) or a pattern of 6+ points</strong><span>Common PINs and simple patterns are rejected</span><span>Face ID, fingerprint or the device passcode alone can’t open the vault.</span></dd></div>
-        <div class="spec-row"><dt>Attempt limit</dt><dd><strong>Key destroyed after 3 wrong attempts in a row</strong><span>The correct PIN can’t bring it back</span></dd></div>
+        <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Timed by the phone’s time since start-up, so changing the clock doesn’t skip it</span></dd></div>
         <div class="spec-row"><dt>Auto-lock</dt><dd><strong>The moment you leave the app</strong><span>Contents hidden in the app switcher</span></dd></div>
         <div class="spec-row"><dt>File types</dt><dd><strong>Photos and videos</strong><span>Documents (PDF) and folders are planned for a later version</span></dd></div>
-        <div class="spec-row"><dt>Getting files in</dt><dd><strong>Move from your photo library · shoot with the vault camera</strong><span>The app asks to delete originals only after encryption and verification succeed</span></dd></div>
+        <div class="spec-row"><dt>Getting files in</dt><dd><strong>Copy from your photo library · shoot with the vault camera</strong><span>Import copies only: the app never deletes your originals</span></dd></div>
         <div class="spec-row"><dt>Export</dt><dd><strong>None</strong><span>No share, save, print, copy or open-in</span></dd></div>
         <div class="spec-row"><dt>Network and account</dt><dd><strong>No servers or accounts</strong><span>No cloud sync or backups · everything except moving to a new phone works in airplane mode</span></dd></div>
         <div class="spec-row"><dt>Move to a new phone</dt><dd><strong>Direct, phone to phone, on the same Wi-Fi</strong><span>Pair by scanning a one-time QR code · AES-256-GCM with a key from that code · private network addresses only</span><span>The new phone re-encrypts everything with its own keys · works between iPhone and Android</span></dd></div>
-        <div class="spec-row"><dt>Permissions</dt><dd><strong>Photos (import and deleting originals), Camera, Microphone (video sound)</strong><span>Local network (only to move to a new phone) · no location or contacts</span></dd></div>
+        <div class="spec-row"><dt>Permissions</dt><dd><strong>Photos (import), Camera, Microphone (video sound)</strong><span>Local network (only to move to a new phone) · no location or contacts</span></dd></div>
         <div class="spec-row"><dt>Ads and tracking</dt><dd><strong>None</strong><span>PINs, file names and keys are never written to logs</span></dd></div>
         <div class="spec-row"><dt>Devices</dt><dd><strong>iPhone and iPad first, Android later</strong><span>iPhone with Secure Enclave, <span class="tbd">[iOS version: announced at launch]</span></span><span>Android with StrongBox, <span class="tbd">[Android version: announced at launch]</span></span></dd></div>
         <div class="spec-row"><dt>Languages</dt><dd><strong>11 languages</strong><span>English, Simplified Chinese, Hindi, Indonesian, Portuguese (Brazil), Russian, Japanese, Spanish, German, Turkish, Korean</span></dd></div>
@@ -374,7 +373,7 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <p>PrivateVault · JellyDock</p>
+    <p>Private Vision Vault · JellyDock</p>
     <p>The app doesn’t collect personal data or send it to us.</p>
     <p><a href="privacy.html">Privacy Policy</a></p>
     <p>© 2026 JellyDock</p>
