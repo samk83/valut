@@ -15,11 +15,18 @@ class VaultKeyManagerTest {
     lateinit var dir: File
 
     private val hw = FakeHardwareKey()
+    private val clock = FakeClock()
 
     private fun manager(
         counter: AttemptCounter = FileAttemptCounter(File(dir, "attempts")),
         key: HardwareKey = hw,
-    ) = VaultKeyManager(File(dir, "vault.key"), counter, key, TEST_PARAMS)
+    ) = VaultKeyManager(File(dir, "vault.key"), counter, key, TEST_PARAMS, clock)
+
+    private fun assertNothingErased() {
+        assertTrue(hw.exists())
+        assertTrue(File(dir, "vault.key").exists())
+        assertTrue(File(dir, "vault.key.bak").exists())
+    }
 
     @Test
     fun `correct PIN returns the same master key`() {
@@ -39,29 +46,41 @@ class VaultKeyManagerTest {
     }
 
     @Test
-    fun `third wrong PIN destroys the keys and the correct PIN no longer works`() {
+    fun `third wrong PIN starts a one minute wait and erases nothing`() {
         val m = manager()
-        m.create(pin("482915"))
+        val mk = m.create(pin("482915"))
         assertFailsWith<WrongPinException> { m.unlock(pin("000001")) }
         assertFailsWith<WrongPinException> { m.unlock(pin("000002")) }
-        assertFailsWith<VaultDestroyedException> { m.unlock(pin("000003")) }
-        assertFalse(hw.exists())
-        assertFalse(File(dir, "vault.key").exists())
-        assertFailsWith<VaultDestroyedException> { m.unlock(pin("482915")) }
+        val third = assertFailsWith<WrongPinException> { m.unlock(pin("000003")) }
+        assertEquals(0, third.remainingAttempts)
+        assertEquals(60_000L, third.waitMs)
+        assertNothingErased()
+        // While waiting even the right PIN is not checked, and nothing is counted.
+        val before = hw.mixCalls
+        assertFailsWith<LockedOutException> { m.unlock(pin("482915")) }
+        assertEquals(before, hw.mixCalls)
+        clock.advance(59_000)
+        assertEquals(1_000L, m.lockedForMs())
+        clock.advance(1_000)
+        assertEquals(0L, m.lockedForMs())
+        assertContentEquals(mk, m.unlock(pin("482915")))
+        assertEquals(3, m.remainingAttempts())
     }
 
     @Test
-    fun `restoring an old copy of the envelope does not bring the vault back`() {
+    fun `each further wrong attempt waits longer, up to an hour, and never erases`() {
         val m = manager()
-        m.create(pin("482915"))
-        val snapshot = File(dir, "vault.key").readBytes()
-        repeat(3) { runCatching { m.unlock(pin("00000$it")) } }
-        File(dir, "vault.key").writeBytes(snapshot)
-        File(dir, "attempts").delete()
-        File(dir, "attempts.bak").delete()
-        // The hardware key is gone (on Android, rollback resistance guarantees it stays gone).
-        assertFailsWith<KeysUnavailableException> { m.unlock(pin("482915")) }
-        assertFailsWith<KeysUnavailableException> { m.unlock(pin("482915")) }
+        val mk = m.create(pin("482915"))
+        val waits = mutableListOf<Long>()
+        repeat(9) {
+            m.lockedForMs().let { w -> if (w > 0) clock.advance(w) }
+            waits += assertFailsWith<WrongPinException> { m.unlock(pin("00000$it")) }.waitMs
+        }
+        assertEquals(listOf(0L, 0L, 60_000L, 300_000L, 900_000L, 3_600_000L, 3_600_000L, 3_600_000L, 3_600_000L), waits)
+        assertNothingErased()
+        clock.advance(3_600_000)
+        assertContentEquals(mk, m.unlock(pin("482915")))
+        assertEquals(3, m.remainingAttempts())
     }
 
     @Test
@@ -93,26 +112,48 @@ class VaultKeyManagerTest {
     }
 
     @Test
-    fun `final attempt interrupted by a kill destroys the vault on next start`() {
+    fun `attempt interrupted by a kill still has to wait after a restart`() {
         val m = manager()
-        m.create(pin("482915"))
-        // State left on disk when the process dies during the 3rd check.
+        val mk = m.create(pin("482915"))
+        // State left on disk when the process dies during the 3rd check, before its time was kept.
         FileAttemptCounter(File(dir, "attempts")).write(3)
-        assertFailsWith<VaultDestroyedException> { m.unlock(pin("482915")) }
-        assertFalse(hw.exists())
+        assertFailsWith<LockedOutException> { m.unlock(pin("482915")) }
+        assertNothingErased()
+        clock.advance(60_000)
+        assertContentEquals(mk, m.unlock(pin("482915")))
     }
 
     @Test
-    fun `destruction interrupted after the chip key is gone is finished on next start`() {
+    fun `changing the clock or restarting the phone never shortens the wait`() {
         val m = manager()
         m.create(pin("482915"))
-        // Killed inside destroy: count set and chip key gone, envelope not yet shredded.
-        FileAttemptCounter(File(dir, "attempts")).write(3)
-        hw.destroy()
-        assertFailsWith<VaultDestroyedException> { m.unlock(pin("482915")) }
-        assertFalse(File(dir, "vault.key").exists())
-        m.create(pin("592016"))
-        assertTrue(m.exists())
+        repeat(3) { runCatching { m.unlock(pin("00000$it")) } }
+        clock.advance(30_000)
+        // Wall clock moved a day ahead: looks like a new boot, so the full wait starts again.
+        clock.bootWall += 86_400_000
+        assertEquals(60_000L, m.lockedForMs())
+        clock.advance(50_000)
+        clock.reboot()
+        assertEquals(60_000L, m.lockedForMs())
+        assertFailsWith<LockedOutException> { m.unlock(pin("482915")) }
+        clock.advance(60_000)
+        m.unlock(pin("482915"))
+    }
+
+    @Test
+    fun `correct PIN opens even when the count cannot be reset`() {
+        val file = FileAttemptCounter(File(dir, "attempts"))
+        val noReset =
+            object : AttemptCounter by file {
+                override fun write(value: Int) = if (value == 0) throw java.io.IOException("disk full") else file.write(value)
+            }
+        val m = manager(counter = noReset)
+        file.write(0)
+        val mk = VaultKeyManager(File(dir, "vault.key"), file, hw, TEST_PARAMS, clock).create(pin("482915"))
+        // Before the fix each of these left the count one higher, until the vault was erased.
+        repeat(6) { assertContentEquals(mk, m.unlock(pin("482915"))) }
+        assertTrue(m.remainingAttempts() >= 2)
+        assertEquals(0L, m.lockedForMs())
     }
 
     @Test
@@ -120,7 +161,7 @@ class VaultKeyManagerTest {
         val m = manager()
         m.create(pin("482915"))
         val tmp = File(dir, "vault.key.crash.tmp").apply { writeBytes(File(dir, "vault.key").readBytes()) }
-        repeat(3) { runCatching { m.unlock(pin("00000$it")) } }
+        m.destroy()
         assertFalse(tmp.exists())
     }
 
@@ -154,7 +195,7 @@ class VaultKeyManagerTest {
         m.create(pin("482915"))
         val before = hw.mixCalls
         val wrong = AtomicInteger()
-        val destroyed = AtomicInteger()
+        val locked = AtomicInteger()
         val threads =
             (1..12).map { i ->
                 Thread {
@@ -162,17 +203,17 @@ class VaultKeyManagerTest {
                         m.unlock(pin("90000$i".takeLast(6)))
                     } catch (e: WrongPinException) {
                         wrong.incrementAndGet()
-                    } catch (e: VaultDestroyedException) {
-                        destroyed.incrementAndGet()
+                    } catch (e: LockedOutException) {
+                        locked.incrementAndGet()
                     }
                 }
             }
         threads.forEach { it.start() }
         threads.forEach { it.join() }
         assertEquals(3, hw.mixCalls - before)
-        assertEquals(2, wrong.get())
-        assertEquals(10, destroyed.get())
-        assertFalse(hw.exists())
+        assertEquals(3, wrong.get())
+        assertEquals(9, locked.get())
+        assertNothingErased()
     }
 
     @Test
@@ -215,7 +256,7 @@ class VaultKeyManagerTest {
     fun `out of range counter values leave only one attempt`() {
         val m = manager()
         m.create(pin("482915"))
-        for (bad in listOf(-1, 4, Int.MAX_VALUE)) {
+        for (bad in listOf(-1, LockoutPolicy.MAX_COUNT + 1, Int.MAX_VALUE)) {
             FileAttemptCounter(File(dir, "attempts")).write(bad)
             assertEquals(1, m.remainingAttempts())
         }
@@ -232,13 +273,14 @@ class VaultKeyManagerTest {
     }
 
     @Test
-    fun `third wrong current PIN during PIN change destroys the keys`() {
+    fun `wrong current PIN during PIN change waits and never erases`() {
         val m = manager()
         m.create(pin("482915"))
         assertFailsWith<WrongPinException> { m.changePin(pin("000001"), pin("73920184")) }
         assertFailsWith<WrongPinException> { m.changePin(pin("000002"), pin("73920184")) }
-        assertFailsWith<VaultDestroyedException> { m.changePin(pin("000003"), pin("73920184")) }
-        assertFalse(hw.exists())
+        assertFailsWith<WrongPinException> { m.changePin(pin("000003"), pin("73920184")) }
+        assertFailsWith<LockedOutException> { m.changePin(pin("482915"), pin("73920184")) }
+        assertNothingErased()
     }
 
     @Test

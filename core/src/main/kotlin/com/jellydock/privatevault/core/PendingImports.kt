@@ -47,7 +47,7 @@ class PendingImports(private val dir: File) {
     }
 
     /**
-     * Removes every waiting capture. Only for a vault destruction (3 wrong PINs or a reset),
+     * Removes every waiting capture. Only for a vault destruction (the owner's reset),
      * so captures meant for the old vault never reach a new one.
      */
     fun clear() {

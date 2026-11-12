@@ -3,7 +3,8 @@
     "CFBundleDisplayName": "Private Vision Vault",
     "NSCameraUsageDescription": "O Private Vision Vault usa a câmera para tirar fotos e gravar vídeos que vão direto para o seu cofre criptografado.",
     "NSMicrophoneUsageDescription": "O Private Vision Vault usa o microfone para gravar o som dos vídeos que você faz com a câmera do cofre.",
-    "NSPhotoLibraryUsageDescription": "O Private Vision Vault permite que você escolha fotos e vídeos para mover para o seu cofre criptografado. Se você pedir para remover os originais, ele primeiro verifica se cada um é idêntico à cópia no cofre.",
-    "NSLocalNetworkUsageDescription": "O Private Vision Vault se conecta diretamente ao seu outro celular na mesma rede Wi-Fi para transferir seu cofre criptografado. Nada passa pela internet."
+    "NSPhotoLibraryUsageDescription": "O Private Vision Vault permite que você escolha fotos e vídeos para copiar para o seu cofre criptografado. Os originais continuam na sua fototeca.",
+    "NSLocalNetworkUsageDescription": "O Private Vision Vault se conecta diretamente ao seu outro celular na mesma rede Wi-Fi para transferir seu cofre criptografado. Nada passa pela internet.",
+    "NSFaceIDUsageDescription": "O Private Vision Vault usa o Face ID como primeiro bloqueio antes de você digitar o PIN ou padrão do cofre. O Face ID sozinho nunca abre o cofre."
   }
 }

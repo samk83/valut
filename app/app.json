@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PrivateVault Test",
+    "name": "Private Vision Vault",
     "slug": "privatevault-test",
     "version": "1.1",
     "orientation": "portrait",
@@ -34,6 +34,12 @@
       "expo-video",
       "expo-font",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Private Vision Vault uses Face ID as a first lock before you enter your vault PIN or pattern. Face ID alone never opens the vault."
+        }
+      ],
+      [
         "expo-camera",
         {
           "recordAudioAndroid": true,
@@ -44,21 +50,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Private Vision Vault lets you choose photos and videos to move into your encrypted vault. If you ask it to remove the originals, it first checks each one is identical to the vault copy.",
+          "photosPermission": "Private Vision Vault lets you choose photos and videos to copy into your encrypted vault. The originals stay in your photo library.",
           "cameraPermission": "Private Vision Vault uses the camera to take photos and videos that go straight into your encrypted vault.",
           "microphonePermission": "Private Vision Vault uses the microphone to record sound with videos you take in the vault camera."
-        }
-      ],
-      [
-        "expo-media-library",
-        {
-          "isAccessMediaLocationEnabled": false,
-          "granularPermissions": [
-            "photo",
-            "video"
-          ],
-          "photosPermission": "Private Vision Vault lets you choose photos and videos to move into your encrypted vault. If you ask it to remove the originals, it first checks each one is identical to the vault copy.",
-          "savePhotosPermission": false
         }
       ],
       [

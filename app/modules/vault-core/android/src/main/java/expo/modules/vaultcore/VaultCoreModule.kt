@@ -6,15 +6,16 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
-import android.content.ContentUris
 import android.net.Uri
-import android.provider.MediaStore
+import android.os.SystemClock
 import android.util.Base64
 import com.jellydock.privatevault.core.Argon2Params
 import com.jellydock.privatevault.core.IncompleteEntryException
 import com.jellydock.privatevault.core.ItemKind
 import com.jellydock.privatevault.core.ItemMeta
 import com.jellydock.privatevault.core.KeysUnavailableException
+import com.jellydock.privatevault.core.LockedOutException
+import com.jellydock.privatevault.core.MonotonicClock
 import com.jellydock.privatevault.core.PendingImports
 import com.jellydock.privatevault.core.PinPolicy
 import com.jellydock.privatevault.core.SecureFiles
@@ -62,20 +63,18 @@ class VaultCoreModule : Module() {
       OnCreate {
         hardwareKey = AndroidHardwareKey(AndroidHardwareKey.strongBoxFeature(context.packageManager))
         root.mkdirs()
-        vault = Vault(root, hardwareKey, PARAMS)
+        vault = Vault(root, hardwareKey, PARAMS, clock = BootClock)
         inbox = PendingImports(File(context.noBackupFilesDir, "pending"))
         // allowBackup=false and noBackupFilesDir keep data off backups. The marker below also
         // lives there, so its absence means a fresh install: clear anything left (SPEC AC-20).
+        // If vault files are still here, only the marker was lost: nothing is wiped then.
         val marker = File(context.noBackupFilesDir, "installed.marker")
         if (!marker.exists()) {
-          vault.wipeLeftoversForFreshInstall()
-          inbox.clear()
+          if (vault.wipeLeftoversForFreshInstall()) inbox.clear()
           marker.writeText("1")
         }
-        // Captures are only taken while a vault is unlocked. With no key envelope at all, the
-        // vault was destroyed (possibly a reset cut short before its captures were removed),
-        // so they must not flow into a vault created later.
-        if (!hasEnvelopeFiles()) destroyWaitingCaptures()
+        // Waiting camera captures exist nowhere else, so they are kept until they are saved
+        // into a vault. Only the owner's own reset removes them (destroy below).
         clearPlayback()
         clearPickerCaches()
         // A capture left in the camera cache by a crash could be evicted by Android when
@@ -88,6 +87,7 @@ class VaultCoreModule : Module() {
           "exists" to vault.exists(),
           "unlocked" to vault.isUnlocked,
           "remainingAttempts" to vault.remainingAttempts(),
+          "lockedForMs" to vault.lockedForMs().toDouble(),
           "hardware" to hardwareKey.describeExisting(),
           "strongBoxAvailable" to AndroidHardwareKey.strongBoxFeature(context.packageManager),
         )
@@ -102,8 +102,6 @@ class VaultCoreModule : Module() {
 
       AsyncFunction("create") { pin: String ->
         withPin(pin) { chars ->
-          // Anything still waiting belongs to an earlier, destroyed vault.
-          if (!hasEnvelopeFiles()) destroyWaitingCaptures()
           try {
             vault.create(chars)
             ok()
@@ -128,10 +126,11 @@ class VaultCoreModule : Module() {
             vault.unlock(chars)
             ok()
           } catch (e: WrongPinException) {
-            mapOf("ok" to false, "error" to "WRONG_PIN", "remaining" to e.remainingAttempts)
+            mapOf("ok" to false, "error" to "WRONG_PIN", "remaining" to e.remainingAttempts, "waitMs" to e.waitMs.toDouble())
+          } catch (e: LockedOutException) {
+            mapOf("ok" to false, "error" to "LOCKED_OUT", "waitMs" to e.waitMs.toDouble())
           } catch (e: VaultDestroyedException) {
-            clearPlayback()
-            destroyWaitingCaptures()
+            // No vault key at all (nothing to open). Nothing is deleted here.
             mapOf("ok" to false, "error" to "DESTROYED")
           } catch (e: IncompleteEntryException) {
             mapOf("ok" to false, "error" to "INCOMPLETE")
@@ -183,20 +182,6 @@ class VaultCoreModule : Module() {
             mapOf("saved" to false, "waiting" to inbox.pending().size)
           }
         }
-      }
-
-      /**
-       * Before an original is deleted from the gallery, re-reads it from MediaStore and
-       * compares it with the decrypted vault copy. Only an exact match may be deleted (AC-50e).
-       */
-      AsyncFunction("matchesOriginal") { id: String, assetId: String, kind: String ->
-        val base =
-          if (kind == "VIDEO") MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val original = ContentUris.withAppendedId(base, assetId.toLong())
-        val originalSha = runCatching { open(original).use { sha256(it) } }.getOrNull() ?: return@AsyncFunction false
-        val vaultDigest = MessageDigest.getInstance("SHA-256")
-        vault.read(id, DigestOutput(vaultDigest))
-        MessageDigest.isEqual(originalSha, vaultDigest.digest())
       }
 
       AsyncFunction("list") {
@@ -401,8 +386,6 @@ class VaultCoreModule : Module() {
     }
   }
 
-  private fun hasEnvelopeFiles() = File(root, "vault.key").exists() || File(root, "vault.key.bak").exists()
-
   /** Only after a destruction (3 wrong PINs or reset): captures must not reach a new vault. */
   private fun destroyWaitingCaptures() {
     synchronized(inboxLock) {
@@ -421,16 +404,20 @@ class VaultCoreModule : Module() {
     return free() >= needed
   }
 
-  private class DigestOutput(private val digest: MessageDigest) : java.io.OutputStream() {
-    override fun write(b: Int) = digest.update(b.toByte())
-
-    override fun write(b: ByteArray, off: Int, len: Int) = digest.update(b, off, len)
-  }
-
   companion object {
     // Lighter than the desktop default (256 MiB) so it fits in a phone app's heap.
     // The real per-device cost is still to be measured on hardware (SPEC AC-14).
     private val PARAMS = Argon2Params(memoryKiB = 64 * 1024, iterations = 3, parallelism = 1)
     private const val THUMB_PX = 360
+  }
+
+  /**
+   * Time since boot that keeps counting while the phone sleeps, so a wait after wrong
+   * attempts runs out normally with the screen off (System.nanoTime stops in deep sleep).
+   */
+  private object BootClock : MonotonicClock {
+    override fun elapsedMs(): Long = SystemClock.elapsedRealtime()
+
+    override fun wallMs(): Long = System.currentTimeMillis()
   }
 }

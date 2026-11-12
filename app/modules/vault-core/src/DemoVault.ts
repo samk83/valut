@@ -3,7 +3,11 @@
 // the PIN only lives until the app is closed. It exists so the screens can be tried out.
 import type { ItemKind, PinCheck, PinResult, VaultItem, VaultStatus } from './VaultCoreModule';
 
-const MAX_ATTEMPTS = 3;
+// Same rule as the real vault: wrong attempts never erase; after 3 each try waits longer.
+const FREE_ATTEMPTS = 3;
+const delayMs = (f: number) => (f < 3 ? 0 : f === 3 ? 60_000 : f === 4 ? 300_000 : f === 5 ? 900_000 : 3_600_000);
+let lastAttemptAt = 0;
+const lockedFor = () => Math.max(0, delayMs(failures) - (Date.now() - lastAttemptAt));
 const COMMON = new Set(['1234', '1111', '0000', '1212', '7777', '1004', '2000', '4444', '2222', '6969', '9999', '4321', '2580']);
 
 let pinHash: string | null = null;
@@ -36,7 +40,7 @@ function requireUnlocked() {
 export const DemoVault = {
   isDemo: true as const,
   async status(): Promise<VaultStatus> {
-    return { exists: pinHash !== null, unlocked, remainingAttempts: MAX_ATTEMPTS - failures, hardware: 'Preview (no encryption)', strongBoxAvailable: false };
+    return { exists: pinHash !== null, unlocked, remainingAttempts: Math.max(0, FREE_ATTEMPTS - failures), lockedForMs: lockedFor(), hardware: 'Preview (no encryption)', strongBoxAvailable: false };
   },
   checkPin,
   async create(pin: string): Promise<PinResult> {
@@ -58,17 +62,15 @@ export const DemoVault = {
     if (gen !== lockGeneration) return { ok: false, error: 'INTERRUPTED' };
     if (pinHash === null) return { ok: false, error: 'DESTROYED' };
     if (pin.length < 4) return { ok: false, error: 'INCOMPLETE' };
+    if (lockedFor() > 0) return { ok: false, error: 'LOCKED_OUT', waitMs: lockedFor() };
+    lastAttemptAt = Date.now();
     if (pin === pinHash) {
       failures = 0;
       unlocked = true;
       return { ok: true };
     }
     failures++;
-    if (failures >= MAX_ATTEMPTS) {
-      await DemoVault.destroy();
-      return { ok: false, error: 'DESTROYED' };
-    }
-    return { ok: false, error: 'WRONG_PIN', remaining: MAX_ATTEMPTS - failures };
+    return { ok: false, error: 'WRONG_PIN', remaining: Math.max(0, FREE_ATTEMPTS - failures), waitMs: delayMs(failures) };
   },
   lock() {
     lockGeneration++;
@@ -92,10 +94,6 @@ export const DemoVault = {
   async importCapture(uri: string, kind: ItemKind) {
     await DemoVault.importUri(uri, kind, kind === 'VIDEO' ? 'video/mp4' : 'image/jpeg', false);
     return { saved: true, waiting: 0 };
-  },
-  /** The preview holds no lasting copy, so no original ever counts as safely stored. */
-  async matchesOriginal(_id: string, _assetId: string, _kind: ItemKind) {
-    return false;
   },
   uriOf(id: string) {
     requireUnlocked();

@@ -6,11 +6,17 @@ sealed class VaultException(message: String) : Exception(message)
 /** The PIN entry was shorter than the minimum length. It is not counted as an attempt. */
 class IncompleteEntryException : VaultException("PIN entry is incomplete and was not counted")
 
-/** The PIN was wrong. [remainingAttempts] tells the UI how many tries are left. */
-class WrongPinException(val remainingAttempts: Int) :
-    VaultException("Wrong PIN, $remainingAttempts attempt(s) remaining")
+/**
+ * The PIN was wrong. [remainingAttempts] is how many tries are left before a wait starts,
+ * [waitMs] how long the next attempt must wait (0 if none). Nothing is ever erased.
+ */
+class WrongPinException(val remainingAttempts: Int, val waitMs: Long = 0) :
+    VaultException("Wrong PIN, $remainingAttempts free attempt(s) remaining")
 
-/** The vault keys were destroyed (3 failed attempts, manual reset or reinstall). Permanent. */
+/** Too many wrong attempts: no attempt is possible for [waitMs]. Nothing was counted or erased. */
+class LockedOutException(val waitMs: Long) : VaultException("Locked out for $waitMs ms")
+
+/** There is no vault key any more (the owner destroyed the vault, or a fresh install). */
 class VaultDestroyedException : VaultException("Vault keys have been destroyed")
 
 /**
