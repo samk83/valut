@@ -4,9 +4,12 @@ import Foundation
 enum VaultError: Error, Equatable {
   /// The PIN entry was malformed or too short. It is not counted as an attempt.
   case incompleteEntry
-  /// The PIN was wrong; [remaining] tries are left.
-  case wrongPin(remaining: Int)
-  /// The vault keys were destroyed (3 failed attempts, reset or reinstall). Permanent.
+  /// The PIN was wrong; [remaining] free tries are left before a wait, the next try must
+  /// wait [waitMs] (0 = none). Nothing is ever erased.
+  case wrongPin(remaining: Int, waitMs: Int64)
+  /// Too many wrong attempts: no attempt for [waitMs]. Nothing counted or erased.
+  case lockedOut(waitMs: Int64)
+  /// There is no vault key any more (the owner destroyed the vault, or a fresh install).
   case destroyed
   /// Only part of the key material is present. Nothing destroyed, nothing counted.
   case keysUnavailable

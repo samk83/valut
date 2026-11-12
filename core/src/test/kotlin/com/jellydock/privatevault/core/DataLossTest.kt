@@ -24,7 +24,9 @@ class DataLossTest {
     private val pinOk = pin("482915")
     private val photo = ItemMeta(ItemKind.PHOTO, "image/jpeg", 1_700_000_000_000)
 
-    private fun newVault() = Vault(dir, hw, TEST_PARAMS, chunkSize = 4096)
+    private val clock = FakeClock()
+
+    private fun newVault() = Vault(dir, hw, TEST_PARAMS, chunkSize = 4096, clock = clock)
 
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes)
 
@@ -137,10 +139,46 @@ class DataLossTest {
         FileAttemptCounter(File(dir, "x")).write(3)
         File(dir, "x").copyTo(File(dir, "attempts.bak"), overwrite = true)
         v.lock()
-        assertEquals(1, v.remainingAttempts())
+        // The higher copy wins, so this rare crash costs one short wait, never an item.
+        assertEquals(0, v.remainingAttempts())
+        assertTrue(v.lockedForMs() > 0)
+        clock.advance(LockoutPolicy.delayMs(3))
         v.unlock(pinOk)
         assertEquals(id, v.list().single().id)
         assertEquals(3, v.remainingAttempts())
+    }
+
+    @Test
+    fun `a failed backup write removes the stale copy so a correct PIN leaves no wait`() {
+        val (v, id) = vaultWithOneItem()
+        v.lock()
+        repeat(3) { assertFailsWith<WrongPinException> { v.unlock(pin("111222")) } }
+        clock.advance(LockoutPolicy.delayMs(3))
+        // Simulate a backup write that fails: the backup path is a folder, which a file
+        // cannot replace.
+        File(dir, "attempts.bak").delete()
+        File(dir, "attempts.bak").mkdirs()
+        v.unlock(pinOk)
+        assertEquals(id, v.list().single().id)
+        v.lock()
+        assertEquals(3, v.remainingAttempts())
+        assertEquals(0L, v.lockedForMs())
+    }
+
+    @Test
+    fun `editing one counter copy never shortens the wait`() {
+        val (v, _) = vaultWithOneItem()
+        v.lock()
+        repeat(4) {
+            clock.advance(LockoutPolicy.delayMs(it))
+            assertFailsWith<WrongPinException> { v.unlock(pin("111222")) }
+        }
+        val waitBefore = v.lockedForMs()
+        assertTrue(waitBefore >= LockoutPolicy.delayMs(4) - 1)
+        FileAttemptCounter(File(dir, "x")).write(0)
+        File(dir, "x").copyTo(File(dir, "attempts.bak"), overwrite = true)
+        assertEquals(waitBefore, v.lockedForMs())
+        assertFailsWith<LockedOutException> { v.unlock(pinOk) }
     }
 
     @Test

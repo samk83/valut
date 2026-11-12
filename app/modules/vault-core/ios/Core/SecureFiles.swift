@@ -161,28 +161,27 @@ final class FileAttemptCounter: AttemptCounter {
   }
 
   /// Both copies missing or damaged leave one attempt; disagreeing copies use the higher
-  /// value capped at one attempt left (see the Kotlin version for the reasoning).
+  /// value, so editing one copy never shortens a wait (see the Kotlin version).
   func read() -> Int {
-    let values = [file, backup].compactMap(parse)
-    guard let high = values.max() else { return tampered }
-    return values.min() == high ? high : min(high, tampered)
+    [file, backup].compactMap(parse).max() ?? tampered
   }
 
   func write(_ value: Int) throws {
     let v = UInt32(value)
     let bytes: [UInt8] = [UInt8(v >> 24 & 0xFF), UInt8(v >> 16 & 0xFF), UInt8(v >> 8 & 0xFF), UInt8(v & 0xFF)]
     try SecureFiles.writeAtomic(file, bytes)
-    // A failed second write leaves a split, which read() handles safely.
-    try? SecureFiles.writeAtomic(backup, bytes)
+    // A failed second write must not turn a correct PIN into an error; the old copy is
+    // removed so it cannot win over the new value.
+    do { try SecureFiles.writeAtomic(backup, bytes) } catch { unlink(backup.path) }
   }
 
   private func parse(_ url: URL) -> Int? {
     guard let bytes = try? SecureFiles.readBytes(url), bytes.count == 4 else { return nil }
     let value = Int(bytes[0]) << 24 | Int(bytes[1]) << 16 | Int(bytes[2]) << 8 | Int(bytes[3])
-    return (0...VaultKeyManager.maxAttempts).contains(value) ? value : nil
+    return (0...LockoutPolicy.maxCount).contains(value) ? value : nil
   }
 
-  private var tampered: Int { VaultKeyManager.maxAttempts - 1 }
+  private var tampered: Int { LockoutPolicy.freeAttempts - 1 }
 }
 
 /// A device-bound secret that never leaves the security chip (mirrors HardwareKey.kt).
