@@ -13,7 +13,12 @@ const path = require('path');
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
 module.exports = ({ config, projectRoot }) => {
-  if (!IS_DEV) return config;
+  // expo-dev-client is only used by the development build. In TestFlight / App Store builds
+  // its development menu is left out; also don't give the real app the dev client's
+  // generated URL scheme, so a dev-server QR code can only ever open PVV Dev.
+  if (!IS_DEV) {
+    return { ...config, plugins: [...(config.plugins ?? []), ['expo-dev-client', { addGeneratedScheme: false }]] };
+  }
   const name = 'PVV Dev';
   return {
     ...config,

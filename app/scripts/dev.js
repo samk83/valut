@@ -1,6 +1,6 @@
 // `npm run dev`: starts the dev server for the development build ("PVV Dev" app).
 // Sets APP_VARIANT=development (works the same in Windows PowerShell, cmd and macOS/Linux),
-// then runs `expo start --dev-client`. Extra arguments are passed on, e.g. `npm run dev -- --tunnel`.
+// then runs `expo start --dev-client`. Extra arguments are passed on (`npm run dev:tunnel` adds --tunnel).
 const { spawn } = require('child_process');
 
 const args = ['expo', 'start', '--dev-client', ...process.argv.slice(2)];
@@ -9,4 +9,8 @@ const child = spawn('npx', args, {
   shell: process.platform === 'win32',
   env: { ...process.env, APP_VARIANT: 'development' },
 });
-child.on('exit', (code) => process.exit(code ?? 0));
+child.on('error', (err) => {
+  console.error(`Could not start the dev server: ${err.message}`);
+  process.exit(1);
+});
+child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)));

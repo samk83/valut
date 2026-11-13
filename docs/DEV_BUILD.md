@@ -24,7 +24,7 @@
 |---|---|
 | 프리미엄 구매·복원 (인앱 구매) | **안 됨.** App Store Connect의 상품은 진짜 앱 ID에만 연결되어 있어 "사용할 수 없음"으로 나옵니다. 무료 100개 제한은 그대로 동작합니다 |
 | 진짜 앱의 사진·PIN | 보이지 않음 (따로 저장) |
-| 암호화 백업 | 동작하지만 **별도 폴더 "Private Vision Vault Backup (Dev)"** 에만 씁니다. 진짜 앱 백업 폴더를 골라도 그 안에 Dev 폴더를 따로 만들어 진짜 백업 파일은 건드리지 않습니다. 그래서 진짜 백업에서 복원도 안 됩니다 (의도된 동작) |
+| 암호화 백업 | 동작하지만 **별도 폴더 "Private Vision Vault Backup (Dev)"** 에만 씁니다. 진짜 앱 백업 폴더를 골라도 그 안에 "(Dev)" 폴더 하나만 새로 만들고, 진짜 백업 파일은 읽지도 바꾸지도 지우지도 않습니다. 헷갈리지 않게 개발용 앱에서는 진짜 백업과 다른 폴더(예: 파일 앱의 On My iPhone)를 고르세요. 그래서 진짜 백업에서 복원도 안 됩니다 (의도된 동작) |
 | 새 폰으로 옮기기 | 동작은 하지만 진짜 앱과 섞어서 쓰지 마세요 |
 | Face ID·카메라·사진 검색 | 동작 (처음에 PVV Dev용 권한을 한 번 더 물어봅니다) |
 | PC 없이 사용 | 안 됨. PC에서 `npm run dev`가 켜져 있어야 앱 화면이 열립니다 |
@@ -66,6 +66,12 @@ npm install
 
 ## 2단계 — 한 번만: iPhone 등록
 
+Expo 계정에 로그인되어 있지 않다면 먼저 (이미 로그인했다면 건너뛰기):
+
+```powershell
+npx eas-cli@latest login
+```
+
 ```powershell
 npx eas-cli@latest device:create
 ```
@@ -87,7 +93,9 @@ npx eas-cli@latest build --platform ios --profile development
 질문이 나오면:
 
 - Apple 계정 로그인 → `Y` (위와 같은 계정)
-- 새 앱 ID `com.jellydock.privatevault.dev` 와 인증서·프로필 만들기 → 모두 `Y` (기본값 Enter)
+- 새 앱 ID `com.jellydock.privatevault.dev` 와 개발용 프로필(provisioning profile) 만들기 → `Y`
+- 인증서(Distribution Certificate)는 **이미 있는 것을 다시 사용(reuse)** 하세요
+- ⚠️ **revoke(취소)** 또는 **delete(삭제)** 가 들어간 질문은 절대 고르지 마세요. 진짜 앱(TestFlight) 빌드에 쓰는 인증서가 무효가 됩니다. 그런 질문이 나오면 멈추고 알려 주세요
 - **Select devices for the ad hoc build** → 2단계에서 등록한 내 iPhone 선택 (스페이스바로 체크) → Enter
 
 > 처음 등록한 iPhone은 Apple 처리 시간 때문에 첫 빌드가 실패할 수 있습니다. 그러면 몇 시간 뒤 같은 명령어를 다시 실행하세요.
@@ -133,7 +141,7 @@ PC에서 코드가 바뀌면 iPhone 화면이 자동으로 새로 고쳐집니�
 - 그래도 안 되면 인터넷을 거쳐 연결하는 **터널** 방식으로 실행:
 
 ```powershell
-npm run dev -- --tunnel
+npm run dev:tunnel
 ```
 
   (Expo 터널을 사용합니다. 처음에 추가 설치를 물으면 `Y`.)
@@ -202,5 +210,5 @@ PR이 Merge된 뒤에는 브랜치를 바꿀 필요 없이 `git checkout main` �
 - `app/eas.json` `development` 프로필: `developmentClient: true`, `distribution: internal`, `APP_VARIANT=development`
 - `app/scripts/dev.js`: Windows에서도 `APP_VARIANT=development`를 넣고 `expo start --dev-client` 실행
 - 백업 폴더 분리: `app/modules/vault-core/ios/Core/BackupBridge.swift` (`isDevBuild`), 테스트 `testDevBuildNeverUsesTheRealBackupFolder`
-- `expo-dev-client`는 TestFlight·App Store(Release) 빌드에서는 개발 메뉴가 빠지고 동작하지 않습니다
+- `expo-dev-client`는 TestFlight·App Store(Release) 빌드에서는 개발 메뉴가 빠지고 동작하지 않습니다. 진짜 앱에는 dev client용 URL scheme(`exp+…`)도 넣지 않아(`addGeneratedScheme: false`), 개발 서버 QR 코드는 PVV Dev만 엽니다
 - Android 개발용 빌드는 아직 계획 없음. 만든다면 Android `BackupBridge.kt`에도 같은 Dev 폴더 분리를 넣어야 합니다
