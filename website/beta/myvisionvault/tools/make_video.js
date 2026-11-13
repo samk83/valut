@@ -1,7 +1,7 @@
 // Builds the how-to video (assets/video/how-to.mp4) and its poster from the real app screenshots.
 // Needs: Node, Playwright with Chromium, ffmpeg.  Run from the repo root:
 //   node website/beta/myvisionvault/tools/make_video.js <prepared screenshot folder> [narration folder]
-// Screenshots come from tools/prepare_shots.py. The narration folder holds one MP3 per scene, named by
+// Screenshots come from tools/capture_app.js (raw/*.png). The narration folder holds one MP3 per scene, named by
 // the scene's `vo` key below (00.mp3, 01.mp3, ..., ta.mp3, tb.mp3, tc.mp3, outro.mp3); each scene is
 // stretched to fit its line. Scenes without a file keep the default length and stay silent.
 // Each scene is an HTML slide (site fonts and colors) saved as a PNG, joined by ffmpeg with a slow zoom
@@ -34,7 +34,7 @@ const scenes = [
   { kind: 'tech-ai' },
   { vo: 'tc', kind: 'tech-network' },
   { shot: '09-backup', step: '09', tag: 'Backup', title: 'A backup only<br><em>you</em> can open.', body: 'Optional. Already-encrypted copies go to a folder you choose, like iCloud Drive, and only your recovery key opens them.' },
-  { shot: '10-settings', step: '10', tag: 'Check', title: 'Your protection<br>at a glance.', body: 'The phone’s own lock first, then your PIN. The vault locks the moment you leave the app.' },
+  { shot: '10-settings', step: '10', tag: 'Check', title: 'Your protection<br>at a glance.', body: 'Turn on the phone’s own lock as a first step before your PIN. The vault locks the moment you leave the app.' },
   { shot: '11-locked', step: '11', tag: 'Return', title: 'Come back with<br>your PIN.', body: 'Wrong tries make you wait, but never erase your vault. Never share your PIN with anyone.' },
   { kind: 'outro', vo: 'outro' },
 ];
@@ -165,12 +165,12 @@ function duration(file) {
   execFileSync('python3', [path.join(__dirname, 'make_music.py'), music, (total + 0.5).toFixed(2)], { stdio: 'inherit' });
   const musicIdx = pngs.length + audioInputs.length;
   args.push('-i', music);
-  parts.push(`[${musicIdx}:a]aresample=48000,aecho=0.8:0.7:60|140:0.25|0.15,loudnorm=I=-25:TP=-6,atrim=0:${total.toFixed(3)}[mus]`);
+  parts.push(`[${musicIdx}:a]aresample=48000,aecho=0.8:0.7:60|140:0.25|0.15,loudnorm=I=-25:TP=-6,aresample=48000,atrim=0:${total.toFixed(3)}[mus]`);
   if (audioInputs.length) {
     audioInputs.forEach((a, n) => parts.push(`[${a.idx}:a]aresample=48000,adelay=${Math.round(a.at * 1000)}:all=1[a${n}]`));
-    parts.push(`${audioInputs.map((_, n) => `[a${n}]`).join('')}amix=inputs=${audioInputs.length}:normalize=0,loudnorm=I=-16:TP=-1.5,apad=whole_dur=${total.toFixed(3)},asplit=2[vo][key]`);
+    parts.push(`${audioInputs.map((_, n) => `[a${n}]`).join('')}amix=inputs=${audioInputs.length}:normalize=0,loudnorm=I=-16:TP=-1.5,aresample=48000,apad=whole_dur=${total.toFixed(3)},asplit=2[vo][key]`);
     parts.push(`[mus][key]sidechaincompress=threshold=0.02:ratio=6:attack=30:release=600[duck]`);
-    parts.push(`[vo][duck]amix=inputs=2:normalize=0,alimiter=limit=0.89[aout]`);
+    parts.push(`[vo][duck]amix=inputs=2:normalize=0,alimiter=limit=0.84[aout]`);
   } else {
     parts.push(`[mus]anull[aout]`);
   }

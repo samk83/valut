@@ -27,7 +27,7 @@ names.forEach((f, i) => {
 });
 (async () => {
   const b = await chromium.launch();
-  const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, locale: 'en-US', timezoneId: 'America/Vancouver' });
+  const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, locale: 'en-US', timezoneId: 'America/Los_Angeles' });
   await ctx.addInitScript(([n, t]) => { globalThis.__PVV_NOTES = n; globalThis.__PVV_THUMBS = t; }, [NOTES, THUMBS]);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('ERR', e.message));

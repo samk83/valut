@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Private Vision Vault Beta</title>
-<meta name="description" content="Join the Private Vision Vault beta. A photo and video vault that stays encrypted on your iPhone or iPad. No account, no cloud, no servers.">
+<meta name="description" content="Join the Private Vision Vault beta. A photo and video vault that stays encrypted on your iPhone or iPad. No account, no servers, no tracking.">
 <meta name="theme-color" content="#0B0D12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Private Vision Vault Beta">
-<meta property="og:description" content="Your photos stay on your phone. Encrypted on device, no account, no cloud. Join the beta on TestFlight.">
+<meta property="og:description" content="Your photos stay on your phone. Encrypted on device, no account, no servers. Join the beta on TestFlight.">
 <meta property="og:url" content="https://jellydock.com/beta/myvisionvault/">
 <meta property="og:image" content="https://jellydock.com/beta/myvisionvault/assets/video/poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -86,7 +86,7 @@
       </svg>
       <p class="eyebrow">Beta · iPhone &amp; iPad</p>
       <h1 id="hero-title">Your photos stay<br><em>on your phone.</em></h1>
-      <p class="hero-lede">Private Vision Vault keeps the photos and videos you choose encrypted on your own device. No account, no cloud, no servers. Help us test it before it reaches the App Store.</p>
+      <p class="hero-lede">Private Vision Vault keeps the photos and videos you choose encrypted on your own device. No account, no servers, no tracking. Help us test it before it reaches the App Store.</p>
       <div class="stores">
         <a class="store tf" data-testflight href="#join">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v9"></path><path d="M8.5 6.5 12 2.5l3.5 4"></path><path d="M5 13.5c0 4 3 7.5 7 7.5s7-3.5 7-7.5"></path><circle cx="12" cy="14" r="2"></circle></svg>
@@ -236,7 +236,7 @@
       <dl class="specs tech-specs">
         <div class="spec-row"><dt>Encryption</dt><dd><strong>AES-256-GCM, a separate key per file</strong><span class="mono">video: encrypted in chunks, each with its own nonce and authentication tag</span></dd></div>
         <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>Turns your PIN into a key in a way that is deliberately slow to guess</span></dd></div>
-        <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Device-only, left out of iCloud and computer backups, and never in the app’s own backup. Keys never move between phones.</span></dd></div>
+        <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Device-only, left out of iCloud and computer backups, and never in the app’s own backup. The phone’s security-chip key never leaves the phone.</span></dd></div>
         <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits or a pattern</strong><span>Common PINs and simple patterns are rejected.</span><span>Optional two-step unlock: your phone’s own lock (Face ID, Touch ID or passcode) first, then your PIN or pattern. Face ID or the passcode alone can’t open the vault.</span></dd></div>
         <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Each attempt is recorded before the PIN is checked, and the wait uses the phone’s time since start-up, so closing the app or changing the clock doesn’t skip it</span></dd></div>
         <div class="spec-row"><dt>Locking</dt><dd><strong>The moment you leave the app</strong><span>Contents are hidden in the app switcher</span></dd></div>
@@ -263,7 +263,7 @@
         <li><h3>Your photos stay yours.</h3><p>They are encrypted and kept on your phone. We never receive a copy. If you turn on backup, only already-encrypted copies go to a folder you choose.</p></li>
         <li><h3>You hold the only key.</h3><p>Nobody, including us, can reset your PIN or open your vault. There is no back door.</p></li>
         <li><h3>We collect nothing.</h3><p>No account, no analytics, no ads, no tracking. PINs, file names and keys are never written to logs.</p></li>
-        <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. Files leave the vault only still encrypted: to your own new phone, or to your own backup folder.</p></li>
+        <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. Photos and videos leave the vault only still encrypted: to your own new phone, or to your own backup folder. The one exception is text: you can copy the words the app reads in a photo, and the clipboard is cleared after 2 minutes.</p></li>
         <li><h3>The app never deletes your photos on its own.</h3><p>Importing only copies, so your originals stay in your gallery. Wrong PINs make you wait, but never erase the vault. Moving to a new phone never deletes anything on the old one.</p></li>
         <li><h3>Honest about limits.</h3><p>We say what the app protects and what it can’t. No “unhackable” claims.</p></li>
       </ol>

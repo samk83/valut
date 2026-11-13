@@ -18,9 +18,9 @@ rx,ry,rw,rh=260,140,520,960
 sh=Image.new('L',(W,H),0); ImageDraw.Draw(sh).rectangle([rx+14,ry+18,rx+rw+14,ry+rh+18],fill=120)
 sh=sh.filter(ImageFilter.GaussianBlur(18)); im.paste((40,25,15),(0,0),sh)
 d=ImageDraw.Draw(im); d.rectangle([rx,ry,rx+rw,ry+rh],fill=(250,248,242))
-lines=[('BLUE HARBOR CAFE',bold,'c'),('1208 Water St, Vancouver',mono,'c'),('',mono,'l'),
+lines=[('BLUE HARBOR CAFE',bold,'c'),('12 Harbor Lane, Seaview',mono,'c'),('',mono,'l'),
  ('Flat white        5.25',mono,'l'),('Almond croissant  4.75',mono,'l'),('Sparkling water   3.00',mono,'l'),
- ('------------------------',mono,'l'),('TOTAL          13.00',bold,'l'),('',mono,'l'),
+ ('------------------------',mono,'l'),('TOTAL       13.00',bold,'l'),('',mono,'l'),
  ('Guest Wi-Fi',bold,'c'),('Network: harbor-guest',mono,'c'),('Password: sunrise2026',mono,'c'),('',mono,'l'),('Thank you!',mono,'c')]
 y=ry+50; out=[]; text=[]
 for s,f,a in lines:
