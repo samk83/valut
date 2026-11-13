@@ -57,6 +57,9 @@
 - "3회 틀리면 키 파기" 설명을 대기 시간 잠금(1·5·15분, 이후 1시간, 지우지 않음)으로 변경, 휴대폰 화면 그림도 대기 화면으로 교체
 - 가져오기를 복사 전용(원본 삭제 없음)으로 설명 변경
 
+### Changed (2026-11-12) — App Store 문구: 암호화 백업
+- docs/aso: 암호화 백업·복구 키 문장 추가(`[BACKUP]`, `BACKUP=0`이면 예전 문장), 스크린샷 4번 문구 "No account, no servers"로 변경 (11개 언어, 154장 다시 합성)
+
 ### Added (2026-11-12) — App Store ASO
 - docs/aso/: 11개 언어 스토어 문구(listing.json → listing.md·store.config.json, build.py가 글자 수·키워드 중복 검사), ASO 전략 문서(ASO.md)
 - 스크린샷 자동 촬영(capture.js, 웹 미리보기)·문구 합성(compose.js) 도구. iPhone 6.9형·iPad 13형 × 11개 언어 × 7장 (사진 보호 수정·두 겹 잠금·새 이름 반영)

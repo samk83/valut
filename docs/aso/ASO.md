@@ -17,6 +17,7 @@ ASO(App Store Optimization)는 App Store에서 **검색에 잘 걸리고**(노�
 - 가져오기는 **복사만**. 원본은 사용자가 직접 지움. 앱 카메라로 찍은 것은 앱 안에서만 보임.
 - 원칙(2026-11-10): 확인된 사실만. military-grade, unhackable, audited 같은 과장 금지. 구독 아님.
 - 두 겹 잠금(PR #14) 문장은 `[2STEP]` 표시. 출시 빌드에 PR #14가 없으면 `TWO_STEP=0`을 붙여 `build.py`와 `tools/compose.js`를 다시 실행 (설명 문장과 스크린샷 2번이 함께 빠짐).
+- 암호화 백업(복구 키 52자, 사용자가 고른 폴더에 저장, 서버 없음, 무료)은 `[BACKUP]`, 백업이 없을 때 문장은 `[NOBACKUP]` 표시. 기본은 백업 포함. 출시 빌드에 백업이 없으면 `BACKUP=0 python3 docs/aso/build.py`. "backup"이라는 말은 이 앱 자체 암호화 백업에만 쓰고, iCloud 사진 백업·동기화처럼 들리게 쓰지 않음.
 - Android 앱은 아직 출시 전이라 "iPhone과 Android 사이에서도 옮기기 가능"은 넣지 않음 (Android 출시 때 추가).
 
 ## 2. 검색 최적화: 이름·부제·키워드
@@ -41,7 +42,7 @@ App Store 검색은 **이름(30자) + 부제(30자) + 키워드(100자)** 세 �
 | 1 | 홈(사진 칸) | Hide photos & videos / In a vault only you can open | 검색한 사람이 찾던 것인지 1초 안에 확인 |
 | 2 | 두 겹 잠금 | Two locks, not one / Face ID or passcode, then your PIN | 보안 차별점 (PR #14) |
 | 3 | 가져오기 | Easy import / Copied in. Originals stay untouched. | 쉬움 + 안심 |
-| 4 | 보안 설정 | Nothing leaves your phone / No account, no cloud, no tracking | 개인정보 걱정 해소 |
+| 4 | 보안 설정 | No account, no servers / Nothing is sent to us. No tracking. | 개인정보 걱정 해소 (암호화 백업을 iCloud Drive에 둘 수 있으므로 "폰 밖으로 안 나감"은 쓰지 않음) |
 | 5 | 새 폰 옮기기 | New phone? Bring your vault / Phone to phone over your Wi-Fi. Free. | 기기 변경 걱정 해소 |
 | 6 | 프리미엄 | 100 items free / Unlimited with one payment. No subscription. | 가격 투명성 |
 | 7 | 첫 화면 | No back door / Not even we can open your vault | 신뢰 |
@@ -65,6 +66,7 @@ App Store 검색은 **이름(30자) + 부제(30자) + 키워드(100자)** 세 �
 | 중국 본토 | 중국 App Store는 ICP 비안 번호(중국 정부 등록번호)를 요구. 캐나다 개인사업자는 받기 어려움 | Pricing and Availability에서 China mainland 판매 끄기 권장 (중국어 문구는 싱가포르·말레이시아 등 다른 나라 중국어 사용자에게도 쓰임) |
 | 번역 | 10개 언어 문구는 AI 번역 | 가능하면 원어민 확인, 특히 일본어·독일어 |
 | 두 겹 잠금 | PR #14 미합류 시 | `TWO_STEP=0`으로 문구·스크린샷 다시 만들기 |
+| 암호화 백업 | 기능 미합류 시 | `BACKUP=0`으로 문구 다시 만들기. 합류 후 설정 화면에 백업 항목이 생기면 스크린샷 4번 다시 촬영 권장 |
 
 ## 6. 입력 방법
 **방법 A — 직접 복사 (가장 쉬움)**: `listing.md`를 열고, App Store Connect → 앱 → iOS App 1.1 화면에서 언어를 바꿔 가며 칸마다 붙여넣기. 언어 추가는 화면 오른쪽 위 언어 메뉴 → **Add Language**.

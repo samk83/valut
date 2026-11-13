@@ -3,6 +3,7 @@
 
   python3 docs/aso/build.py                 # check + write store.config.json and listing.md
   TWO_STEP=0 python3 docs/aso/build.py      # leave out the two-step unlock lines (if PR #14 is not shipped)
+  BACKUP=0 python3 docs/aso/build.py        # describe the app without encrypted backup (if it is not shipped)
   PRIVACY_URL=https://... SUPPORT_URL=https://... python3 docs/aso/build.py
 
 store.config.json is the EAS Metadata file (`eas metadata:push`). It is written here, not in app/,
@@ -17,6 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LIMITS = {"title": 30, "subtitle": 30, "keywords": 100, "promoText": 170, "description": 4000}
 IAP_LIMITS = {"name": 30, "description": 45}
 TWO_STEP = os.environ.get("TWO_STEP", "1") != "0"
+BACKUP = os.environ.get("BACKUP", "1") != "0"
 PRIVACY_URL = os.environ.get("PRIVACY_URL", "https://REPLACE-WITH-WEBSITE/privacy.html")
 SUPPORT_URL = os.environ.get("SUPPORT_URL", "https://REPLACE-WITH-WEBSITE/")
 
@@ -28,14 +30,24 @@ def words(s):
     return {w for w in re.split(r"[\s,:&·、，/-]+", s.lower()) if w}
 
 
+# Tagged lines: [2STEP] = two-step unlock (PR #14); [BACKUP] / [NOBACKUP] = with / without the
+# encrypted backup with recovery key (feature/encrypted-backup).
+TAGS = {"[2STEP]": TWO_STEP, "[BACKUP]": BACKUP, "[NOBACKUP]": not BACKUP}
+
+
 def description(lines):
     out = []
     for line in lines:
-        if line.startswith("[2STEP]"):
-            if not TWO_STEP:
-                continue
-            line = line[len("[2STEP]"):]
-        out.append(line)
+        for tag, keep in TAGS.items():
+            if line.startswith(tag):
+                if not keep:
+                    break
+                line = line[len(tag):]
+        else:
+            out.append(line)
+            continue
+        if line and not line.startswith("["):
+            out.append(line)
     return "\n".join(out)
 
 
@@ -102,6 +114,7 @@ md = [
     "",
     "`docs/aso/listing.json`에서 `python3 docs/aso/build.py`로 만든 파일입니다. 직접 고치지 말고 listing.json을 고친 뒤 다시 만드세요.",
     f"두 겹 잠금 문장 포함: **{'예' if TWO_STEP else '아니요'}** (PR #14가 출시 빌드에 없으면 `TWO_STEP=0`으로 다시 만들기)",
+    f"암호화 백업 문장 포함: **{'예' if BACKUP else '아니요'}** (백업 기능이 출시 빌드에 없으면 `BACKUP=0`으로 다시 만들기)",
     "",
 ]
 for loc, v in src["locales"].items():
