@@ -25,6 +25,12 @@ enum VaultError: Error, Equatable {
   case invalidParameters
   /// A file operation failed (errno attached).
   case io(String)
+  /// The folder holds no backup (no backup.pvbi file).
+  case notABackup
+  /// The recovery key does not open this backup (a typo, or another vault's backup).
+  case backupKeyMismatch
+  /// Backups need a recovery key, and this vault has none yet.
+  case noRecoveryKey
 }
 
 /// Mirrors core/PinPolicy.kt (SPEC AC-01).

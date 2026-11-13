@@ -1,13 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import VaultCore from '../../modules/vault-core';
 import { freeSlots, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { spacing, t, UPPERCASE } from '../i18n';
-import { Body, Busy, Button, s, Title } from '../ui';
+import { Body, Button, s, Title } from '../ui';
 
 const REC_RED = '#EF5B5B';
 
@@ -25,6 +25,7 @@ export function VaultCamera({
   onLimit: (itemCount: number) => void;
 }) {
   const ref = useRef<CameraView>(null);
+  const capturing = useRef(false);
   const [cam, requestCam] = useCameraPermissions();
   const [mic, requestMic] = useMicrophonePermissions();
   const [mode, setMode] = useState<'picture' | 'video'>('picture');
@@ -100,11 +101,15 @@ export function VaultCamera({
     // Stopping a recording is always allowed; starting a new capture needs room.
     if (!(mode === 'video' && recording) && !hasRoom()) return;
     if (mode === 'picture') {
+      if (capturing.current) return; // A second tap before the first photo is ready.
+      capturing.current = true;
       let pic;
       try {
         pic = await ref.current.takePictureAsync({ quality: 0.92, exif: false });
       } catch {
         return Alert.alert(t('camera.error'), t('camera.photoFailed'));
+      } finally {
+        capturing.current = false;
       }
       if (pic?.uri) await seal(pic.uri, 'PHOTO');
       return;
@@ -127,6 +132,8 @@ export function VaultCamera({
     setRecording(true);
     try {
       const video = await ref.current.recordAsync({ maxDuration: 600 });
+      // Recording has ended: drop the REC timer and stop button before encrypting.
+      setRecording(false);
       if (video?.uri) await seal(video.uri, 'VIDEO');
     } catch {
       Alert.alert(t('camera.error'), t('camera.videoFailed'));
@@ -143,8 +150,8 @@ export function VaultCamera({
         <Pressable
           accessibilityLabel={saved > 0 ? t('camera.closeSaved', { n: saved }) : t('common.close')}
           onPress={() => onClose(saved > 0)}
-          disabled={recording}
-          style={({ pressed }) => [cs.round, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
+          disabled={recording || busy}
+          style={({ pressed }) => [cs.round, (pressed || recording || busy) && { opacity: recording || busy ? 0.4 : 0.7 }]}
         >
           <Ionicons name="close" size={20} color={C.ivory} />
         </Pressable>
@@ -166,7 +173,15 @@ export function VaultCamera({
         <View style={cs.chip} pointerEvents="none">
           <Text style={cs.chipText}>{t('camera.noLocation')}</Text>
         </View>
-        {saved > 0 && !recording && (
+        {busy && (
+          // A small chip instead of a full-screen cover: the cover flashed over the preview
+          // right after the native shutter blink, so one press looked like two blinks.
+          <View style={cs.savedChip} pointerEvents="none" accessibilityLiveRegion="polite">
+            <ActivityIndicator color={C.brass} size="small" />
+            <Text style={cs.chipText}>{t('camera.encrypting')}</Text>
+          </View>
+        )}
+        {saved > 0 && !recording && !busy && (
           <View style={cs.savedChip} pointerEvents="none">
             <Text style={cs.chipText}>{t('camera.saved', { n: saved })}</Text>
           </View>
@@ -182,7 +197,7 @@ export function VaultCamera({
                 key={m}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
-                disabled={recording}
+                disabled={recording || busy}
                 onPress={() => setMode(m)}
                 style={[cs.switchItem, on && { backgroundColor: C.surface2 }]}
               >
@@ -195,7 +210,7 @@ export function VaultCamera({
 
       <View style={cs.controls}>
         <View style={{ width: 52 }} />
-        <Pressable accessibilityLabel={video ? (recording ? t('camera.stopRecording') : t('camera.startRecording')) : t('camera.takePhoto')} onPress={shutter} style={cs.shutter}>
+        <Pressable accessibilityLabel={video ? (recording ? t('camera.stopRecording') : t('camera.startRecording')) : t('camera.takePhoto')} onPress={shutter} disabled={busy} style={[cs.shutter, busy && { opacity: 0.5 }]}>
           <View
             style={{
               width: recording ? 28 : 60,
@@ -207,14 +222,13 @@ export function VaultCamera({
         </Pressable>
         <Pressable
           accessibilityLabel={t('camera.flip')}
-          disabled={recording}
+          disabled={recording || busy}
           onPress={() => setFacing(facing === 'back' ? 'front' : 'back')}
-          style={({ pressed }) => [cs.flip, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
+          style={({ pressed }) => [cs.flip, (pressed || recording || busy) && { opacity: recording || busy ? 0.4 : 0.7 }]}
         >
           <Ionicons name="camera-reverse-outline" size={24} color={C.ivory} />
         </Pressable>
       </View>
-      {busy && <Busy label={t('camera.encrypting')} />}
     </View>
   );
 }
@@ -228,7 +242,7 @@ const cs = StyleSheet.create({
   timer: { position: 'absolute', top: 18, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 8, backgroundColor: 'rgba(11,13,18,0.75)' },
   timerText: { fontFamily: F.medium, fontSize: 13, color: C.ivory, fontVariant: ['tabular-nums'] },
   chip: { position: 'absolute', bottom: 16, alignSelf: 'center', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 8, backgroundColor: 'rgba(11,13,18,0.6)' },
-  savedChip: { position: 'absolute', top: 16, right: 16, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 8, backgroundColor: 'rgba(11,13,18,0.6)' },
+  savedChip: { position: 'absolute', top: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 8, backgroundColor: 'rgba(11,13,18,0.6)' },
   chipText: { fontFamily: F.body, fontSize: 11, letterSpacing: 0.4, color: C.muted },
   switch: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: 999, borderWidth: 1, borderColor: C.line, padding: 4, gap: 4 },
   switchItem: { minWidth: 92, height: 38, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
