@@ -1,6 +1,13 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-13, iPhone 개발용 앱 PVV Dev)
+- TestFlight 새 빌드 없이 화면 수정을 실기기에서 확인하는 개발용 앱(development build). 진짜 앱 옆에 따로 설치: 이름 PVV Dev, bundle id com.jellydock.privatevault.dev → 저장 공간·Keychain 분리로 진짜 앱 사진에 접근 불가
+- app/app.config.js (APP_VARIANT=development일 때만 변경, 평소 빌드는 app.json 그대로), eas.json `development` 프로필, `npm run dev`(app/scripts/dev.js, Windows 지원)
+- expo-dev-client 추가 (Release 빌드에서는 개발 메뉴 없음), PR #33용 expo-clipboard 미리 추가
+- 안전장치: 개발용 앱의 암호화 백업은 항상 "Private Vision Vault Backup (Dev)" 폴더에만 씀 — 진짜 백업 폴더를 골라도 진짜 백업 파일을 쓰거나 지우지 않음 (Swift 테스트 추가)
+- 안내서 docs/DEV_BUILD.md: 기기 등록, 빌드·설치, 매일 사용법, PR 브랜치 확인법, 개발용 앱에서 안 되는 것(인앱 구매 등)
+
 ### Changed (2026-11-12, website/ 암호화 백업)
 - 웹사이트·개인정보처리방침(영어·한국어)에 선택형 암호화 백업과 복구 키 반영: 백업 폴더, 복원 조건(백업 + 복구 키), "복구 불가" 문구 정정, 사양표에 백업·복구 행 추가
 

@@ -7,6 +7,13 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## iPhone 개발용 앱 PVV Dev (2026-11-13)
+- 안내서: docs/DEV_BUILD.md
+- Owner: 1회 설정 (`npx eas-cli@latest device:create` → `npx eas-cli@latest build --platform ios --profile development` → iPhone 설치), 그 뒤 `npm run dev`로 PR #31·#32·#33 확인
+- 새 네이티브 부품·Swift·app.json이 바뀌면 개발용 앱 다시 빌드
+- 참고: `expo` 패키지가 SDK 권장 버전(58.0.25)보다 패치 1개 낮음(58.0.24, 이전부터). 다음 TestFlight 빌드 전에 `npx expo install --check`로 맞추기 권장
+- Android 개발용 빌드를 만들 경우 BackupBridge.kt에도 Dev 백업 폴더 분리 필요
+
 ## 전체화면 갤러리 + 사진 검색 (2026-11-12)
 - 시안: https://claude.ai/artifact/PrfdHManevnCtn5apLQsVn
 - Owner: PR 확인 후 Merge → 다음 iPhone 빌드(TestFlight)에서 확인
