@@ -70,41 +70,25 @@ function useBack(handler: () => void) {
   });
 }
 
-/** The key as large monospaced groups, easy to copy by hand. */
+/** The key on one line, like an API token: scroll sideways to read it all (owner request 2026-11-13). */
 function KeyCard({ text }: { text: string }) {
-  const groups = text.split('-');
   return (
-    <View
-      accessible
-      accessibilityLabel={text}
-      style={[
-        s.card,
-        {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          gap: 10,
-          paddingVertical: 20,
-        },
-      ]}
-    >
-      {groups.map((g, i) => (
+    <View accessible accessibilityLabel={text} style={[s.card, { paddingVertical: 14, paddingHorizontal: 0 }]}>
+      <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={{ paddingHorizontal: 16 }}>
         <Text
-          key={i}
           selectable
+          numberOfLines={1}
           style={{
             fontFamily: 'Courier',
             fontWeight: '700',
-            fontSize: 20,
-            letterSpacing: 2,
+            fontSize: 16,
+            letterSpacing: 1,
             color: C.ivory,
-            width: 74,
-            textAlign: 'center',
           }}
         >
-          {g}
+          {text}
         </Text>
-      ))}
+      </ScrollView>
     </View>
   );
 }
