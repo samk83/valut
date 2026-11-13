@@ -360,6 +360,34 @@ final class VaultTests: XCTestCase {
     XCTAssertEqual(c.read(), 2)
   }
 
+  func testSearchNoteSealedPerItemAndRemovedWithIt() throws {
+    let data = Primitives.randomBytes(3000)
+    let v = try vault()
+    try v.create(pin: pin)
+    let id = try importBytes(v, data).item.id
+    XCTAssertNil(try v.readSearchNote(id: id))
+    let note = Array("{\"text\":\"UNIQUE-RECEIPT-WORD americano\"}".utf8)
+    try v.writeSearchNote(id: id, note: note)
+    let file = root.appendingPathComponent("items").appendingPathComponent(id).appendingPathComponent("search")
+    let sealed = try Data(contentsOf: file)
+    XCTAssertNil(String(decoding: sealed, as: UTF8.self).range(of: "UNIQUE-RECEIPT"))
+    v.lock()
+    XCTAssertThrowsError(try v.readSearchNote(id: id))
+    try v.unlock(pin: pin)
+    XCTAssertEqual(try v.readSearchNote(id: id), note)
+    let out = MemorySink()
+    try v.read(id: id, output: out)
+    XCTAssertEqual(out.bytes, data)
+    var damaged = [UInt8](sealed)
+    damaged[damaged.count - 1] ^= 1
+    try Data(damaged).write(to: file)
+    XCTAssertNil(try v.readSearchNote(id: id))
+    try v.writeSearchNote(id: id, note: note)
+    try v.delete(id: id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: file.deletingLastPathComponent().path))
+    XCTAssertThrowsError(try v.writeSearchNote(id: id, note: note))
+  }
+
   func testDestroyAndRecreate() throws {
     let v = try vault()
     try v.create(pin: pin)

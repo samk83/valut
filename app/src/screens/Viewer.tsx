@@ -1,11 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { ComponentProps, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { C, F } from '../theme';
 import { month, spacing, t } from '../i18n';
+import { matchingLines, SearchNote, terms } from '../search';
+import { getNote, noteFor, useSearchProgress } from '../searchIndex';
 import { Busy, Button, s } from '../ui';
 
 const dayLabel = (ms: number) => {
@@ -114,7 +116,7 @@ function DestroySheet({ item, visible, onCancel, onDone }: { item: VaultItem; vi
 }
 
 /** Decrypted in memory only; there is no share or save button (SPEC AC-40). */
-export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultItem; onClose: () => void; onDeleted: () => void }) {
+export function PhotoViewer({ item: first, highlight, onClose, onDeleted }: { item: VaultItem; highlight?: string; onClose: () => void; onDeleted: () => void }) {
   const [item, setItem] = useState(first);
   const [photos, setPhotos] = useState<VaultItem[]>([]);
   const [uri, setUri] = useState<string | null>(null);
@@ -124,6 +126,11 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
   const [confirm, setConfirm] = useState(false);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const touch = useRef<{ x: number; y: number } | null>(null);
+  // Text in the photo, read on this phone (photo search). Opened from a search: shown at once.
+  const [showText, setShowText] = useState(!!highlight?.trim() && VaultCore.canRead);
+  const [fetched, setFetched] = useState<{ id: string; note: SearchNote | null } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     VaultCore.list()
@@ -144,6 +151,37 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
       live = false;
     };
   }, [item]);
+
+  // Re-render when background reading finishes this photo's note.
+  useSearchProgress();
+  const mine = fetched?.id === item.id ? fetched : null;
+  const note = getNote(item.id) ?? mine?.note ?? null;
+  const reading = showText && !note && VaultCore.canRead ? (mine ? 'failed' : 'reading') : 'idle';
+  const copied = copiedId === item.id;
+
+  useEffect(() => {
+    if (!showText || getNote(item.id) || !VaultCore.canRead) return;
+    let live = true;
+    noteFor(item.id)
+      .then((n) => live && setFetched({ id: item.id, note: n }))
+      .catch(() => live && setFetched({ id: item.id, note: null }));
+    return () => {
+      live = false;
+    };
+  }, [showText, item]);
+
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  // The search words' lines are marked strongly, the other lines lightly.
+  const marked = new Set(note && highlight ? terms(highlight).flatMap((w) => matchingLines(note, w)) : []);
+  // Where the photo sits inside the box (resizeMode contain). Boxes only for the upright photo.
+  let frame: { x: number; y: number; w: number; h: number } | null = null;
+  if (showText && note && note.w > 0 && note.h > 0 && rotation === 0 && uri && box.w && box.h) {
+    const scale = Math.min(box.w / note.w, box.h / note.h);
+    const w = note.w * scale;
+    const h = note.h * scale;
+    frame = { x: (box.w - w) / 2, y: (box.h - h) / 2, w, h };
+  }
 
   const index = photos.findIndex((p) => p.id === item.id);
   const go = (step: number) => {
@@ -180,6 +218,29 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
         }}
       >
         {uri && <Image source={{ uri }} style={imgStyle} resizeMode="contain" />}
+        {frame && note && (
+          <View pointerEvents="none" style={{ position: 'absolute', left: frame.x, top: frame.y, width: frame.w, height: frame.h }}>
+            {note.lines.map((l, i) => {
+              const strong = marked.has(i);
+              return (
+                <View
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: `${l.b[0] * 100}%`,
+                    top: `${l.b[1] * 100}%`,
+                    width: `${l.b[2] * 100}%`,
+                    height: `${l.b[3] * 100}%`,
+                    borderRadius: 3,
+                    borderWidth: strong ? 2 : 1,
+                    borderColor: strong ? '#E8B44A' : 'rgba(242,238,230,0.35)',
+                    backgroundColor: strong ? 'rgba(232,180,74,0.25)' : 'transparent',
+                  }}
+                />
+              );
+            })}
+          </View>
+        )}
         {error && <Text style={[s.body, { margin: 24, color: C.danger, textAlign: 'center' }]}>{blocked()}</Text>}
         {!uri && !error && <ActivityIndicator color={C.brass} size="large" />}
         {index > 0 && (
@@ -209,8 +270,48 @@ export function PhotoViewer({ item: first, onClose, onDeleted }: { item: VaultIt
         </View>
       )}
 
+      {showText && (
+        <View style={vs.textPanel}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.ivory }}>{t('viewer.textTitle')}</Text>
+            {!!note?.text && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  VaultCore.copyText(note.text);
+                  setCopiedId(item.id);
+                  clearTimeout(copyTimer.current);
+                  copyTimer.current = setTimeout(() => setCopiedId(null), 4000);
+                }}
+                style={({ pressed }) => [vs.copy, pressed && { opacity: 0.7 }]}
+              >
+                <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={15} color={C.brass} />
+                <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{copied ? t('viewer.copied') : t('viewer.copyAll')}</Text>
+              </Pressable>
+            )}
+          </View>
+          {copied && <Text style={[s.small, { fontSize: 12 }]}>{t('viewer.copiedBody')}</Text>}
+          {reading === 'reading' && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <ActivityIndicator color={C.brass} size="small" />
+              <Text style={s.small}>{t('viewer.reading')}</Text>
+            </View>
+          )}
+          {reading === 'failed' && <Text style={s.small}>{t('viewer.readFailed')}</Text>}
+          {note && !note.text.trim() && <Text style={s.small}>{t('viewer.noText')}</Text>}
+          {!!note?.text.trim() && (
+            <ScrollView style={{ maxHeight: 150 }}>
+              <Text selectable style={{ fontFamily: F.body, fontSize: 14, lineHeight: 21, color: C.muted }}>
+                {note.text}
+              </Text>
+            </ScrollView>
+          )}
+        </View>
+      )}
+
       <View style={vs.toolbar}>
         <ToolButton icon="sync-outline" label={t('viewer.rotate')} onPress={() => setRotation((r) => (r + 90) % 360)} />
+        {VaultCore.canRead && <ToolButton icon="text-outline" label={t('viewer.text')} active={showText} onPress={() => setShowText((v) => !v)} />}
         <ToolButton icon="information-circle-outline" label={t('viewer.info')} active={info} onPress={() => setInfo((v) => !v)} />
         <ToolButton icon="trash-outline" label={t('viewer.destroy')} color={C.danger} onPress={() => setConfirm(true)} />
       </View>
@@ -334,6 +435,8 @@ const vs = StyleSheet.create({
   date: { fontFamily: F.title, fontSize: 16, color: C.ivory },
   count: { fontFamily: F.body, fontSize: 11, color: C.faint },
   arrow: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(28,33,44,0.55)', alignItems: 'center', justifyContent: 'center' },
+  textPanel: { marginHorizontal: 16, marginTop: 10, padding: 14, gap: 10, borderRadius: 14, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line },
+  copy: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
   info: { marginHorizontal: 16, marginTop: 10, padding: 14, borderRadius: 14, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line },
   toolbar: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 10, paddingHorizontal: 12, paddingBottom: 34 },
   tool: { minWidth: 72, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 6 },
