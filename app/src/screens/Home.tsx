@@ -327,9 +327,9 @@ export function Home({
         <View style={{ paddingHorizontal: 22 }}>
           <TestBanner />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22 }}>
-          <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text style={{ flexShrink: 1, fontFamily: F.title, fontSize: 30, color: C.ivory }} numberOfLines={1} accessibilityRole="header">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 22, paddingRight: 14 }}>
+          <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ flexShrink: 1, fontFamily: F.title, fontSize: 28, color: C.ivory }} numberOfLines={1} accessibilityRole="header">
               {t('home.title')}
             </Text>
             {plan.loaded && <PlanBadge premium={plan.premium} used={Math.min(items.length, FREE_LIMIT)} onPress={() => onPremium()} />}
@@ -339,13 +339,14 @@ export function Home({
               accessibilityRole="button"
               accessibilityLabel={t('home.lockNow')}
               onPress={onLock}
+              hitSlop={4}
               style={({ pressed }) => [
-                { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
+                // Icon only, so the title and the plan badge fit on one line in every language.
+                { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, borderWidth: 1, borderColor: C.outline },
                 pressed && { opacity: 0.7 },
               ]}
             >
-              <Ionicons name="lock-closed-outline" size={15} color={C.brass} />
-              <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{t('home.lockNow')}</Text>
+              <Ionicons name="lock-closed-outline" size={18} color={C.brass} />
             </Pressable>
             <Pressable accessibilityLabel={t('common.settings')} onPress={onSettings} style={{ padding: 8 }}>
               <Ionicons name="settings-outline" size={22} color={C.brass} />
