@@ -24,6 +24,7 @@ import com.jellydock.privatevault.core.LockedOutException
 import com.jellydock.privatevault.core.MonotonicClock
 import com.jellydock.privatevault.core.PendingImports
 import com.jellydock.privatevault.core.PinPolicy
+import com.jellydock.privatevault.core.RecoveryKey
 import com.jellydock.privatevault.core.SecureFiles
 import com.jellydock.privatevault.core.Vault
 import com.jellydock.privatevault.core.VaultDestroyedException
@@ -62,6 +63,7 @@ class VaultCoreModule : Module() {
       Thread(r, "PhotoReader").apply { priority = Thread.MIN_PRIORITY }
     }
   private val transfer by lazy { TransferBridge({ vault }) { sendEvent("onTransfer", it) } }
+  private val backup by lazy { BackupBridge({ context }, { vault }, { context.noBackupFilesDir }) { sendEvent("onBackup", it) } }
 
   /**
    * E_LOCKED only when the vault really is locked (search stops); anything else (item deleted
@@ -85,7 +87,7 @@ class VaultCoreModule : Module() {
     ModuleDefinition {
       Name("VaultCore")
 
-      Events("onTransfer")
+      Events("onTransfer", "onBackup")
 
       OnCreate {
         hardwareKey = AndroidHardwareKey(AndroidHardwareKey.strongBoxFeature(context.packageManager))
@@ -131,6 +133,8 @@ class VaultCoreModule : Module() {
         withPin(pin) { chars ->
           try {
             vault.create(chars)
+            // A new vault has a new recovery key: forget the old vault's backup folder.
+            backup.reset()
             ok()
           } catch (e: WeakPinException) {
             mapOf("ok" to false, "error" to "WEAK_PIN", "reason" to e.reason.name)
@@ -355,6 +359,28 @@ class VaultCoreModule : Module() {
       AsyncFunction("delete") { id: String -> vault.delete(id) }
 
       /** 1.1 new-phone transfer: this phone receives. Returns the QR code text. */
+      // Encrypted backup + recovery key (owner decision 2026-11-12). Same API on iPhone.
+      AsyncFunction("backupStatus") { backup.status() }
+
+      AsyncFunction("recoveryKey") { vault.recoveryKey()?.let { rk -> RecoveryKey.format(rk).also { rk.fill(0) } } }
+
+      AsyncFunction("createRecoveryKey") {
+        val rk = vault.createRecoveryKey()
+        RecoveryKey.format(rk).also { rk.fill(0) }
+      }
+
+      AsyncFunction("setBackupFolder") { uri: String -> backup.setFolder(uri) }
+
+      AsyncFunction("backupNow") { backup.backupNow() }
+
+      AsyncFunction("confirmRecoveryKey") { backup.confirmKey() }
+
+      AsyncFunction("dismissRestore") { backup.dismissRestore() }
+
+      AsyncFunction("checkBackup") { uri: String, key: String -> backup.check(uri, key) }
+
+      AsyncFunction("restoreBackup") { uri: String, key: String -> backup.restore(uri, key) }
+
       AsyncFunction("transferReceive") { transfer.startReceiving() }
 
       /** 1.1 new-phone transfer: this phone sends everything to the scanned code. */
@@ -365,6 +391,7 @@ class VaultCoreModule : Module() {
       AsyncFunction("destroy") {
         transfer.cancel()
         vault.destroy()
+        backup.reset()
         destroyWaitingCaptures()
         clearPlayback()
       }

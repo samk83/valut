@@ -12,6 +12,7 @@ import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from 'react
 
 import VaultCore, { VaultItem } from './modules/vault-core';
 import { CreatePin, Destroyed, Unlock, Welcome } from './src/screens/Auth';
+import { Backup, RestoreFlow, Restoring } from './src/screens/Backup';
 import { DeviceGate } from './src/screens/DeviceGate';
 import { VaultCamera } from './src/screens/Camera';
 import { Home, resetHomeMode } from './src/screens/Home';
@@ -29,7 +30,10 @@ import { Busy, READABLE_WIDTH } from './src/ui';
 type Route =
   | { name: 'loading' }
   | { name: 'welcome' }
-  | { name: 'create' }
+  | { name: 'create'; restore?: { uri: string; key: string } }
+  | { name: 'restoreStart' }
+  | { name: 'restoring'; uri: string; key: string }
+  | { name: 'backup'; intro?: boolean; back: 'home' | 'settings' }
   | { name: 'unlock'; remaining: number; lockedForMs: number }
   | { name: 'destroyed' }
   | { name: 'home' }
@@ -39,7 +43,7 @@ type Route =
   | { name: 'transfer' }
   | { name: 'view'; item: VaultItem; highlight?: string };
 
-const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'premium', 'transfer', 'view'];
+const UNLOCKED: Route['name'][] = ['home', 'camera', 'settings', 'premium', 'transfer', 'view', 'backup', 'restoring'];
 // Screens that use the whole width on an iPad; the rest are centred in a readable column.
 const FULL_WIDTH: Route['name'][] = ['home', 'camera', 'view'];
 // A system picker or dialog may keep the app in the background this long before it locks.
@@ -126,6 +130,8 @@ export default function App() {
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       const r = routeRef.current.name;
+      // The backup and restore screens handle Back themselves.
+      if (r === 'backup' || r === 'restoring' || r === 'restoreStart') return true;
       if (r === 'view' || r === 'settings' || r === 'camera') {
         setRoute({ name: 'home' });
         return true;
@@ -169,11 +175,38 @@ export default function App() {
       screen = <Busy label={t('common.opening')} />;
       break;
     case 'welcome':
-      screen = <Welcome onNext={() => setRoute({ name: 'create' })} />;
+      screen = <Welcome onNext={() => setRoute({ name: 'create' })} onRestore={() => setRoute({ name: 'restoreStart' })} />;
       break;
-    case 'create':
-      screen = <CreatePin onDone={home} onLocked={toLocked} />;
+    case 'restoreStart':
+      screen = (
+        <RestoreFlow
+          mode="new"
+          suspendAutoLock={suspendAutoLock}
+          onCancel={() => setRoute({ name: 'welcome' })}
+          onReady={(uri, key) => setRoute({ name: 'create', restore: { uri, key } })}
+        />
+      );
       break;
+    case 'create': {
+      const restore = route.restore;
+      // A new vault first sets up its backup (recovery key + folder); one made to restore a
+      // backup takes over that backup's key and folder instead.
+      screen = (
+        <CreatePin
+          onDone={() => setRoute(restore ? { name: 'restoring', ...restore } : { name: 'backup', intro: true, back: 'home' })}
+          onLocked={toLocked}
+        />
+      );
+      break;
+    }
+    case 'restoring':
+      screen = <Restoring uri={route.uri} recoveryKey={route.key} onDone={home} />;
+      break;
+    case 'backup': {
+      const back = route.back;
+      screen = <Backup intro={route.intro} suspendAutoLock={suspendAutoLock} onClose={() => (back === 'settings' ? setRoute({ name: 'settings' }) : home())} />;
+      break;
+    }
     case 'unlock':
       // Two-step unlock: the phone's own lock first, then the app's PIN or pattern.
       screen = (
@@ -193,6 +226,7 @@ export default function App() {
           onOpen={(item, highlight) => setRoute({ name: 'view', item, highlight })}
           onCamera={() => setRoute({ name: 'camera' })}
           onSettings={() => setRoute({ name: 'settings' })}
+          onBackup={() => setRoute({ name: 'backup', back: 'home' })}
           onPremium={(reason, itemCount) => setRoute({ name: 'premium', reason, itemCount, back: 'home' })}
           onLock={() => {
             VaultCore.lock();
@@ -215,6 +249,7 @@ export default function App() {
           }}
           onPremium={() => setRoute({ name: 'premium', back: 'settings' })}
           onTransfer={() => setRoute({ name: 'transfer' })}
+          onBackup={() => setRoute({ name: 'backup', back: 'settings' })}
           suspendAutoLock={suspendAutoLock}
         />
       );

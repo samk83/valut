@@ -16,6 +16,13 @@
 - Android 출시 전 확인: Google ML Kit은 사진·글자는 보내지 않지만 익명 사용 통계 모듈(datatransport)을 함께 넣음. 이 모듈은 이미 Play 결제·QR 카메라 때문에 앱에 들어 있음. Android 출시 전에 네트워크 기록으로 실제 전송 여부 확인 후 차단 방법 결정 (iPhone은 해당 없음)
 - APK 크기: ML Kit 글자 모델 때문에 Android 앱이 약 60MB(arm64)로 커짐. 필요하면 언어별 모델 줄이기
 
+## 암호화 백업 + 복구 키 (2026-11-12)
+- Owner: PR 확인 후 Merge
+- 실기기 확인 (iPhone·Android 각각): 금고 생성 → 복구 키 저장 → iCloud Drive/폴더 선택 → 사진 몇 장 → 앱 삭제 → 재설치 → '백업에서 복원' → 사진이 모두 돌아오는지
+- iPhone 쪽 연결 코드(VaultCoreModule.swift, BackupBridge의 iOS 부분)는 Linux에서 컴파일 확인 불가 → 다음 EAS 빌드에서 확인
+- 스토어 문구·웹사이트의 "앱을 지우면 사라짐" 문구를 백업 안내로 바꾸기 (다른 스레드에 전달)
+- 남은 위험: 복구 키와 기기를 모두 잃으면 복원 불가, 클라우드 용량 부족 시 백업 멈춤(앱이 배너로 안내)
+
 ## 사진 절대 손실 방지 (2026-11-12)
 - 점검 보고서: https://claude.ai/artifact/WhDrx6E4QTyYEeDRoDdoWo
 - Owner: PR 확인 후 Merge (PR #14 두 겹 잠금과 App.tsx·Settings.tsx·언어팩이 겹침 → 나중에 Merge하는 쪽에서 충돌 정리)

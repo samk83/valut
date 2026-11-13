@@ -28,6 +28,7 @@ public final class VaultCoreModule: Module {
   private var playbackTicket = 0
   // Set in OnCreate, before any function can be called.
   private var transfer: TransferBridge!
+  private var backup: BackupBridge!
   private let ticketLock = NSLock()
 
   private static let thumbPx: CGFloat = 360
@@ -43,11 +44,14 @@ public final class VaultCoreModule: Module {
   public func definition() -> ModuleDefinition {
     Name("VaultCore")
 
-    Events("onTransfer")
+    Events("onTransfer", "onBackup")
 
     OnCreate {
       self.transfer = TransferBridge(vault: { [unowned self] in try self.requireVault() }) { [weak self] event in
         self?.sendEvent("onTransfer", event)
+      }
+      self.backup = BackupBridge(vault: { [unowned self] in try self.requireVault() }, stateDir: self.support) { [weak self] event in
+        self?.sendEvent("onBackup", event)
       }
       self.queue.sync { self.setUp() }
     }
@@ -77,6 +81,8 @@ public final class VaultCoreModule: Module {
       return self.withPin(pin) { bytes in
         do {
           try v.create(pin: bytes)
+          // A new vault has a new recovery key: forget the old vault's backup folder.
+          self.backup.reset()
           return ["ok": true]
         } catch VaultError.weakPin(let reason) {
           return ["ok": false, "error": "WEAK_PIN", "reason": reason.rawValue]
@@ -269,6 +275,33 @@ public final class VaultCoreModule: Module {
 
     Function("closeVideo") { self.clearPlayback() }
 
+    // Encrypted backup + recovery key (owner decision 2026-11-12). Same API as Android.
+    AsyncFunction("backupStatus") { () -> [String: Any] in try self.backup.status() }.runOnQueue(queue)
+
+    AsyncFunction("recoveryKey") { () -> String? in
+      guard var rk = try self.requireVault().recoveryKey() else { return nil }
+      defer { rk.wipe() }
+      return RecoveryKey.format(rk)
+    }.runOnQueue(queue)
+
+    AsyncFunction("createRecoveryKey") { () -> String in
+      var rk = try self.requireVault().createRecoveryKey()
+      defer { rk.wipe() }
+      return RecoveryKey.format(rk)
+    }.runOnQueue(queue)
+
+    AsyncFunction("setBackupFolder") { (uri: String) -> [String: Any] in self.backup.setFolder(uri) }.runOnQueue(queue)
+
+    AsyncFunction("backupNow") { () -> Bool in self.backup.backupNow() }.runOnQueue(queue)
+
+    AsyncFunction("confirmRecoveryKey") { try self.backup.confirmKey() }.runOnQueue(queue)
+
+    AsyncFunction("dismissRestore") { self.backup.dismissRestore() }.runOnQueue(queue)
+
+    AsyncFunction("checkBackup") { (uri: String, key: String) -> [String: Any] in self.backup.check(uri, key) }.runOnQueue(queue)
+
+    AsyncFunction("restoreBackup") { (uri: String, key: String) -> Bool in self.backup.restore(uri, key) }.runOnQueue(queue)
+
     // 1.1 new-phone transfer. Same functions and events as the Android module.
     AsyncFunction("transferReceive") { () -> String in
       do {
@@ -297,6 +330,7 @@ public final class VaultCoreModule: Module {
     AsyncFunction("destroy") { () -> Void in
       self.transfer.cancel()
       try self.requireVault().destroy()
+      self.backup.reset()
       self.destroyWaitingCaptures()
       self.clearPlayback()
     }.runOnQueue(queue)
