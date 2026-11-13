@@ -257,8 +257,46 @@ class Vault(
         }.toSet()
     }
 
+    /**
+     * Saves the on-device search note of one item (text read from the photo and what it
+     * shows). It is sealed with the item's own key, lives in the item's folder and is
+     * deleted with the item. It never touches the photo itself, and a lost or damaged note
+     * only means the photo is read again.
+     */
+    fun writeSearchNote(
+        id: String,
+        note: ByteArray,
+    ) {
+        withFileKey(id) { fk, idBytes ->
+            val sealed = Aead.seal(fk, note, aad(SEARCH, idBytes))
+            // Same lock as delete(): a note never lands in (or re-creates) a deleted item's folder.
+            synchronized(itemLock) {
+                val dir = itemDir(id)
+                if (!isLiveItem(dir)) throw IOException("No such item")
+                SecureFiles.writeAtomic(File(dir, SEARCH), sealed)
+            }
+        }
+    }
+
+    /** The item's search note, or null when it has none yet (or it cannot be read). */
+    fun readSearchNote(id: String): ByteArray? =
+        withFileKey(id) { fk, idBytes ->
+            val file = File(itemDir(id), SEARCH)
+            if (!file.exists()) {
+                null
+            } else {
+                try {
+                    Aead.open(fk, file.readBytes(), aad(SEARCH, idBytes))
+                } catch (e: IntegrityException) {
+                    null
+                }
+            }
+        }
+
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
-    fun delete(id: String) {
+    fun delete(id: String) = synchronized(itemLock) { deleteLocked(id) }
+
+    private fun deleteLocked(id: String) {
         requireUnlocked().wipe()
         val dir = itemDir(id)
         if (!dir.exists()) return
@@ -271,6 +309,7 @@ class Vault(
         SecureFiles.shred(File(dir, "meta.bak"))
         SecureFiles.shred(File(dir, "thumb"))
         SecureFiles.shred(File(dir, SOURCE))
+        SecureFiles.shred(File(dir, SEARCH))
         SecureFiles.deleteTree(dir)
         // The user deleted it, so the next backup removes its copy too. Only ids listed here
         // are ever removed from a backup: an item hidden by damage keeps its backup copy.
@@ -698,9 +737,12 @@ class Vault(
 
     private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
 
+    private val itemLock = Any()
+
     companion object {
         private const val DELETED = "deleted"
         private const val SOURCE = "source"
+        private const val SEARCH = "search"
         private val RECOVERY_AAD = "PrivateVault recovery key v1".toByteArray(Charsets.US_ASCII)
 
         /** Throws unless [folder] holds a backup that [recoveryKey] opens. Needs no vault. */

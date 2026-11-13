@@ -98,6 +98,12 @@ declare class VaultCoreModule extends NativeModule<Events> {
   closeVideo(): void;
   delete(id: string): Promise<void>;
   destroy(): Promise<void>;
+  /** Photo search: the photo's sealed search note (JSON), reading the photo on the device first if needed. */
+  analyze(id: string): Promise<string | null>;
+  /** Saved search notes of many items (missing ones left out). Never reads a photo. */
+  searchNotes(ids: string[]): Promise<Record<string, string>>;
+  /** Copies text on this device only, cleared after 2 minutes. */
+  copyText(text: string): void;
   /** New phone: starts listening and returns the text for the QR code. */
   transferReceive(): Promise<string>;
   /** Old phone: connects to a scanned code and sends every item. */
@@ -150,6 +156,11 @@ const Vault = native
       closeVideo: () => native.closeVideo(),
       delete: (id: string) => native.delete(id),
       destroy: () => native.destroy(),
+      /** Native photo reading exists in Android and iPhone/iPad builds only. */
+      canRead: true as const,
+      analyze: (id: string) => native.analyze(id),
+      searchNotes: (ids: string[]) => native.searchNotes(ids),
+      copyText: (text: string) => native.copyText(text),
       transferReceive: () => native.transferReceive(),
       transferSend: (code: string) => native.transferSend(code),
       transferCancel: () => native.transferCancel(),
@@ -174,6 +185,11 @@ const Vault = native
       photoUri: async (item: VaultItem) => DemoVault.uriOf(item.id),
       openVideo: async (id: string) => DemoVault.uriOf(id),
       closeVideo: () => {},
+      // Expo Go has no on-device text reading; the search screen says so.
+      canRead: false as const,
+      analyze: async (_id: string): Promise<string | null> => null,
+      searchNotes: async (_ids: string[]): Promise<Record<string, string>> => ({}),
+      copyText: (_text: string) => {},
       // The preview has nothing real to move, so the transfer screens explain that instead.
       transferReceive: async (): Promise<string> => {
         throw new Error('E_UNAVAILABLE');
