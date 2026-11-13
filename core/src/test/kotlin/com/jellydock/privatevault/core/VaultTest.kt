@@ -319,4 +319,34 @@ class VaultTest {
         v.create(pin("482915"))
         assertFailsWith<IllegalArgumentException> { v.delete("../../etc") }
     }
+
+    @Test
+    fun `search note is sealed, kept per item and removed with the item`() {
+        val v = newVault()
+        v.create(pin("482915"))
+        val content = Aead.randomBytes(3000)
+        val id = v.importItem(content.inputStream(), photo).item.id
+        assertEquals(null, v.readSearchNote(id))
+        val note = """{"text":"UNIQUE-RECEIPT-WORD americano"}""".toByteArray()
+        v.writeSearchNote(id, note)
+        // Never stored in the clear.
+        dir.walk().filter { it.isFile }.forEach { file ->
+            assertFalse(String(file.readBytes(), Charsets.ISO_8859_1).contains("UNIQUE-RECEIPT"), "plaintext note in ${file.name}")
+        }
+        v.lock()
+        assertFailsWith<VaultStateException> { v.readSearchNote(id) }
+        v.unlock(pin("482915"))
+        assertContentEquals(note, v.readSearchNote(id))
+        // The photo itself is untouched.
+        assertContentEquals(content, readAll(v, id))
+        // A damaged note is treated as missing (the photo is just read again).
+        val file = File(File(File(dir, "items"), id), "search")
+        file.writeBytes(file.readBytes().also { it[it.size - 1] = (it[it.size - 1].toInt() xor 1).toByte() })
+        assertEquals(null, v.readSearchNote(id))
+        assertContentEquals(content, readAll(v, id))
+        v.writeSearchNote(id, note)
+        v.delete(id)
+        assertFalse(File(File(dir, "items"), id).exists())
+        assertFailsWith<Exception> { v.writeSearchNote(id, note) }
+    }
 }
