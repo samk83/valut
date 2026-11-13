@@ -253,6 +253,8 @@ const ja: Pack = {
 
   'plan.chip': '無料 {used}/{max}',
   'plan.chipA11y': '無料プラン、{max} 件中 {used} 件使用',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium プラン',
   'plan.leftOut': { other: '{n} 件は追加されませんでした · 無料プランの上限に達しています' },
   'plan.leftOutBody': '無料プランで保存できるのは {max} 件までです。それらのオリジナルには手を加えていません。Premium なら上限がなくなります。',
   'plan.section': 'プラン',

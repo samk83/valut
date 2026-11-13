@@ -268,6 +268,8 @@ const pt: Pack = {
   // 1.1 free plan and Premium
   'plan.chip': '{used} de {max} grátis',
   'plan.chipA11y': 'Plano gratuito, {used} de {max} usados',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Plano Premium',
   'plan.leftOut': { one: '{n} não adicionado · plano gratuito cheio', other: '{n} não adicionados · plano gratuito cheio' },
   'plan.leftOutBody': 'O plano gratuito comporta {max} itens. Esses originais não foram alterados. O Premium remove o limite.',
   'plan.section': 'Plano',

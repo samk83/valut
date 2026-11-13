@@ -277,6 +277,8 @@ const en = {
   // 1.1 free plan and Premium
   'plan.chip': '{used} of {max} free',
   'plan.chipA11y': 'Free plan, {used} of {max} used',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium plan',
   'plan.leftOut': { one: '{n} not added · free plan full', other: '{n} not added · free plan full' },
   'plan.leftOutBody': 'The free plan holds {max} items. Those originals were not touched. Premium removes the limit.',
   'plan.section': 'Plan',
