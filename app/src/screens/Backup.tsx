@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Clipboard from 'expo-clipboard';
 import { useKeepAwake } from 'expo-keep-awake';
 import { ReactNode, useEffect, useState } from 'react';
-import { BackHandler, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { BackHandler, Platform, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 
 import VaultCore, { BackupEvent, BackupStatus } from '../../modules/vault-core';
-import { autoBackup, backupErrorText, pickFolder } from '../backup';
+import { autoBackup, backupErrorText, confirmOwner, pickFolder } from '../backup';
 import { t, tn } from '../i18n';
 import { C } from '../theme';
 import { Body, Bullet, Busy, Button, s, Title } from '../ui';
@@ -137,6 +138,40 @@ const clean = (v: string) => v.toUpperCase().replace(/[\s-]/g, '').replace(/O/g,
  * Backup settings and first-time setup. With no key or no folder yet it walks through the
  * setup (key → check → folder); afterwards it shows the backup's state.
  */
+/** Copy and Share for the recovery key text (screenshots are blocked in the app). */
+function KeyActions({ text, suspendAutoLock }: { text: string; suspendAutoLock: (on: boolean) => void }) {
+  const [copied, setCopied] = useState(false);
+  const action = (icon: 'copy-outline' | 'share-outline', label: string, onPress: () => void) => (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [{ flexDirection: 'row', gap: 8, alignItems: 'center', padding: 12 }, pressed && { opacity: 0.7 }]}
+    >
+      <Ionicons name={icon} size={18} color={C.brass} />
+      <Text style={[s.small, { color: C.brass }]}>{label}</Text>
+    </Pressable>
+  );
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+        {action('copy-outline', t('backup.copy'), () => {
+          Clipboard.setStringAsync(text)
+            .then(() => setCopied(true))
+            .catch(() => {});
+        })}
+        {action('share-outline', t('backup.share'), () => {
+          // The share sheet must not lock the vault and throw the user out of setup.
+          suspendAutoLock(true);
+          Share.share({ message: text })
+            .catch(() => {})
+            .finally(() => suspendAutoLock(false));
+        })}
+      </View>
+      {copied && <Text style={[s.small, { color: C.muted, textAlign: 'center' }]}>{t('backup.copied')}</Text>}
+    </View>
+  );
+}
+
 export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => void; suspendAutoLock: (on: boolean) => void; intro?: boolean }) {
   const [status, setStatus] = useState<BackupStatus | null>(null);
   const [step, setStep] = useState<'loading' | 'key' | 'confirm' | 'folder' | 'manage' | 'restore'>('loading');
@@ -146,6 +181,18 @@ export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => voi
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  // Right after making the vault the user has just entered their PIN; later the key is only
+  // shown after Face ID or the phone passcode (owner request 2026-11-13).
+  const [ownerOk, setOwnerOk] = useState(!!intro);
+  const [authFailed, setAuthFailed] = useState(false);
+
+  const askOwner = async () => {
+    setAuthFailed(false);
+    const ok = await confirmOwner(suspendAutoLock);
+    setAuthFailed(!ok);
+    if (ok) setOwnerOk(true);
+    return ok;
+  };
 
   const refresh = async () => {
     const st = await VaultCore.backupStatus().catch(() => null);
@@ -171,11 +218,11 @@ export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => voi
 
   // The key is created (or read) when the key step is shown.
   useEffect(() => {
-    if (step !== 'key' || key) return;
+    if (step !== 'key' || key || !ownerOk) return;
     VaultCore.createRecoveryKey()
       .then(setKey)
       .catch(() => setError(t('backup.errUnavailable')));
-  }, [step, key]);
+  }, [step, key, ownerOk]);
 
   useBack(() => {
     if (busy) return;
@@ -228,32 +275,17 @@ export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => voi
         <View style={{ height: 8 }} />
         <Title>{t('backup.keyTitle')}</Title>
         <Body style={{ color: C.muted, marginBottom: 18 }}>{t('backup.keyBody')}</Body>
-        {key ? <KeyCard text={key} /> : <Busy label={t('common.opening')} />}
-        {key && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              // The share sheet must not lock the vault and throw the user out of setup.
-              suspendAutoLock(true);
-              Share.share({ message: key })
-                .catch(() => {})
-                .finally(() => suspendAutoLock(false));
-            }}
-            style={({ pressed }) => [
-              {
-                flexDirection: 'row',
-                gap: 8,
-                alignItems: 'center',
-                alignSelf: 'center',
-                padding: 12,
-              },
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Ionicons name="share-outline" size={18} color={C.brass} />
-            <Text style={[s.small, { color: C.brass }]}>{t('backup.share')}</Text>
-          </Pressable>
+        {!ownerOk ? (
+          <View style={{ alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Button label={t('backup.showKey')} onPress={askOwner} />
+            {authFailed && <Text style={[s.small, { color: C.danger }]}>{t('backup.authFailed')}</Text>}
+          </View>
+        ) : key ? (
+          <KeyCard text={key} />
+        ) : (
+          <Busy label={t('common.opening')} />
         )}
+        {key && <KeyActions text={key} suspendAutoLock={suspendAutoLock} />}
         <View style={[s.card, { gap: 6, marginTop: 8, marginBottom: 18 }]}>
           <Bullet>{t('backup.keyTip1')}</Bullet>
           <Bullet>{t('backup.keyTip2')}</Bullet>
@@ -326,6 +358,16 @@ export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => voi
           <Bullet>{t('backup.folderTip2')}</Bullet>
           <Bullet>{t('backup.folderTip3')}</Bullet>
         </View>
+        {/* The system folder picker can't be changed, so explain its steps before it opens. */}
+        <Text style={[s.label, { marginTop: 22, marginBottom: 8 }]}>{t('backup.howTitle')}</Text>
+        <View style={[s.card, { gap: 10 }]}>
+          {[t('backup.how1'), Platform.OS === 'ios' ? t('backup.how2Ios') : t('backup.how2Android'), t('backup.how3')].map((line, i) => (
+            <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
+              <Text style={[s.small, { color: C.brass, width: 16 }]}>{i + 1}</Text>
+              <Text style={[s.small, { flex: 1 }]}>{line}</Text>
+            </View>
+          ))}
+        </View>
         {busy && <Busy label={t('backup.checking')} />}
       </Page>
     );
@@ -358,11 +400,15 @@ export function Backup({ onClose, suspendAutoLock, intro }: { onClose: () => voi
           label={showKey ? t('backup.hideKey') : t('backup.showKey')}
           kind="ghost"
           onPress={async () => {
-            if (!showKey) setKey(await VaultCore.recoveryKey().catch(() => null));
-            setShowKey(!showKey);
+            if (showKey) return setShowKey(false);
+            if (!(await askOwner())) return;
+            setKey(await VaultCore.recoveryKey().catch(() => null));
+            setShowKey(true);
           }}
         />
+        {authFailed && <Text style={[s.small, { color: C.danger, textAlign: 'center' }]}>{t('backup.authFailed')}</Text>}
         {showKey && key && <KeyCard text={key} />}
+        {showKey && key && <KeyActions text={key} suspendAutoLock={suspendAutoLock} />}
         <Button label={t('backup.restoreTitle')} kind="ghost" onPress={() => setStep('restore')} />
       </View>
       {error && <Text style={[s.small, { color: C.danger, marginTop: 12 }]}>{error}</Text>}
