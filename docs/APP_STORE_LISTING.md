@@ -40,7 +40,7 @@ WHAT IT DOES
 PLEASE READ BEFORE YOU START
 • There is no PIN reset. Wrong attempts never erase anything; after three, each further try has to wait longer (up to an hour).
 • Nobody, including the developer, can reset your PIN or open your vault.
-• The vault is not included in iCloud or computer backups. To change phones, use Move to a new phone in Settings before you reset or give away the old one. Deleting the app or resetting the device erases it.
+• The vault is not included in iCloud or computer backups. Turn on the app's encrypted backup to a folder you choose (like iCloud Drive) and keep your recovery key: then you can restore after deleting the app or losing the phone. To change phones you can also use Move to a new phone in Settings.
 • Keep separate copies of anything you cannot afford to lose.
 
 PRICE

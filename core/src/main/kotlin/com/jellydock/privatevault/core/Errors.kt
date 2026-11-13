@@ -36,3 +36,12 @@ class ImportVerificationException(message: String) : VaultException(message)
 
 /** The PIN does not meet the creation policy. */
 class WeakPinException(val reason: PinPolicy.Rejection) : VaultException("PIN rejected: $reason")
+
+/** The folder holds no backup (no backup.pvbi file). */
+class NotABackupException : VaultException("No backup in this folder")
+
+/** The recovery key does not open this backup (a typo, or another vault's backup). */
+class BackupKeyMismatchException : VaultException("The recovery key does not match this backup")
+
+/** Backups need a recovery key, and this vault has none yet. */
+class NoRecoveryKeyException : VaultException("No recovery key has been set up")

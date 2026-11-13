@@ -3,7 +3,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Image, Pressable, ScrollView, SectionList, Text, useWindowDimensions, View } from 'react-native';
 
-import VaultCore, { ItemKind, VaultItem } from '../../modules/vault-core';
+import VaultCore, { BackupStatus, ItemKind, VaultItem } from '../../modules/vault-core';
+import { autoBackup, backupErrorText } from '../backup';
 import { fitToSlots, FREE_LIMIT, freeSlots, refreshPremium, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { monthStandalone, t, tn } from '../i18n';
@@ -29,6 +30,7 @@ export function Home({
   onOpen,
   onCamera,
   onSettings,
+  onBackup,
   onPremium,
   onLock,
   suspendAutoLock,
@@ -37,6 +39,7 @@ export function Home({
   onOpen: (item: VaultItem) => void;
   onCamera: () => void;
   onSettings: () => void;
+  onBackup: () => void;
   onPremium: (reason?: 'limit', itemCount?: number) => void;
   onLock: () => void;
   suspendAutoLock: (on: boolean) => void;
@@ -63,6 +66,7 @@ export function Home({
 
   // The free-plan check needs the real count, so it waits until the list has loaded.
   const loadedRef = useRef(false);
+  const [backup, setBackup] = useState<BackupStatus | null>(null);
   const load = useCallback(async () => {
     try {
       const list = await VaultCore.list();
@@ -72,6 +76,9 @@ export function Home({
     } catch {
       setItems([]);
     }
+    // Anything new (imports, camera, deletes) goes to the backup folder in the background.
+    autoBackup();
+    VaultCore.backupStatus().then(setBackup).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -256,6 +263,24 @@ export function Home({
           </Pressable>
         )}
       </View>
+      {!VaultCore.isDemo && backup && (!backup.keyConfirmed || !backup.folderName || !!backup.lastError || backup.restorePending) && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onBackup}
+          style={({ pressed }) => [
+            { marginHorizontal: 22, marginTop: 14, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#4A3420', backgroundColor: '#1A1410', flexDirection: 'row', gap: 12, alignItems: 'center' },
+            pressed && { opacity: 0.8 },
+          ]}
+        >
+          <Ionicons name={backup.lastError ? 'warning-outline' : 'cloud-upload-outline'} size={22} color="#F0B98A" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 14, color: '#F0B98A' }}>{backup.restorePending ? t('backup.bannerRestoreTitle') : backup.lastError ? t('backup.bannerProblem') : t('backup.bannerTitle')}
+            </Text>
+            <Text style={[s.small, { fontSize: 12, color: '#D4C4B5' }]}>{backup.restorePending ? t('backup.bannerRestoreBody') : backup.lastError ? backupErrorText(backup.lastError) : t('backup.bannerBody')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={C.faint} />
+        </Pressable>
+      )}
       <View style={{ paddingHorizontal: 22, paddingTop: 18 }}>
         <Segmented
           value={tab}
