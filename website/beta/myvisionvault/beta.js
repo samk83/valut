@@ -11,9 +11,11 @@
     a.rel = 'noopener';
     a.classList.add('is-live');
     var small = a.querySelector('[data-tf-small]');
-    if (small) small.textContent = 'Open on iPhone or iPad';
+    if (small) small.textContent = cfg.reviewPending ? 'Opens after Apple’s review' : 'Open on iPhone or iPad';
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-tf-note]'), function (p) {
-    p.textContent = 'Open this page on your iPhone or iPad, then tap the button.';
+    p.textContent = cfg.reviewPending
+      ? 'Apple is still reviewing the first beta build. The link starts working once Apple approves it, usually within a day or two. If TestFlight says the beta isn’t accepting testers yet, please try again later.'
+      : 'Open this page on your iPhone or iPad, then tap the button.';
   });
 })();
