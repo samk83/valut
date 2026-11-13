@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy Policy · Private Vision Vault</title>
+<meta name="description" content="Privacy policy for the Private Vision Vault app and website. The app does not collect personal data or send it to us.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="base.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Private Vision Vault home">
+      <img src="assets/favicon.svg" width="28" height="28" alt="">
+      Private Vision Vault
+    </a>
+    <nav class="nav" aria-label="Site">
+      <a class="nav-link" href="index.html#about">The app</a>
+      <a class="nav-link" href="index.html#technology">Technology</a>
+      <a class="nav-link" href="index.html#principles">Principles</a>
+      <a class="nav-cta" href="index.html#join">Join the beta</a>
+    </nav>
+  </div>
+</header>
+
+<main class="policy">
+  <div class="wrap">
+    <article class="policy-body">
+      <p class="eyebrow">Private Vision Vault</p>
+      <h1>Privacy Policy</h1>
+      <p class="policy-meta">Effective date: November 12, 2026 · Operated by JellyDock</p>
+
+      <section class="policy-summary" aria-labelledby="sum-title">
+        <h2 id="sum-title">Summary</h2>
+        <p>The Private Vision Vault app does not collect personal data and does not send it to us or anyone else. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored only on your phone. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone.</p>
+      </section>
+
+      <section>
+        <h2>1. Information the app handles</h2>
+        <p>The app processes the following on your phone only. None of it is sent to us.</p>
+        <ul>
+          <li><strong>Photos and videos in the vault</strong>, with their file names, capture details and thumbnails. Each file is encrypted with its own key (AES-256-GCM) and kept in the app’s storage. Capture details of files imported from your photo library, including location, are kept as they are, encrypted.</li>
+          <li><strong>Your PIN or pattern.</strong> It is never stored as entered. It is used only to derive the key that opens the vault (Argon2id), and the vault opens only together with a key held in your phone’s security chip.</li>
+          <li><strong>Failed unlock count and app settings</strong>, needed for the waiting time after wrong attempts and for the app to work.</li>
+          <li><strong>Whether Lifetime Premium is active</strong>, as reported by the App Store or Google Play on your phone.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. Device permissions</h2>
+        <div class="policy-table" role="region" aria-label="Permissions" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">Permission</th><th scope="col">Used for</th><th scope="col">If you decline</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Photos</th><td>Copying the photos and videos you pick into the vault. The app never deletes anything from your photo library.</td><td data-label="If you decline">Importing is limited.</td></tr>
+              <tr><th scope="row">Camera</th><td>Taking photos and videos with the vault camera. These are never saved to your photo library.</td><td data-label="If you decline">The vault camera can’t be used.</td></tr>
+              <tr><th scope="row">Microphone</th><td>Recording sound when you shoot video with the vault camera.</td><td data-label="If you decline">Recording sound with video is limited.</td></tr>
+              <tr><th scope="row">Local network (iPhone) / Network (Android)</th><td>Only for Move to a new phone: a direct connection between your two phones on the same Wi-Fi.</td><td data-label="If you decline">On iPhone, moving to a new phone can’t be used (on Android this is granted at install). Everything else works.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The app does not use location or contacts. It connects only to private addresses on your own local network (for example 192.168.x.x), and only while you move the vault to a new phone; it refuses any other address. Location data is removed from photos and videos taken with the vault camera.</p>
+      </section>
+
+      <section>
+        <h2>3. Collection, use and sharing</h2>
+        <p>Because the app collects no personal data, we have none to use or share with anyone. The app contains no advertising, analytics or crash-reporting tools, and no outside company processes data on our behalf.</p>
+        <p>We may receive only the following:</p>
+        <ul>
+          <li><strong>Support email.</strong> If you email us, we receive your email address and message. We use them only to reply, and delete them once your request is resolved, unless a law requires us to keep them longer.</li>
+          <li><strong>Information from the app stores.</strong> Under their own policies, Apple’s App Store and Google Play may give developers crash reports and statistics from users who agreed to share them. Apple and Google process this information and provide it in a form that does not identify you.</li>
+          <li><strong>Purchases.</strong> Lifetime Premium is bought through the App Store or Google Play, under their terms and privacy policies. The store handles payment and your account; we don’t receive your payment details. The app only asks the store on your phone whether the purchase is active, for example when you tap Restore purchases.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. Backups and moving to a new phone</h2>
+        <p>Vault data and keys are excluded from iCloud and iTunes backups, Google backups and the phone’s own transfer tools. If you lose your phone, the vault can’t be restored.</p>
+        <p>The only way to move the vault is Move to a new phone in the app, with both phones in your hands on the same Wi-Fi (or one phone’s hotspot). The new phone shows a one-time QR code and the old phone scans it. The two phones then connect directly, with no server or cloud in between, and everything sent is encrypted (AES-256-GCM) with a key derived from that code. Keys never leave a phone: the new phone re-encrypts each item with its own keys. The old phone deletes nothing; you reset it yourself once you’ve checked the new phone.</p>
+        <p>Importing copies photos and videos into the vault; the originals stay in your photo library. If you want them gone, delete them yourself in your Photos app, including from Recently Deleted (trash) and any copies already uploaded to iCloud Photos or Google Photos. The app can’t delete those.</p>
+      </section>
+
+      <section>
+        <h2>5. Retention and deletion</h2>
+        <p>Files in the vault stay on your phone until you delete them. Data or keys are deleted in these cases, and there is no way to recover them:</p>
+        <ul>
+          <li>When you permanently delete a file: its key, the encrypted file and its thumbnail are deleted.</li>
+          <li>When you choose Destroy entire vault in Settings and confirm it: the key that opens the vault and the vault files are deleted. Wrong PIN or pattern entries never delete anything; they only add a waiting time.</li>
+          <li>When you delete the app: the app’s storage is erased. If you reinstall, any leftover keys are wiped and you start with a new vault.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>6. This website</h2>
+        <p>This website does not set cookies or use any other tracking technology, and has no analytics. Every file, including fonts, is served from this site. The company that hosts the website may keep access logs (IP address, time of visit, browser details) for security and operations. Hosting provider: Cloudflare, Inc., which serves the site from its global network. Its logs may be processed outside Canada, including in the United States, and are kept according to Cloudflare’s own retention policies. If the servers are outside your country, these logs are processed abroad.</p>
+      </section>
+
+      <section>
+        <h2>7. Security measures</h2>
+        <p>All app data is encrypted with a separate key per file. The keys can be unlocked only when your PIN and your phone’s security chip (Secure Enclave or StrongBox) are both present. The app has no servers to send data to. Its only network connection is the direct, encrypted link to your own new phone on the local network, and it refuses addresses outside private networks. No independent security audit has been done yet.</p>
+      </section>
+
+      <section>
+        <h2>8. Your rights</h2>
+        <p>Everything the app stores is on your phone, so you can view and delete it directly in the app. We hold none of your data, so we can’t view or recover it for you.</p>
+      </section>
+
+      <section>
+        <h2>9. Children</h2>
+        <p>The app collects no personal data from anyone, of any age.</p>
+      </section>
+
+      <section>
+        <h2>10. Privacy officer and contact</h2>
+        <dl class="policy-contact">
+          <div><dt>Operator</dt><dd>JellyDock, British Columbia, Canada</dd></div>
+          <div><dt>Privacy officer</dt><dd>JellyDock privacy contact</dd></div>
+          <div><dt>Contact</dt><dd><a href="mailto:samchkim610@gmail.com">samchkim610@gmail.com</a></dd></div>
+        </dl>
+      </section>
+
+      <section>
+        <h2>11. Help with privacy complaints (Korea)</h2>
+        <p>Users in Korea can contact these agencies for advice or to report a privacy violation:</p>
+        <ul>
+          <li>Personal Information Dispute Mediation Committee: 1833-6972 (www.kopico.go.kr)</li>
+          <li>Personal Information Infringement Report Center (KISA): 118 (privacy.kisa.or.kr)</li>
+          <li>Supreme Prosecutors’ Office: 1301 (www.spo.go.kr)</li>
+          <li>Korean National Police Agency, Cyber Bureau: 182 (ecrm.police.go.kr)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>12. Changes to this policy</h2>
+        <p>If this policy changes, we will post the change on this page at least 7 days before it takes effect, and keep earlier versions at the bottom of this page.</p>
+      </section>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Private Vision Vault · JellyDock</p>
+    <p><a href="privacy.html" aria-current="page">Privacy Policy</a></p>
+    <p>© 2026 JellyDock</p>
+  </div>
+</footer>
+</body>
+</html>
