@@ -35,7 +35,7 @@
 
       <section class="policy-summary" aria-labelledby="sum-title">
         <h2 id="sum-title">Summary</h2>
-        <p>The Private Vision Vault app does not collect personal data and does not send it to us or anyone else. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored only on your phone. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone.</p>
+        <p>The Private Vision Vault app does not collect personal data and does not send it to us or anyone else. There are no servers and no accounts. Photos and videos you put in the vault are encrypted and stored on your phone and, only if you turn on the backup, as an encrypted copy in a folder you choose. The app is designed so that no one, including us at JellyDock, can open them without your PIN (or pattern) and your phone, or your recovery key for the backup.</p>
       </section>
 
       <section>
@@ -45,6 +45,8 @@
           <li><strong>Photos and videos in the vault</strong>, with their file names, capture details and thumbnails. Each file is encrypted with its own key (AES-256-GCM) and kept in the app’s storage. Capture details of files imported from your photo library, including location, are kept as they are, encrypted.</li>
           <li><strong>Your PIN or pattern.</strong> It is never stored as entered. It is used only to derive the key that opens the vault (Argon2id), and the vault opens only together with a key held in your phone’s security chip.</li>
           <li><strong>Failed unlock count and app settings</strong>, needed for the waiting time after wrong attempts and for the app to work.</li>
+          <li><strong>Search notes for photo search.</strong> The app reads each photo once, on the phone (Apple Vision on iPhone and iPad, ML Kit on Android), for the text in it and a few words for what it shows. The result is encrypted and kept next to the photo in the vault. Reading and searching happen offline; nothing is sent anywhere.</li>
+          <li><strong>Your recovery key</strong>, if you set up the backup: 256 random bits shown as 52 characters. It is kept on the phone sealed with the vault key, and the app never sends it anywhere. You write it down or save it yourself.</li>
           <li><strong>Whether Lifetime Premium is active</strong>, as reported by the App Store or Google Play on your phone.</li>
         </ul>
       </section>
@@ -78,8 +80,9 @@
 
       <section>
         <h2>4. Backups and moving to a new phone</h2>
-        <p>Vault data and keys are excluded from iCloud and iTunes backups, Google backups and the phone’s own transfer tools. If you lose your phone, the vault can’t be restored.</p>
-        <p>The only way to move the vault is Move to a new phone in the app, with both phones in your hands on the same Wi-Fi (or one phone’s hotspot). The new phone shows a one-time QR code and the old phone scans it. The two phones then connect directly, with no server or cloud in between, and everything sent is encrypted (AES-256-GCM) with a key derived from that code. Keys never leave a phone: the new phone re-encrypts each item with its own keys. The old phone deletes nothing; you reset it yourself once you’ve checked the new phone.</p>
+        <p>Vault data and device keys are excluded from iCloud and iTunes backups, Google backups and the phone’s own transfer tools.</p>
+        <p><strong>Encrypted backup.</strong> If you turn it on, the app copies the vault’s already-encrypted files to a folder you choose (iCloud Drive, the Files app or an Android folder) and re-seals each file key with a key derived from your recovery key. The folder holds no unencrypted photos, file names or thumbnails. If the folder is in a cloud service such as iCloud Drive, that company stores the encrypted files under its own terms; we have no access to them. Anyone who has both the backup folder and your recovery key can open the backup, so keep the key private. With the backup and your recovery key you can restore on any phone, iPhone or Android. Without the backup, or if you lose both the phone and the recovery key, the vault can’t be restored by anyone.</p>
+        <p>Apart from restoring a backup, the only way to move the vault is Move to a new phone in the app, with both phones in your hands on the same Wi-Fi (or one phone’s hotspot). The new phone shows a one-time QR code and the old phone scans it. The two phones then connect directly, with no server or cloud in between, and everything sent is encrypted (AES-256-GCM) with a key derived from that code. Keys never leave a phone: the new phone re-encrypts each item with its own keys. The old phone deletes nothing; you reset it yourself once you’ve checked the new phone.</p>
         <p>Importing copies photos and videos into the vault; the originals stay in your photo library. If you want them gone, delete them yourself in your Photos app, including from Recently Deleted (trash) and any copies already uploaded to iCloud Photos or Google Photos. The app can’t delete those.</p>
       </section>
 
@@ -87,9 +90,9 @@
         <h2>5. Retention and deletion</h2>
         <p>Files in the vault stay on your phone until you delete them. Data or keys are deleted in these cases, and there is no way to recover them:</p>
         <ul>
-          <li>When you permanently delete a file: its key, the encrypted file and its thumbnail are deleted.</li>
+          <li>When you permanently delete a file: its key, the encrypted file and its thumbnail are deleted, and its copy is removed from your backup folder.</li>
           <li>When you choose Destroy entire vault in Settings and confirm it: the key that opens the vault and the vault files are deleted. Wrong PIN or pattern entries never delete anything; they only add a waiting time.</li>
-          <li>When you delete the app: the app’s storage is erased. If you reinstall, any leftover keys are wiped and you start with a new vault.</li>
+          <li>When you delete the app: the app’s storage is erased. If you reinstall, any leftover keys are wiped and you start with a new vault, unless you restore from your backup with your recovery key.</li>
         </ul>
       </section>
 
@@ -100,12 +103,12 @@
 
       <section>
         <h2>7. Security measures</h2>
-        <p>All app data is encrypted with a separate key per file. The keys can be unlocked only when your PIN and your phone’s security chip (Secure Enclave or StrongBox) are both present. The app has no servers to send data to. Its only network connection is the direct, encrypted link to your own new phone on the local network, and it refuses addresses outside private networks. No independent security audit has been done yet.</p>
+        <p>All app data is encrypted with a separate key per file. The keys can be unlocked only when your PIN and your phone’s security chip (Secure Enclave or StrongBox) are both present. The app has no servers to send data to. The optional backup contains only data that is already encrypted, and opens only with your recovery key. Its only network connection is the direct, encrypted link to your own new phone on the local network, and it refuses addresses outside private networks. No independent security audit has been done yet.</p>
       </section>
 
       <section>
         <h2>8. Your rights</h2>
-        <p>Everything the app stores is on your phone, so you can view and delete it directly in the app. We hold none of your data, so we can’t view or recover it for you.</p>
+        <p>Everything the app stores is on your phone and, if you turn it on, in your own backup folder, so you can view and delete it directly in the app. We hold none of your data, so we can’t view or recover it for you.</p>
       </section>
 
       <section>

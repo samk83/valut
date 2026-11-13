@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Private Vision Vault Beta</title>
-<meta name="description" content="Join the Private Vision Vault beta. A photo and video vault that stays encrypted on your iPhone or iPad. No account, no cloud, no servers.">
+<meta name="description" content="Join the Private Vision Vault beta. A photo and video vault that stays encrypted on your iPhone or iPad, with on-device photo search and an encrypted backup only you can open. No account, no servers.">
 <meta name="theme-color" content="#0B0D12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Private Vision Vault Beta">
-<meta property="og:description" content="Your photos stay on your phone. Encrypted on device, no account, no cloud. Join the beta on TestFlight.">
+<meta property="og:description" content="Your photos stay on your phone. Encrypted on device, no account, no servers. Join the beta on TestFlight.">
 <meta property="og:url" content="https://jellydock.com/beta/myvisionvault/">
 <meta property="og:image" content="https://jellydock.com/beta/myvisionvault/assets/video/poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -86,7 +86,7 @@
       </svg>
       <p class="eyebrow">Beta · iPhone &amp; iPad</p>
       <h1 id="hero-title">Your photos stay<br><em>on your phone.</em></h1>
-      <p class="hero-lede">Private Vision Vault keeps the photos and videos you choose encrypted on your own device. No account, no cloud, no servers. Help us test it before it reaches the App Store.</p>
+      <p class="hero-lede">Private Vision Vault keeps the photos and videos you choose encrypted on your own device. No account, no servers, nothing sent to us. Help us test it before it reaches the App Store.</p>
       <div class="stores">
         <a class="store tf" data-testflight href="#join">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5v9"></path><path d="M8.5 6.5 12 2.5l3.5 4"></path><path d="M5 13.5c0 4 3 7.5 7 7.5s7-3.5 7-7.5"></path><circle cx="12" cy="14" r="2"></circle></svg>
@@ -94,14 +94,14 @@
         </a>
         <a class="store ghost" href="#watch">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"></path></svg>
-          <span><small>Under a minute</small><b>Watch how it works</b></span>
+          <span><small>Under two minutes</small><b>Watch how it works</b></span>
         </a>
       </div>
       <p class="store-note" data-tf-note>The TestFlight invite link will appear here when the beta opens.</p>
       <ul class="chips" aria-label="Core principles">
         <li class="chip"><span class="dot"></span>Encrypted on device</li>
         <li class="chip">No account</li>
-        <li class="chip">No cloud or servers</li>
+        <li class="chip">No servers</li>
         <li class="chip">No ads or tracking</li>
       </ul>
     </div>
@@ -117,7 +117,7 @@
       </div>
       <div class="about-grid">
         <figure class="about-shot">
-          <img src="assets/shots/03-home-photos.webp" width="660" height="1434" alt="The vault home screen: a grid of encrypted photos with Photos and Videos tabs, an Import from Photos button and a camera button.">
+          <img src="assets/shots/05-home.webp" width="660" height="1434" alt="The vault home screen: a photo search box, Photos and Videos albums, recently added photos, an Import from Photos button and a camera button.">
         </figure>
         <div class="about-cards">
           <article class="card">
@@ -125,8 +125,16 @@
             <p>Every photo and video is encrypted on your iPhone or iPad with AES-256-GCM, each with its own key.</p>
           </article>
           <article class="card">
-            <h3>No account, no cloud</h3>
+            <h3>No account, no servers</h3>
             <p>No sign-up and no email. There are no servers to send anything to, and the vault works in airplane mode.</p>
+          </article>
+          <article class="card">
+            <h3>Search what’s in your photos</h3>
+            <p>Find a photo by a word in it, like a shop name on a receipt or a note on a whiteboard, or by what it shows. Photos are read once, on the phone, and searched offline.</p>
+          </article>
+          <article class="card">
+            <h3>An encrypted backup only you can open</h3>
+            <p>Turn it on and the vault keeps an encrypted copy in a folder you choose, such as iCloud Drive. Only your recovery key opens it, so a lost phone doesn’t mean lost photos.</p>
           </article>
           <article class="card">
             <h3>A camera inside the vault</h3>
@@ -160,7 +168,7 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Watch</p>
-        <h2 id="watch-title">How it works,<br>in under a minute.</h2>
+        <h2 id="watch-title">How it works,<br>in under two minutes.</h2>
         <p>Real screens from the beta app, from creating your vault to opening it again.</p>
       </div>
       <div class="video-frame">
@@ -169,7 +177,7 @@
           <a href="assets/video/how-to.mp4">Download the how-to video (MP4)</a>
         </video>
       </div>
-      <p class="video-desc" id="video-desc">About 1 minute 25 seconds, with narration. Steps shown: open the app, choose a PIN or pattern, import photos, browse the vault, shoot with the vault camera, and view an item. Three short scenes then show the technology: the two keys that open the vault, a separate key for every file, and how nothing leaves your phones. It ends with the security settings and unlocking again. Sample photos are from Unsplash.</p>
+      <p class="video-desc" id="video-desc">About 1 minute 40 seconds, with narration and music. Steps shown: open the app, choose a PIN or pattern, turn on the encrypted backup, import photos, the vault home, the full-screen gallery, searching for a word in a receipt, reading a photo’s text in the viewer, and the vault camera. Three short scenes then show the technology: the two keys that open the vault, a separate key for every file, and how nothing is sent to us. It ends with the security settings and unlocking again. Sample photos are public-domain (CC0) photos from Wikimedia Commons; the receipt, note and booking screenshot are made up for the demo.</p>
 
       <ol class="quick" aria-label="Quick start">
         <li>
@@ -179,19 +187,19 @@
           <p>Pick a PIN (at least 4 digits, 10 or more is safer) or a pattern.</p>
         </li>
         <li>
-          <img src="assets/shots/05-import-options.webp" width="660" height="1434" loading="lazy" alt="Import from your gallery screen with the Delete originals after import option.">
+          <img src="assets/shots/03-backup.webp" width="660" height="1434" loading="lazy" alt="Backup is on: the backup folder, the last backup time, and buttons to back up now, change the folder, show the recovery key or restore.">
           <span class="q-num">02</span>
-          <h3>Bring photos in</h3>
-          <p>Import from Photos. Each item is copied in and checked. Your originals are never deleted.</p>
+          <h3>Turn on the backup</h3>
+          <p>Pick a folder and save your recovery key somewhere safe. New photos are backed up automatically, still encrypted.</p>
         </li>
         <li>
-          <img src="assets/shots/06-photo-viewer.webp" width="660" height="1434" loading="lazy" alt="Photo viewer inside the vault with Rotate, Info and Destroy buttons.">
+          <img src="assets/shots/07-search.webp" width="660" height="1434" loading="lazy" alt="Photo search for the word coffee: a receipt found by its text and two coffee photos found by what they show.">
           <span class="q-num">03</span>
-          <h3>View inside the app</h3>
-          <p>Swipe through photos and play videos. There is no share or export.</p>
+          <h3>Bring photos in, find them fast</h3>
+          <p>Import from Photos: each item is copied in and checked, and originals are never deleted. Then search by a word in a photo or what it shows.</p>
         </li>
         <li>
-          <img src="assets/shots/08-unlock.webp" width="660" height="1434" loading="lazy" alt="Vault locked screen asking for the PIN, showing attempts remaining.">
+          <img src="assets/shots/11-unlock.webp" width="660" height="1434" loading="lazy" alt="Vault locked screen asking for the PIN, showing tries left before a wait.">
           <span class="q-num">04</span>
           <h3>Unlock with your PIN</h3>
           <p>The vault locks the moment you leave the app. Your PIN opens it again.</p>
@@ -228,12 +236,14 @@
       <dl class="specs tech-specs">
         <div class="spec-row"><dt>Encryption</dt><dd><strong>AES-256-GCM, a separate key per file</strong><span class="mono">video: encrypted in chunks, each with its own nonce and authentication tag</span></dd></div>
         <div class="spec-row"><dt>Key derivation</dt><dd><strong>Argon2id</strong><span>Turns your PIN into a key in a way that is deliberately slow to guess</span></dd></div>
-        <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Left out of iCloud and computer backups. Deleting the app and reinstalling starts an empty vault.</span></dd></div>
+        <div class="spec-row"><dt>Key storage</dt><dd><strong>Secure Enclave, device-only</strong><span>Left out of iCloud and computer backups, and never in the app’s own backup. Reinstalling the app starts an empty vault unless you restore your encrypted backup.</span></dd></div>
         <div class="spec-row"><dt>Unlock</dt><dd><strong>Numeric PIN of 4+ digits or a pattern</strong><span>Common PINs and simple patterns are rejected. There is no Face ID or fingerprint unlock: only your PIN or pattern opens the vault.</span></dd></div>
         <div class="spec-row"><dt>Wrong attempts</dt><dd><strong>Never erase the vault</strong><span>After 3 wrong tries: wait 1 min, then 5 min, 15 min, then 1 hour per try</span><span>Each attempt is recorded before the PIN is checked, and the wait uses the phone’s time since start-up, so closing the app or changing the clock doesn’t skip it</span></dd></div>
         <div class="spec-row"><dt>Locking</dt><dd><strong>The moment you leave the app</strong><span>Contents are hidden in the app switcher</span></dd></div>
         <div class="spec-row"><dt>Import</dt><dd><strong>Copy, encrypt, then verify</strong><span>The app never deletes your originals. They stay in your photo library.</span></dd></div>
-        <div class="spec-row"><dt>Network</dt><dd><strong>No servers, accounts, analytics or ads</strong><span>The only connection is a direct one between your own two phones on the same Wi-Fi when you move to a new phone. Purchases go through the App Store.</span></dd></div>
+        <div class="spec-row"><dt>Backup</dt><dd><strong>Optional, encrypted, to a folder you choose</strong><span>iCloud Drive or the Files app · off until you set it up, then automatic while the app is open</span><span>Opens only with your 52-character recovery key (256-bit). Restore on any phone, iPhone or Android. A lost recovery key can’t be reset.</span></dd></div>
+        <div class="spec-row"><dt>Photo search</dt><dd><strong>On the phone, offline</strong><span>Each photo is read once with Apple Vision for its text and what it shows. The result is encrypted and kept in the vault.</span></dd></div>
+        <div class="spec-row"><dt>Network</dt><dd><strong>No servers, accounts, analytics or ads</strong><span>The only connection is a direct one between your own two phones on the same Wi-Fi when you move to a new phone. The backup goes only to the folder you choose. Purchases go through the App Store.</span></dd></div>
         <div class="spec-row"><dt>Built with</dt><dd><strong>React Native (Expo) with native security cores</strong><span>Swift and Apple CryptoKit on iPhone and iPad · Kotlin on Android</span></dd></div>
         <div class="spec-row"><dt>Languages</dt><dd><strong>11 languages</strong><span>English, Simplified Chinese, Hindi, Indonesian, Portuguese (Brazil), Russian, Japanese, Spanish, German, Turkish, Korean</span></dd></div>
       </dl>
@@ -253,7 +263,7 @@
         <li><h3>Your photos stay on your device.</h3><p>They are encrypted and kept on your phone. We never receive a copy, and nothing is uploaded.</p></li>
         <li><h3>You hold the only key.</h3><p>Nobody, including us, can reset your PIN or open your vault. There is no back door.</p></li>
         <li><h3>We collect nothing.</h3><p>No account, no analytics, no ads, no tracking. PINs, file names and keys are never written to logs.</p></li>
-        <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. The only way out is moving your vault, still encrypted, to your own new phone.</p></li>
+        <li><h3>Things go in, nothing comes out.</h3><p>There is no share, export, save or print. Files leave only still encrypted: to your own new phone, or to your own backup folder.</p></li>
         <li><h3>The app never deletes your photos on its own.</h3><p>Importing only copies, so your originals stay in your gallery. Wrong PINs make you wait, but never erase the vault. Moving to a new phone never deletes anything on the old one.</p></li>
         <li><h3>Honest about limits.</h3><p>We say what the app protects and what it can’t. No “unhackable” claims.</p></li>
       </ol>
