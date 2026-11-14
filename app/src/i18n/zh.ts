@@ -253,6 +253,8 @@ const zh: Pack = {
   // 1.1 free plan and Premium
   'plan.chip': '免费 {used}/{max}',
   'plan.chipA11y': '免费版，已用 {used}/{max}',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium 版',
   'plan.leftOut': { other: '{n} 项未添加 · 免费版已满' },
   'plan.leftOutBody': '免费版最多可存放 {max} 个项目。这些原件未被改动。Premium 可解除限制。',
   'plan.section': '方案',

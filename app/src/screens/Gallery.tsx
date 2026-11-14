@@ -115,7 +115,9 @@ export function Gallery({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 4,
-          backgroundColor: 'rgba(11,13,18,0.86)',
+          backgroundColor: 'rgba(11,13,18,0.95)',
+          borderBottomWidth: 1,
+          borderBottomColor: C.line,
           transform: [{ translateY: shift }],
         }}
       >

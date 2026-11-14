@@ -283,6 +283,8 @@ const ru: Pack = {
   // 1.1 free plan and Premium
   'plan.chip': 'Бесплатно: {used} из {max}',
   'plan.chipA11y': 'Бесплатный тариф, использовано {used} из {max}',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Тариф Premium',
   'plan.leftOut': {
     one: 'Не добавлено: {n} · бесплатный тариф заполнен',
     few: 'Не добавлено: {n} · бесплатный тариф заполнен',

@@ -254,6 +254,8 @@ const hi: Pack = {
   // 1.1 free plan and Premium
   'plan.chip': '{max} में से {used} मुफ़्त',
   'plan.chipA11y': 'मुफ़्त प्लान, {max} में से {used} इस्तेमाल हुए',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium प्लान',
   'plan.leftOut': { one: '{n} नहीं जोड़ा गया · मुफ़्त प्लान भर गया है', other: '{n} नहीं जोड़े गए · मुफ़्त प्लान भर गया है' },
   'plan.leftOutBody': 'मुफ़्त प्लान में {max} आइटम रखे जा सकते हैं। उन मूल फ़ाइलों को छुआ नहीं गया। Premium यह सीमा हटा देता है।',
   'plan.section': 'प्लान',
