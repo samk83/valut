@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Fixed (2026-11-13, 저장 시 깜빡임)
+- 사진 저장(암호화) 중 닫기·전환·셔터 버튼이 잠깐 흐려졌다 돌아오며 다시 깜빡여 보이던 문제 → 버튼은 흐리게 하지 않고 누르기만 막음, "암호화 중" 표시는 0.7초 넘게 걸릴 때(긴 동영상)만 표시
+
 ### Added (2026-11-13, iPhone 개발용 앱 PVV Dev)
 - TestFlight 새 빌드 없이 화면 수정을 실기기에서 확인하는 개발용 앱(development build). 진짜 앱 옆에 따로 설치: 이름 PVV Dev, bundle id com.jellydock.privatevault.dev → 저장 공간·Keychain 분리로 진짜 앱 사진에 접근 불가
 - app/app.config.js (APP_VARIANT=development일 때만 변경, 평소 빌드는 app.json 그대로), eas.json `development` 프로필, `npm run dev`(app/scripts/dev.js, Windows 지원)

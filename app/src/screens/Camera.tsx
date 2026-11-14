@@ -33,6 +33,7 @@ export function VaultCamera({
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [slowSave, setSlowSave] = useState(false);
   const [saved, setSaved] = useState(0);
   const plan = usePremium();
   const [startCount, setStartCount] = useState<number | null>(null);
@@ -60,6 +61,14 @@ export function VaultCamera({
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 250);
     return () => clearInterval(t);
   }, [recording]);
+
+  // While saving, the buttons are only disabled, never dimmed: dimming the whole row and
+  // brightening it again a moment later read as a second blink on every photo.
+  useEffect(() => {
+    if (!busy) return;
+    const timer = setTimeout(() => setSlowSave(true), 700);
+    return () => clearTimeout(timer);
+  }, [busy]);
 
   const ask = async (fn: () => Promise<unknown>) => {
     suspendAutoLock(true);
@@ -93,6 +102,7 @@ export function VaultCamera({
       Alert.alert(t('camera.savedLater'), t('camera.savedLaterBody'));
     } finally {
       setBusy(false);
+      setSlowSave(false);
     }
   };
 
@@ -151,7 +161,7 @@ export function VaultCamera({
           accessibilityLabel={saved > 0 ? t('camera.closeSaved', { n: saved }) : t('common.close')}
           onPress={() => onClose(saved > 0)}
           disabled={recording || busy}
-          style={({ pressed }) => [cs.round, (pressed || recording || busy) && { opacity: recording || busy ? 0.4 : 0.7 }]}
+          style={({ pressed }) => [cs.round, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
         >
           <Ionicons name="close" size={20} color={C.ivory} />
         </Pressable>
@@ -173,15 +183,16 @@ export function VaultCamera({
         <View style={cs.chip} pointerEvents="none">
           <Text style={cs.chipText}>{t('camera.noLocation')}</Text>
         </View>
-        {busy && (
+        {slowSave && (
           // A small chip instead of a full-screen cover: the cover flashed over the preview
           // right after the native shutter blink, so one press looked like two blinks.
+          // Shown only for a slow save (a long video); a quick photo changes nothing on screen.
           <View style={cs.savedChip} pointerEvents="none" accessibilityLiveRegion="polite">
             <ActivityIndicator color={C.brass} size="small" />
             <Text style={cs.chipText}>{t('camera.encrypting')}</Text>
           </View>
         )}
-        {saved > 0 && !recording && !busy && (
+        {saved > 0 && !recording && !slowSave && (
           <View style={cs.savedChip} pointerEvents="none">
             <Text style={cs.chipText}>{t('camera.saved', { n: saved })}</Text>
           </View>
@@ -210,7 +221,7 @@ export function VaultCamera({
 
       <View style={cs.controls}>
         <View style={{ width: 52 }} />
-        <Pressable accessibilityLabel={video ? (recording ? t('camera.stopRecording') : t('camera.startRecording')) : t('camera.takePhoto')} onPress={shutter} disabled={busy} style={[cs.shutter, busy && { opacity: 0.5 }]}>
+        <Pressable accessibilityLabel={video ? (recording ? t('camera.stopRecording') : t('camera.startRecording')) : t('camera.takePhoto')} onPress={shutter} disabled={busy} style={cs.shutter}>
           <View
             style={{
               width: recording ? 28 : 60,
@@ -224,7 +235,7 @@ export function VaultCamera({
           accessibilityLabel={t('camera.flip')}
           disabled={recording || busy}
           onPress={() => setFacing(facing === 'back' ? 'front' : 'back')}
-          style={({ pressed }) => [cs.flip, (pressed || recording || busy) && { opacity: recording || busy ? 0.4 : 0.7 }]}
+          style={({ pressed }) => [cs.flip, (pressed || recording) && { opacity: recording ? 0.4 : 0.7 }]}
         >
           <Ionicons name="camera-reverse-outline" size={24} color={C.ivory} />
         </Pressable>
