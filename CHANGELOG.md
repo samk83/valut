@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-14, 베타 무선 업데이트)
+- TestFlight 베타 빌드(`eas build --profile beta`)만 EAS Update로 화면·코드 수정을 빌드 없이 받음 (`npm run ota`). App Store 정식 빌드(production)는 업데이트 꺼짐, expo.dev에 접속하지 않음
+- runtimeVersion을 fingerprint 정책으로 변경: 네이티브 코드가 같은 빌드에만 업데이트 전달
+
 ### Changed (2026-11-13, 베타 홈페이지 영상·설명 갱신)
 - 사용법 영상을 최신 앱 화면으로 다시 제작 (17장면, 약 1분 45초): 전체화면 갤러리, 사진 속 글자 검색("wifi" → 영수증), 글자 강조·복사, 내용 검색, 암호화 백업, 두 겹 잠금 설정, 대기 잠금 화면. 기술 장면에 "기기 안 검색" 추가, "Nothing leaves your phones"를 "No servers. No accounts."로 정정
 - 오리지널 배경음악 추가 (tools/make_music.py로 생성, 외부 음원 없음), 내레이션 구간에서는 음악 자동으로 작게
