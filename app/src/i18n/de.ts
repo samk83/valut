@@ -270,6 +270,8 @@ const de: Pack = {
 
   'plan.chip': '{used} von {max} gratis',
   'plan.chipA11y': 'Kostenloser Plan, {used} von {max} belegt',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium-Plan',
   'plan.leftOut': { one: '{n} nicht hinzugefügt · kostenloser Plan voll', other: '{n} nicht hinzugefügt · kostenloser Plan voll' },
   'plan.leftOutBody': 'Der kostenlose Plan fasst {max} Objekte. Diese Originale wurden nicht angetastet. Mit Premium entfällt das Limit.',
   'plan.section': 'Plan',

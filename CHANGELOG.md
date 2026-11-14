@@ -6,6 +6,22 @@
 - 복구 키를 다시 볼 때 Face ID·Touch ID 또는 아이폰 암호를 한 번 더 확인 (금고를 막 만든 직후 첫 표시는 제외, 화면 잠금이 없는 폰은 생략)
 - 복구 키 '복사' 버튼 추가 (expo-clipboard, 다음 네이티브 빌드부터)
 - 11개 언어
+
+### Changed (2026-11-13, 홈 화면 · TestFlight 빌드 4 피드백)
+- "무료 12/100" 표시를 아래 줄에서 맨 윗줄 제목("내 보관함") 옆으로 이동. Premium 구매 후에는 같은 자리에 금색 "Pro" 표시
+- 사진/비디오 카드의 이름·개수 줄에 밝은 배경과 구분선을 넣어 글씨가 잘 보이게 함, 갤러리 위쪽 바 배경도 더 진하게
+- 윗줄 겹침 방지: "지금 잠금" 버튼을 자물쇠 아이콘만 남김(읽어 주기 이름은 그대로), 제목 28pt
+
+### Fixed (2026-11-13, 저장 시 깜빡임)
+- 사진 저장(암호화) 중 닫기·전환·셔터 버튼이 잠깐 흐려졌다 돌아오며 다시 깜빡여 보이던 문제 → 버튼은 흐리게 하지 않고 누르기만 막음, "암호화 중" 표시는 0.7초 넘게 걸릴 때(긴 동영상)만 표시
+
+### Added (2026-11-13, iPhone 개발용 앱 PVV Dev)
+- TestFlight 새 빌드 없이 화면 수정을 실기기에서 확인하는 개발용 앱(development build). 진짜 앱 옆에 따로 설치: 이름 PVV Dev, bundle id com.jellydock.privatevault.dev → 저장 공간·Keychain 분리로 진짜 앱 사진에 접근 불가
+- app/app.config.js (APP_VARIANT=development일 때만 변경, 평소 빌드는 app.json 그대로), eas.json `development` 프로필, `npm run dev`(app/scripts/dev.js, Windows 지원)
+- expo-dev-client 추가 (Release 빌드에서는 개발 메뉴 없음), PR #33용 expo-clipboard 미리 추가
+- 안전장치: 개발용 앱의 암호화 백업은 항상 "Private Vision Vault Backup (Dev)" 폴더에만 씀 — 진짜 백업 폴더를 골라도 진짜 백업 파일을 쓰거나 지우지 않음 (Swift 테스트 추가)
+- 안내서 docs/DEV_BUILD.md: 기기 등록, 빌드·설치, 매일 사용법, PR 브랜치 확인법, 개발용 앱에서 안 되는 것(인앱 구매 등)
+
 ### Changed (2026-11-12, website/ 암호화 백업)
 - 웹사이트·개인정보처리방침(영어·한국어)에 선택형 암호화 백업과 복구 키 반영: 백업 폴더, 복원 조건(백업 + 복구 키), "복구 불가" 문구 정정, 사양표에 백업·복구 행 추가
 

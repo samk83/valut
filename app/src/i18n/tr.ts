@@ -268,6 +268,8 @@ const tr: Pack = {
 
   'plan.chip': '{used}/{max} ücretsiz',
   'plan.chipA11y': 'Ücretsiz plan, {used}/{max} kullanıldı',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium plan',
   'plan.leftOut': { one: '{n} öğe eklenmedi · ücretsiz plan dolu', other: '{n} öğe eklenmedi · ücretsiz plan dolu' },
   'plan.leftOutBody': 'Ücretsiz plan {max} öğe alır. Bu orijinallere dokunulmadı. Premium sınırı kaldırır.',
   'plan.section': 'Plan',

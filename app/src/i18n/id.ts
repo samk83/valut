@@ -267,6 +267,8 @@ const id: Pack = {
   // 1.1 free plan and Premium
   'plan.chip': '{used} dari {max} gratis',
   'plan.chipA11y': 'Paket gratis, {used} dari {max} terpakai',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Paket Premium',
   'plan.leftOut': { other: '{n} tidak ditambahkan · paket gratis penuh' },
   'plan.leftOutBody': 'Paket gratis dapat menampung {max} item. File asli tersebut tidak diubah. Premium menghapus batasnya.',
   'plan.section': 'Paket',

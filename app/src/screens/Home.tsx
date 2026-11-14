@@ -327,22 +327,26 @@ export function Home({
         <View style={{ paddingHorizontal: 22 }}>
           <TestBanner />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22 }}>
-          <Text style={{ flex: 1, fontFamily: F.title, fontSize: 30, color: C.ivory }} numberOfLines={1} accessibilityRole="header">
-            {t('home.title')}
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 22, paddingRight: 14 }}>
+          <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ flexShrink: 1, fontFamily: F.title, fontSize: 28, color: C.ivory }} numberOfLines={1} accessibilityRole="header">
+              {t('home.title')}
+            </Text>
+            {plan.loaded && <PlanBadge premium={plan.premium} used={Math.min(items.length, FREE_LIMIT)} onPress={() => onPremium()} />}
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('home.lockNow')}
               onPress={onLock}
+              hitSlop={4}
               style={({ pressed }) => [
-                { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: C.outline },
+                // Icon only, so the title and the plan badge fit on one line in every language.
+                { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, borderWidth: 1, borderColor: C.outline },
                 pressed && { opacity: 0.7 },
               ]}
             >
-              <Ionicons name="lock-closed-outline" size={15} color={C.brass} />
-              <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.ivory }}>{t('home.lockNow')}</Text>
+              <Ionicons name="lock-closed-outline" size={18} color={C.brass} />
             </Pressable>
             <Pressable accessibilityLabel={t('common.settings')} onPress={onSettings} style={{ padding: 8 }}>
               <Ionicons name="settings-outline" size={22} color={C.brass} />
@@ -357,15 +361,6 @@ export function Home({
           <Chip>
             <Text style={chipText}>{t('home.chipOffline')}</Text>
           </Chip>
-          {plan.loaded && !plan.premium && (
-            <Pressable accessibilityRole="button" accessibilityLabel={t('plan.chipA11y', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })} onPress={() => onPremium()}>
-              <Chip>
-                <Text style={[chipText, items.length >= FREE_LIMIT && { color: C.brass }]}>
-                  {t('plan.chip', { used: Math.min(items.length, FREE_LIMIT), max: FREE_LIMIT })}
-                </Text>
-              </Chip>
-            </Pressable>
-          )}
         </View>
         {!VaultCore.isDemo && backup && (!backup.keyConfirmed || !backup.folderName || !!backup.lastError || backup.restorePending) && (
           <Pressable
@@ -441,7 +436,7 @@ function CategoryCard({ kind, count, cover, onPress }: { kind: ItemKind; count: 
       accessibilityRole="button"
       accessibilityLabel={`${label} ${count}`}
       onPress={onPress}
-      style={({ pressed }) => [{ flex: 1, borderRadius: 22, overflow: 'hidden', backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [{ flex: 1, borderRadius: 22, overflow: 'hidden', backgroundColor: C.surface2, borderWidth: 1, borderColor: C.outline }, pressed && { opacity: 0.85 }]}
     >
       <View style={{ aspectRatio: 1.1, backgroundColor: C.surface2 }}>
         {kind === 'PHOTO' && cover.length >= 2 ? (
@@ -458,13 +453,42 @@ function CategoryCard({ kind, count, cover, onPress }: { kind: ItemKind; count: 
           </View>
         )}
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 12 }}>
+      {/* A solid strip under the covers, so the name and count read clearly. */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: C.surface2, borderTopWidth: 1, borderTopColor: C.outline }}>
         <Ionicons name={kind === 'PHOTO' ? 'image-outline' : 'videocam-outline'} size={18} color={C.brass} />
         <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 16, color: C.ivory }} numberOfLines={1}>
           {label}
         </Text>
-        <Text style={{ fontFamily: F.body, fontSize: 15, color: C.muted }}>{count}</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ivory }}>{count}</Text>
       </View>
+    </Pressable>
+  );
+}
+
+/** Next to the title: "12 of 100 free" on the free plan (opens Premium), "Pro" after purchase. */
+function PlanBadge({ premium, used, onPress }: { premium: boolean; used: number; onPress: () => void }) {
+  if (premium) {
+    return (
+      <View accessible accessibilityLabel={t('plan.proA11y')} style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: C.brass }}>
+        <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.bg }}>{t('plan.pro')}</Text>
+      </View>
+    );
+  }
+  const full = used >= FREE_LIMIT;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('plan.chipA11y', { used, max: FREE_LIMIT })}
+      onPress={onPress}
+      hitSlop={6}
+      style={({ pressed }) => [
+        { flexShrink: 0, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: full ? C.brass : C.outline, backgroundColor: C.surface2 },
+        pressed && { opacity: 0.7 },
+      ]}
+    >
+      <Text style={{ fontFamily: F.medium, fontSize: 12, color: full ? C.brass : C.muted }} numberOfLines={1}>
+        {t('plan.chip', { used, max: FREE_LIMIT })}
+      </Text>
     </Pressable>
   );
 }

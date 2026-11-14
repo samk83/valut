@@ -268,6 +268,8 @@ const es: Pack = {
 
   'plan.chip': '{used} de {max} gratis',
   'plan.chipA11y': 'Plan gratuito, {used} de {max} usados',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Plan Premium',
   'plan.leftOut': { one: '{n} no agregado · plan gratuito lleno', other: '{n} no agregados · plan gratuito lleno' },
   'plan.leftOutBody': 'El plan gratuito admite {max} elementos. Esos originales no se tocaron. Premium elimina el límite.',
   'plan.section': 'Plan',

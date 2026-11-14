@@ -253,6 +253,8 @@ const ko: Pack = {
 
   'plan.chip': '무료 {used}/{max}',
   'plan.chipA11y': '무료 플랜, {max}개 중 {used}개 사용',
+  'plan.pro': 'Pro',
+  'plan.proA11y': 'Premium 플랜 사용 중',
   'plan.leftOut': { other: '{n}개 추가 안 됨 · 무료 플랜 가득 참' },
   'plan.leftOutBody': '무료 플랜은 항목을 {max}개까지 보관합니다. 해당 원본은 그대로 두었습니다. Premium은 제한을 없앱니다.',
   'plan.section': '플랜',

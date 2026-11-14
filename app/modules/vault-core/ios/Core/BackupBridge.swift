@@ -5,7 +5,14 @@ import Foundation
 ///   { phase: "backup-done" | "backup-error" | "restore-progress" | "restore-done" | "restore-error", ... }
 /// Backups and restores run on their own queue, because they can take minutes.
 final class BackupBridge {
-  static let subfolder = "Private Vision Vault Backup"
+  /// The development build ("PVV Dev", bundle id ending in ".dev") keeps its test backups in
+  /// a folder of its own, so it can never write into or delete from the real app's backup,
+  /// even if the same iCloud Drive folder is picked in both apps.
+  static let isDevBuild = Bundle.main.bundleIdentifier?.hasSuffix(".dev") == true
+  static let subfolder = subfolderName(devBuild: isDevBuild)
+  static func subfolderName(devBuild: Bool) -> String {
+    devBuild ? "Private Vision Vault Backup (Dev)" : "Private Vision Vault Backup"
+  }
 
   private let vault: () throws -> Vault
   private let stateDir: URL
@@ -184,13 +191,21 @@ final class BackupBridge {
   /// The backup folder for a picked folder: the folder itself if it already holds a backup,
   /// otherwise its subfolder, created if [create].
   static func open(_ picked: URL, create: Bool) throws -> LocalBackupFolder {
+    return try open(picked, create: create, devBuild: isDevBuild)
+  }
+
+  /// [devBuild]: only a folder that is itself the dev backup folder is used as is; any other
+  /// picked folder (also the real "Private Vision Vault Backup") gets the dev subfolder inside.
+  static func open(_ picked: URL, create: Bool, devBuild: Bool) throws -> LocalBackupFolder {
+    let sub = subfolderName(devBuild: devBuild)
     let pickedFolder = LocalBackupFolder(dir: picked)
-    if try pickedFolder.list().contains(BackupFormat.info) { return pickedFolder }
-    let sub = picked.appendingPathComponent(subfolder, isDirectory: true)
-    if SecureFiles.isDirectory(sub) { return LocalBackupFolder(dir: sub) }
+    let mayUsePicked = !devBuild || picked.lastPathComponent == sub
+    if mayUsePicked, try pickedFolder.list().contains(BackupFormat.info) { return pickedFolder }
+    let subDir = picked.appendingPathComponent(sub, isDirectory: true)
+    if SecureFiles.isDirectory(subDir) { return LocalBackupFolder(dir: subDir) }
     guard create else { throw VaultError.notABackup }
-    try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
-    return LocalBackupFolder(dir: sub)
+    try FileManager.default.createDirectory(at: subDir, withIntermediateDirectories: true)
+    return LocalBackupFolder(dir: subDir)
   }
 
   static func code(_ error: Error) -> String {
