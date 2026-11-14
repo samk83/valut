@@ -1,11 +1,12 @@
 // Builds the how-to video (assets/video/how-to.mp4) and its poster from the real app screenshots.
 // Needs: Node, Playwright with Chromium, ffmpeg.  Run from the repo root:
 //   node website/beta/myvisionvault/tools/make_video.js <prepared screenshot folder> [narration folder]
-// Screenshots come from tools/prepare_shots.py. The narration folder holds one MP3 per scene, named by
+// Screenshots come from tools/capture_app.js (raw/*.png). The narration folder holds one MP3 per scene, named by
 // the scene's `vo` key below (00.mp3, 01.mp3, ..., ta.mp3, tb.mp3, tc.mp3, outro.mp3); each scene is
 // stretched to fit its line. Scenes without a file keep the default length and stay silent.
 // Each scene is an HTML slide (site fonts and colors) saved as a PNG, joined by ffmpeg with a slow zoom
-// and crossfades; narration lines are placed at the start of their scenes.
+// and crossfades; narration lines are placed at the start of their scenes. Background music comes from
+// make_music.py (original, generated, no third-party audio) and is ducked under the narration.
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -16,21 +17,25 @@ const SHOTS = path.resolve(process.argv[2] || path.join(SITE, 'assets/shots'));
 const VO = process.argv[3] ? path.resolve(process.argv[3]) : null;
 const OUT = path.join(SITE, 'assets/video');
 const TMP = fs.mkdtempSync(path.join(require('os').tmpdir(), 'pvv-video-'));
-const W = 1920, H = 1080, FPS = 30, SCENE = 5.5, FADE = 0.6, VO_LEAD = 0.5, VO_TAIL = 0.9;
+const W = 1920, H = 1080, FPS = 30, SCENE = 5.8, FADE = 0.6, VO_LEAD = 0.5, VO_TAIL = 0.9;
 
 const scenes = [
   { kind: 'title', vo: '00' },
-  { vo: '01', shot: '01-welcome', step: '01', tag: 'Start', title: 'Open the app.<br>No sign-up.', body: 'No account, no email, no cloud. Your vault is created on this phone.' },
-  { vo: '02', shot: '02-create-pin', step: '02', tag: 'Lock', title: 'Choose a PIN<br>or a pattern.', body: 'At least 4 digits, and 10 or more is safer. Nobody can reset it, so pick one you will remember.' },
-  { vo: '03', shot: '05-import-options', step: '03', tag: 'Import', title: 'Bring photos in.', body: 'Each item is copied in, encrypted, then checked. Your originals stay in your gallery.' },
-  { vo: '04', shot: '03-home-photos', step: '04', tag: 'Your vault', title: 'Everything stays<br>on this phone.', body: 'Photos and videos sit in their own tabs, encrypted on the device.' },
-  { vo: '05', shot: '04-home-videos', step: '05', tag: 'Camera', title: 'Shoot straight<br>into the vault.', body: 'Tap the camera button. What you capture never goes to your photo library.' },
-  { vo: '06', shot: '06-photo-viewer', step: '06', tag: 'View', title: 'Look, but only<br>in here.', body: 'There is no share or export button. Swipe through, rotate, or check the details.' },
+  { vo: '01', shot: '01-welcome', step: '01', tag: 'Start', title: 'Open the app.<br>No sign-up.', body: 'No account, no email, no servers. Your vault is created on this phone.' },
+  { vo: '02', shot: '02-create', step: '02', tag: 'Lock', title: 'Choose a PIN<br>or a pattern.', body: 'At least 4 digits, and 10 or more is safer. Nobody can reset it, so pick one you will remember.' },
+  { vo: '03', shot: '03-sealing', step: '03', tag: 'Import', title: 'Bring photos in.', body: 'Each item is copied in, encrypted, then checked. Your originals stay in your gallery.' },
+  { shot: '04-home', step: '04', tag: 'Your vault', title: 'Everything<br>in one place.', body: 'Photos and videos, encrypted on the device, with search right at the top.' },
+  { shot: '05-gallery', step: '05', tag: 'Gallery', title: 'Full screen,<br>edge to edge.', body: 'Tap Photos for a gallery that fills the screen. Switch between bigger and smaller tiles.' },
+  { shot: '06-search-text', step: '06', tag: 'Search', title: 'Find a photo by<br><em>the words in it.</em>', body: 'Type “wifi” and the receipt with the Wi-Fi password turns up. Text is read on the phone itself.' },
+  { shot: '07-viewer-text', step: '07', tag: 'Read', title: 'See the match.<br>Copy the text.', body: 'The word is highlighted in the photo, and all the text in it can be copied.' },
+  { shot: '08-search-people', step: '08', tag: 'Search', title: 'Or by what<br>it shows.', body: 'People, food, mountains, documents. Each photo is recognized on the device, never in the cloud.' },
   { vo: 'ta', kind: 'tech-keys' },
   { vo: 'tb', kind: 'tech-files' },
+  { kind: 'tech-ai' },
   { vo: 'tc', kind: 'tech-network' },
-  { vo: '07', shot: '07-settings', step: '07', tag: 'Check', title: 'Your protection<br>at a glance.', body: 'Settings shows what guards your vault. It locks the moment you leave the app.' },
-  { vo: '08', shot: '08-unlock', step: '08', tag: 'Return', title: 'Come back with<br>your PIN.', body: 'Wrong tries make you wait, but never erase your vault. Never share your PIN with anyone.' },
+  { shot: '09-backup', step: '09', tag: 'Backup', title: 'A backup only<br><em>you</em> can open.', body: 'Optional. Already-encrypted copies go to a folder you choose, like iCloud Drive, and only your recovery key opens them.' },
+  { shot: '10-settings', step: '10', tag: 'Check', title: 'Your protection<br>at a glance.', body: 'Turn on the phone’s own lock as a first step before your PIN. The vault locks the moment you leave the app.' },
+  { shot: '11-locked', step: '11', tag: 'Return', title: 'Come back with<br>your PIN.', body: 'Wrong tries make you wait, but never erase your vault. Never share your PIN with anyone.' },
   { kind: 'outro', vo: 'outro' },
 ];
 
@@ -82,7 +87,7 @@ const lock = '<svg viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width
 
 function slide(s) {
   const head = `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${fontsCss}"><style>${CSS}</style></head><body>`;
-  if (s.kind === 'title') return head + `<div class="center">${dial}<span class="badge">BETA</span><h1>Private Vision <em>Vault</em></h1><p>How it works, in about a minute</p></div></body></html>`;
+  if (s.kind === 'title') return head + `<div class="center">${dial}<span class="badge">BETA</span><h1>Private Vision <em>Vault</em></h1><p>How it works, in under two minutes</p></div></body></html>`;
   if (s.kind === 'outro') return head + `<div class="center">${dial}<h1>Join the <em>beta.</em></h1><p>Try Private Vision Vault on iPhone and iPad with TestFlight.</p><span class="url">jellydock.com/beta/myvisionvault</span></div></body></html>`;
   if (s.kind === 'tech-keys') return head + `<div class="tech"><div><div class="step">Technology · 1</div><h1 style="margin-top:22px">A door that needs <em>two keys.</em></h1></div>
     <div class="row">
@@ -95,8 +100,17 @@ function slide(s) {
   if (s.kind === 'tech-files') return head + `<div class="tech"><div><div class="step">Technology · 2</div><h1 style="margin-top:22px">Every file, <em>its own key.</em></h1></div>
     <div class="files">${Array.from({ length: 6 }, (_, i) => `<div class="file">${lock}<small>key #${String(i + 1).padStart(2, '0')}</small></div>`).join('')}</div>
     <div class="chips"><span class="chip">AES-256-GCM</span><span class="chip">separate key per photo &amp; video</span><span class="chip">video sealed chunk by chunk</span><span class="chip">names &amp; thumbnails encrypted too</span></div></div></body></html>`;
-  if (s.kind === 'tech-network') return head + `<div class="tech"><div><div class="step">Technology · 3</div><h1 style="margin-top:22px">Nothing leaves <em>your phones.</em></h1></div>
-    <div class="net"><div class="mini">${lock}</div><div class="wifi"><span>your own Wi-Fi · encrypted</span><div class="link"></div><span>new-phone transfer only</span></div><div class="mini">${lock}</div>
+  if (s.kind === 'tech-ai') return head + `<div class="tech"><div><div class="step">Technology · 3</div><h1 style="margin-top:22px">Search that <em>stays on the phone.</em></h1></div>
+    <div class="row">
+      <div class="node"><span class="k">YOUR PHOTO</span><b>Opened in the vault</b><span>only while it is unlocked</span></div>
+      <div class="arrow"></div>
+      <div class="node hot"><span class="k">ON-DEVICE AI</span><b>Reads text, sees things</b><span>Apple Vision · offline ML Kit</span></div>
+      <div class="arrow"></div>
+      <div class="node"><span class="k">SEARCH NOTE</span><b>Sealed in the vault</b><span>encrypted like the photo itself</span></div>
+    </div>
+    <div class="chips"><span class="chip">no internet needed</span><span class="chip">nothing uploaded</span><span class="chip">deleted with the photo</span></div></div></body></html>`;
+  if (s.kind === 'tech-network') return head + `<div class="tech"><div><div class="step">Technology · 4</div><h1 style="margin-top:22px">No servers. <em>No accounts.</em></h1></div>
+    <div class="net"><div class="mini">${lock}</div><div class="wifi"><span>your own Wi-Fi · encrypted</span><div class="link"></div><span>phone to phone, directly</span></div><div class="mini">${lock}</div>
       <div class="cloud"><svg viewBox="0 0 24 24" fill="none" stroke="#8F897F" stroke-width="1.4" stroke-linecap="round"><path d="M7 18h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 18z"/><path d="M4 4l16 16" stroke="#F0996A" stroke-width="1.8"/></svg><span>no servers · no accounts · no tracking</span></div></div></div></body></html>`;
   const img = 'file://' + path.join(SHOTS, s.shot + (fs.existsSync(path.join(SHOTS, s.shot + '.png')) ? '.png' : '.webp'));
   return head + `<div class="wrap"><div class="phone"><img src="${img}"></div><div><div class="step">${s.step} · ${s.tag}</div><h1>${s.title}</h1><p>${s.body}</p></div></div></body></html>`;
@@ -146,13 +160,21 @@ function duration(file) {
   }
   const mp4 = path.join(OUT, 'how-to.mp4');
   const map = ['-map', `[${last}]`];
+  // Background music: an original track written by make_music.py, ducked under the narration.
+  const music = path.join(TMP, 'music.wav');
+  execFileSync('python3', [path.join(__dirname, 'make_music.py'), music, (total + 0.5).toFixed(2)], { stdio: 'inherit' });
+  const musicIdx = pngs.length + audioInputs.length;
+  args.push('-i', music);
+  parts.push(`[${musicIdx}:a]aresample=48000,aecho=0.8:0.7:60|140:0.25|0.15,loudnorm=I=-25:TP=-6,aresample=48000,atrim=0:${total.toFixed(3)}[mus]`);
   if (audioInputs.length) {
     audioInputs.forEach((a, n) => parts.push(`[${a.idx}:a]aresample=48000,adelay=${Math.round(a.at * 1000)}:all=1[a${n}]`));
-    parts.push(`${audioInputs.map((_, n) => `[a${n}]`).join('')}amix=inputs=${audioInputs.length}:normalize=0,loudnorm=I=-16:TP=-1.5,apad=whole_dur=${total.toFixed(3)}[aout]`);
-    map.push('-map', '[aout]', '-c:a', 'aac', '-b:a', '128k', '-ar', '48000');
+    parts.push(`${audioInputs.map((_, n) => `[a${n}]`).join('')}amix=inputs=${audioInputs.length}:normalize=0,loudnorm=I=-16:TP=-1.5,aresample=48000,apad=whole_dur=${total.toFixed(3)},asplit=2[vo][key]`);
+    parts.push(`[mus][key]sidechaincompress=threshold=0.02:ratio=6:attack=30:release=600[duck]`);
+    parts.push(`[vo][duck]amix=inputs=2:normalize=0,alimiter=limit=0.84[aout]`);
   } else {
-    map.push('-an');
+    parts.push(`[mus]anull[aout]`);
   }
+  map.push('-map', '[aout]', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000');
   args.push('-filter_complex', parts.join(';'), ...map, '-c:v', 'libx264', '-preset', 'slow', '-crf', '24',
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-t', total.toFixed(3), mp4);
   execFileSync('ffmpeg', args, { stdio: 'inherit' });
