@@ -10,7 +10,9 @@
     "expo-blur": "~58.0.6",
     "expo-build-properties": "~58.0.12",
     "expo-camera": "~58.0.14",
+    "expo-clipboard": "~58.0.4",
     "expo-crypto": "~58.0.8",
+    "expo-dev-client": "~58.0.20",
     "expo-file-system": "~58.0.13",
     "expo-font": "~58.0.12",
     "expo-image-picker": "~58.0.10",
@@ -33,6 +35,8 @@
   },
   "scripts": {
     "start": "expo start",
+    "dev": "node scripts/dev.js",
+    "dev:tunnel": "node scripts/dev.js --tunnel",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
