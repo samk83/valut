@@ -1,4 +1,5 @@
 import { Directory } from 'expo-file-system';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 import VaultCore, { BackupError } from '../modules/vault-core';
 import { Key, t } from './i18n';
@@ -14,6 +15,30 @@ export async function pickFolder(suspendAutoLock: (on: boolean) => void): Promis
     return dir?.uri ?? null;
   } catch {
     return null;
+  } finally {
+    suspendAutoLock(false);
+  }
+}
+
+/**
+ * Asks for Face ID / Touch ID / fingerprint or the phone's passcode before the recovery key is
+ * shown (owner request 2026-11-13). A phone without a screen lock has nothing to ask, and the
+ * vault PIN already protects the screen, so it returns true.
+ */
+export async function confirmOwner(suspendAutoLock: (on: boolean) => void): Promise<boolean> {
+  try {
+    const level = await LocalAuthentication.getEnrolledLevelAsync();
+    if (level === LocalAuthentication.SecurityLevel.NONE) return true;
+  } catch {
+    // Unknown: ask anyway.
+  }
+  // The system prompt makes the app inactive; it must not lock the vault meanwhile.
+  suspendAutoLock(true);
+  try {
+    const r = await LocalAuthentication.authenticateAsync({ promptMessage: t('backup.authPrompt'), cancelLabel: t('common.cancel') });
+    return r.success;
+  } catch {
+    return false;
   } finally {
     suspendAutoLock(false);
   }

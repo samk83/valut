@@ -235,6 +235,31 @@ final class BackupTests: XCTestCase {
     XCTAssertEqual(try bridge2.status()["folderName"] as? String, BackupBridge.subfolder)
   }
 
+  /// The development build ("PVV Dev") must never use the real app's backup folder, even when
+  /// the same folder (or the real backup folder itself) is picked in both apps.
+  func testDevBuildNeverUsesTheRealBackupFolder() throws {
+    let picked = tmp.appendingPathComponent("iCloud Drive", isDirectory: true)
+    let real = try BackupBridge.open(picked, create: true, devBuild: false)
+    XCTAssertEqual(real.dir.lastPathComponent, "Private Vision Vault Backup")
+    try real.write(BackupFormat.info) { try $0.write(Array("real".utf8)) }
+
+    // Same parent folder picked in the dev app: a separate dev subfolder.
+    let dev = try BackupBridge.open(picked, create: true, devBuild: true)
+    XCTAssertEqual(dev.dir.lastPathComponent, "Private Vision Vault Backup (Dev)")
+    XCTAssertEqual(dev.dir.deletingLastPathComponent().lastPathComponent, "iCloud Drive")
+
+    // The real backup folder itself picked in the dev app: still not used as is.
+    let inReal = try BackupBridge.open(real.dir, create: true, devBuild: true)
+    XCTAssertEqual(inReal.dir.lastPathComponent, "Private Vision Vault Backup (Dev)")
+    XCTAssertNotEqual(inReal.dir.standardizedFileURL, real.dir.standardizedFileURL)
+    XCTAssertThrowsError(try BackupBridge.open(tmp.appendingPathComponent("Empty"), create: false, devBuild: true))
+
+    // The real app still finds its own backup (unchanged behaviour), and ignores the dev one.
+    XCTAssertEqual(try BackupBridge.open(picked, create: false, devBuild: false).dir.lastPathComponent, "Private Vision Vault Backup")
+    XCTAssertEqual(try BackupBridge.open(real.dir, create: false, devBuild: false).dir.standardizedFileURL, real.dir.standardizedFileURL)
+    XCTAssertEqual(try real.list(), [BackupFormat.info])
+  }
+
   // MARK: - Android <-> iPhone: the same backup format on both (fixtures made by each side)
 
   private static let fixtures = URL(fileURLWithPath: #filePath)
