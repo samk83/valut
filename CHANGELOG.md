@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## [1.1] — 개발 중
+### Added (2026-11-14, 베타 무선 업데이트)
+- TestFlight 베타 빌드(`eas build --profile beta`)만 EAS Update로 화면·코드 수정을 빌드 없이 받음 (`npm run ota`). App Store 정식 빌드(production)는 업데이트 꺼짐, expo.dev에 접속하지 않음
+- runtimeVersion을 fingerprint 정책으로 변경: 네이티브 코드가 같은 빌드에만 업데이트 전달
 ### Fixed (2026-11-14, 촬영 깜빡임 근본 수정)
 - expo-camera 기본 셔터 효과(미리보기 투명도 0→1, iOS 암묵 애니메이션과 겹쳐 두 번 깜빡여 보임)를 끄고, 미리보기 위 한 번의 짧은 어두운 플래시(0.18초)로 교체
 - 사진 저장 중에는 화면에 아무 표시도 바꾸지 않음 ("암호화 중" 표시는 긴 동영상만)

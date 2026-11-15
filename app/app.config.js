@@ -11,17 +11,23 @@ const fs = require('fs');
 const path = require('path');
 
 const IS_DEV = process.env.APP_VARIANT === 'development';
+// APP_VARIANT=beta (eas.json "beta" profile, `npm run ota`): the TestFlight beta build that can
+// take over-the-air fixes (EAS Update, channel "beta"). Every other build has updates turned
+// off and never contacts expo.dev, so the App Store app stays offline as the app promises.
+const IS_BETA = process.env.APP_VARIANT === 'beta';
 
 module.exports = ({ config, projectRoot }) => {
+  const updates = { ...config.updates, enabled: IS_BETA, checkAutomatically: 'ON_LOAD', fallbackToCacheTimeout: 0 };
   // expo-dev-client is only used by the development build. In TestFlight / App Store builds
   // its development menu is left out; also don't give the real app the dev client's
   // generated URL scheme, so a dev-server QR code can only ever open PVV Dev.
   if (!IS_DEV) {
-    return { ...config, plugins: [...(config.plugins ?? []), ['expo-dev-client', { addGeneratedScheme: false }]] };
+    return { ...config, updates, plugins: [...(config.plugins ?? []), ['expo-dev-client', { addGeneratedScheme: false }]] };
   }
   const name = 'PVV Dev';
   return {
     ...config,
+    updates,
     name,
     ios: {
       ...config.ios,
