@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { CameraType, CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import VaultCore from '../../modules/vault-core';
 import { freeSlots, usePremium } from '../premium';
@@ -26,6 +26,11 @@ export function VaultCamera({
 }) {
   const ref = useRef<CameraView>(null);
   const capturing = useRef(false);
+  // Our own shutter blink. expo-camera's built-in one (animateShutter) sets the preview
+  // layer's opacity to 0 and back with an implicit Core Animation fade on top of a UIView
+  // animation, which on iPhone reads as two quick blinks. This one is a single dark flash
+  // over the preview, run on the native driver so no React render is involved.
+  const [flash] = useState(() => new Animated.Value(0));
   const [cam, requestCam] = useCameraPermissions();
   const [mic, requestMic] = useMicrophonePermissions();
   const [mode, setMode] = useState<'picture' | 'video'>('picture');
@@ -66,9 +71,12 @@ export function VaultCamera({
   // brightening it again a moment later read as a second blink on every photo.
   useEffect(() => {
     if (!busy) return;
+    // Photos never show it (a chip popping in and out is another blink); only a long video
+    // that takes a while to encrypt does.
+    if (mode !== 'video') return;
     const timer = setTimeout(() => setSlowSave(true), 700);
     return () => clearTimeout(timer);
-  }, [busy]);
+  }, [busy, mode]);
 
   const ask = async (fn: () => Promise<unknown>) => {
     suspendAutoLock(true);
@@ -113,6 +121,8 @@ export function VaultCamera({
     if (mode === 'picture') {
       if (capturing.current) return; // A second tap before the first photo is ready.
       capturing.current = true;
+      flash.setValue(1);
+      Animated.timing(flash, { toValue: 0, duration: 180, useNativeDriver: true }).start();
       let pic;
       try {
         pic = await ref.current.takePictureAsync({ quality: 0.92, exif: false });
@@ -173,7 +183,8 @@ export function VaultCamera({
       </View>
 
       <View style={cs.preview}>
-        <CameraView ref={ref} style={StyleSheet.absoluteFill} facing={facing} mode={mode} mute={false} />
+        <CameraView ref={ref} style={StyleSheet.absoluteFill} facing={facing} mode={mode} mute={false} animateShutter={false} />
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: '#000', opacity: flash }]} />
         {recording && (
           <View style={cs.timer}>
             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: REC_RED }} />
