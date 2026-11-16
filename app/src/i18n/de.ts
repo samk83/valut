@@ -288,6 +288,13 @@ const de: Pack = {
   'plan.nothingBodyLong': 'Für dieses Konto ({account}) wurde kein Premium-Kauf gefunden. Melde dich mit dem Konto ({account}) an, mit dem du gekauft hast, und versuche es erneut.',
   'plan.accountApple': 'Apple-ID',
   'plan.accountGoogle': 'Google-Konto',
+  // Settings upgrade card (top of Settings)
+  'upsell.used': '{used} von {max} kostenlosen Plätzen belegt',
+  'upsell.left': { one: 'Nur noch {n} kostenloser Platz frei', other: 'Nur noch {n} kostenlose Plätze frei' },
+  'upsell.body': 'Einmal zahlen, für immer behalten. Kein Abo.',
+  'upsell.fullBody': 'Alles in deinem Tresor bleibt sicher. Schalte unbegrenzt frei, um mehr hinzuzufügen.',
+  'upsell.button': 'Unbegrenzt · einmalig {price}',
+  'upsell.buttonPlain': 'Unbegrenzt freischalten',
   'premium.pending': 'Zahlung ausstehend',
   'premium.pendingBody': '{store} wartet auf den Abschluss der Zahlung. Premium wird danach automatisch aktiviert.',
   'premium.unavailable': 'Derzeit nicht verfügbar',

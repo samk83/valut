@@ -7,6 +7,11 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## 설정 업그레이드 카드 (2026-11-16)
+- 1.1(build 7) 심사와 무관. 심사 끝난 뒤 다음 업데이트 빌드에 포함
+- Owner: PR 확인 후 Merge → 다음 빌드에서 무료 계정으로 Settings 열어 카드 확인, 버튼 → Premium 화면 이동 확인
+- 다음 단계 추천: 카드 문구 원어민 검토, 앱 내 구매 전환율을 보고 홈 화면 배지 문구도 맞추기
+
 ## iPhone 개발용 앱 PVV Dev (2026-11-13)
 - 안내서: docs/DEV_BUILD.md
 - Owner: 1회 설정 (`npx eas-cli@latest device:create` → `npx eas-cli@latest build --platform ios --profile development` → iPhone 설치), 그 뒤 `npm run dev`로 PR #31·#32·#33 확인

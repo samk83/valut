@@ -5,7 +5,7 @@ import { Alert, BackHandler, Platform, Pressable, ScrollView, StyleSheet, Switch
 import VaultCore, { BackupStatus, VaultItem, VaultStatus } from '../../modules/vault-core';
 import { readDeviceGate, saveDeviceGate } from '../deviceGate';
 import { readHideTrail, readLockMethod, saveHideTrail } from '../pattern';
-import { FREE_LIMIT, restorePremium, usePremium } from '../premium';
+import { FREE_LIMIT, planCard, restorePremium, usePremium } from '../premium';
 import { C, F } from '../theme';
 import { spacing, t, tn, UPPERCASE } from '../i18n';
 import { Busy, Button, Rich, s, TestBanner } from '../ui';
@@ -26,6 +26,36 @@ function Row({ label, value, last, children }: { label: string; value?: string; 
     <View style={[st.row, !last && { borderBottomWidth: 1, borderColor: C.line }]}>
       <Text style={st.rowLabel}>{label}</Text>
       {children ?? <Text style={st.rowValue}>{value}</Text>}
+    </View>
+  );
+}
+
+/** Top of Settings: the free plan with an upgrade button, or a short Premium line. */
+function PlanCard({ premium, count, price, onPress }: { premium: boolean; count: number; price: string | null; onPress: () => void }) {
+  const kind = planCard(count, premium);
+  if (kind === 'premium') {
+    return (
+      <View accessible accessibilityLabel={`${t('premium.product')}, ${t('plan.unlimited')}`} style={st.premiumLine}>
+        <Ionicons name="checkmark" size={16} color={OK_GREEN} />
+        <Text style={st.rowLabel}>
+          <Text style={{ fontFamily: F.bold }}>{t('premium.product')}</Text>
+          {` · ${t('plan.unlimited')}`}
+        </Text>
+      </View>
+    );
+  }
+  const used = Math.min(count, FREE_LIMIT);
+  const title =
+    kind === 'full' ? t('premium.fullTitle', { max: FREE_LIMIT }) : kind === 'near' ? tn('upsell.left', FREE_LIMIT - used) : t('upsell.used', { used, max: FREE_LIMIT });
+  return (
+    <View style={[st.planCard, kind !== 'free' && { borderColor: C.brass }]}>
+      <Text style={st.planKicker}>{kind === 'full' ? t('plan.free') : t('premium.product')}</Text>
+      <Text style={st.planTitle}>{title}</Text>
+      <View style={st.planBar} accessible accessibilityLabel={t('plan.chipA11y', { used, max: FREE_LIMIT })}>
+        <View style={{ width: `${(used / FREE_LIMIT) * 100}%`, height: '100%', backgroundColor: C.brass }} />
+      </View>
+      <Text style={st.planBody}>{kind === 'full' ? t('upsell.fullBody') : t('upsell.body')}</Text>
+      <Button label={price ? t('upsell.button', { price }) : t('upsell.buttonPlain')} onPress={onPress} style={{ marginTop: 4 }} />
     </View>
   );
 }
@@ -109,6 +139,8 @@ export function Settings({
         <Text style={st.title}>{t('settings.title')}</Text>
       </View>
       <TestBanner />
+
+      {plan.loaded && (plan.premium || items) && <PlanCard premium={plan.premium} count={items?.length ?? 0} price={plan.price} onPress={onPremium} />}
 
       <View style={st.sealed}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -299,6 +331,12 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
 }
 
 const st = StyleSheet.create({
+  planCard: { backgroundColor: '#1E1A12', borderWidth: 1, borderColor: C.brassDim, borderRadius: 16, padding: 16, gap: 8 },
+  planKicker: { fontFamily: F.body, fontSize: 11, letterSpacing: spacing(2), textTransform: UPPERCASE, color: C.brass },
+  planTitle: { fontFamily: F.title, fontSize: 19, lineHeight: 25, color: C.ivory },
+  planBar: { height: 6, borderRadius: 3, backgroundColor: C.outline, overflow: 'hidden' },
+  planBody: { fontFamily: F.body, fontSize: 12, lineHeight: 18, color: C.muted },
+  premiumLine: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
   page: { flexGrow: 1, paddingTop: 56, paddingHorizontal: 20, paddingBottom: 28, gap: 16 },
   round: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#2A2F3A', backgroundColor: '#12151C', alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: F.title, fontSize: 28, lineHeight: 34, color: C.ivory },

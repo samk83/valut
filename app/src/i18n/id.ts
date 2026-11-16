@@ -285,6 +285,13 @@ const id: Pack = {
   'plan.nothingBodyLong': 'Tidak ditemukan pembelian Premium untuk {account} ini. Masuk dengan {account} yang Anda gunakan untuk membeli, lalu coba lagi.',
   'plan.accountApple': 'ID Apple',
   'plan.accountGoogle': 'Akun Google',
+  // Settings upgrade card (top of Settings)
+  'upsell.used': '{used} dari {max} slot gratis terpakai',
+  'upsell.left': { other: 'Tinggal {n} slot gratis' },
+  'upsell.body': 'Bayar sekali, milik Anda selamanya. Tanpa langganan.',
+  'upsell.fullBody': 'Semua yang ada di brankas Anda tetap aman. Buka tanpa batas untuk menambah lagi.',
+  'upsell.button': 'Tanpa batas · {price} sekali',
+  'upsell.buttonPlain': 'Buka tanpa batas',
   'premium.pending': 'Pembayaran tertunda',
   'premium.pendingBody': '{store} sedang menunggu pembayaran selesai. Premium akan aktif dengan sendirinya setelah selesai.',
   'premium.unavailable': 'Tidak tersedia saat ini',

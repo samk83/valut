@@ -271,6 +271,13 @@ const ko: Pack = {
   'plan.nothingBodyLong': '이 {account}에서 Premium 구입 내역을 찾을 수 없습니다. 구입할 때 사용한 {account}(으)로 로그인한 후 다시 시도하십시오.',
   'plan.accountApple': 'Apple ID',
   'plan.accountGoogle': 'Google 계정',
+  // Settings upgrade card (top of Settings)
+  'upsell.used': '무료 공간 {max}개 중 {used}개 사용',
+  'upsell.left': { other: '무료 공간이 {n}개 남았습니다' },
+  'upsell.body': '한 번 결제로 계속 사용. 구독 없음.',
+  'upsell.fullBody': '보관함에 있는 모든 항목은 안전하게 유지됩니다. 더 추가하려면 무제한을 잠금 해제하십시오.',
+  'upsell.button': '무제한 잠금 해제 · {price} 1회',
+  'upsell.buttonPlain': '무제한 잠금 해제',
   'premium.pending': '결제 대기 중',
   'premium.pendingBody': '{store}에서 결제가 완료되기를 기다리고 있습니다. 완료되면 Premium이 자동으로 켜집니다.',
   'premium.unavailable': '지금은 사용할 수 없음',

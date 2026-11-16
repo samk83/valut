@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [다음 업데이트] — 개발 중
+### Added (2026-11-16, 설정 업그레이드 카드)
+- Settings 맨 위에 요금제 카드: 무료 사용자는 사용량 막대 + "Unlock unlimited · {가격} once" 버튼이 바로 보임 (예전에는 Free plan 줄을 눌러야 보였음)
+- 남은 무료 공간이 10개 이하면 "Only N free spaces left", 100개가 다 차면 "넣은 항목은 안전" 문구로 바뀜 (빨간 경고색 없음)
+- Premium 사용자는 버튼 없이 "✓ Lifetime Premium · Unlimited" 한 줄
+- 버튼은 기존 Premium 화면을 열고, 구매는 그 화면에서만 함. 스토어 가격을 못 받으면 가격 없이 표시
+- 새 문구 11개 언어
+
 ## [1.1] — 개발 중
 ### Added (2026-11-14, 베타 무선 업데이트)
 - TestFlight 베타 빌드(`eas build --profile beta`)만 EAS Update로 화면·코드 수정을 빌드 없이 받음 (`npm run ota`). App Store 정식 빌드(production)는 업데이트 꺼짐, expo.dev에 접속하지 않음

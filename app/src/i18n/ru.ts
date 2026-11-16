@@ -306,6 +306,13 @@ const ru: Pack = {
   'plan.nothingBodyLong': '{account}: покупка Premium не найдена. Войдите в {account}, через который была сделана покупка, и повторите попытку.',
   'plan.accountApple': 'Apple ID',
   'plan.accountGoogle': 'Аккаунт Google',
+  // Settings upgrade card (top of Settings)
+  'upsell.used': 'Занято {used} из {max} бесплатных мест',
+  'upsell.left': { one: 'Осталось всего {n} бесплатное место', few: 'Осталось всего {n} бесплатных места', many: 'Осталось всего {n} бесплатных мест', other: 'Осталось всего {n} бесплатного места' },
+  'upsell.body': 'Одна оплата — навсегда. Без подписки.',
+  'upsell.fullBody': 'Всё в хранилище остаётся в безопасности. Чтобы добавить больше, откройте безлимит.',
+  'upsell.button': 'Безлимит · {price} один раз',
+  'upsell.buttonPlain': 'Открыть безлимит',
   'premium.pending': 'Платёж обрабатывается',
   'premium.pendingBody': '{store} ожидает завершения платежа. Premium включится сам, когда платёж пройдёт.',
   'premium.unavailable': 'Сейчас недоступно',

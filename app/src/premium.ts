@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 
 import { PurchaseOutcome, Store, StoreStatus } from '../modules/vault-core';
 
-export { FREE_LIMIT, fitToSlots, freeSlots } from './limits';
+export { FREE_LIMIT, fitToSlots, freeSlots, planCard } from './limits';
 
 // One shared status for every screen, refreshed from the store.
 let current: StoreStatus = { available: false, premium: false, pending: false, price: null };

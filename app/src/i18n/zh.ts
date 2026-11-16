@@ -271,6 +271,13 @@ const zh: Pack = {
   'plan.nothingBodyLong': '此 {account} 下未找到 Premium 购买记录。请使用购买时的 {account} 登录后重试。',
   'plan.accountApple': 'Apple ID',
   'plan.accountGoogle': 'Google 账号',
+  // Settings upgrade card (top of Settings)
+  'upsell.used': '已使用 {used}/{max} 个免费名额',
+  'upsell.left': { other: '仅剩 {n} 个免费名额' },
+  'upsell.body': '一次付费，永久使用。无订阅。',
+  'upsell.fullBody': '保险库中的所有内容依然安全。如需添加更多，请解锁无限存储。',
+  'upsell.button': '解锁无限存储 · 一次性 {price}',
+  'upsell.buttonPlain': '解锁无限存储',
   'premium.pending': '付款待处理',
   'premium.pendingBody': '{store} 正在等待付款完成。完成后 Premium 会自动开启。',
   'premium.unavailable': '暂时无法使用',
