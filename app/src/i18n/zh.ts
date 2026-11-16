@@ -274,6 +274,7 @@ const zh: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '已使用 {used}/{max} 个免费名额',
   'upsell.left': { other: '仅剩 {n} 个免费名额' },
+  'upsell.full': '你已用完全部 {max} 个免费名额',
   'upsell.body': '一次付费，永久使用。无订阅。',
   'upsell.fullBody': '保险库中的所有内容依然安全。如需添加更多，请解锁无限存储。',
   'upsell.button': '解锁无限存储 · 一次性 {price}',

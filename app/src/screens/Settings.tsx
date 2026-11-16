@@ -46,12 +46,18 @@ function PlanCard({ premium, count, price, onPress }: { premium: boolean; count:
   }
   const used = Math.min(count, FREE_LIMIT);
   const title =
-    kind === 'full' ? t('premium.fullTitle', { max: FREE_LIMIT }) : kind === 'near' ? tn('upsell.left', FREE_LIMIT - used) : t('upsell.used', { used, max: FREE_LIMIT });
+    kind === 'full' ? t('upsell.full', { max: FREE_LIMIT }) : kind === 'near' ? tn('upsell.left', FREE_LIMIT - used) : t('upsell.used', { used, max: FREE_LIMIT });
   return (
     <View style={[st.planCard, kind !== 'free' && { borderColor: C.brass }]}>
       <Text style={st.planKicker}>{kind === 'full' ? t('plan.free') : t('premium.product')}</Text>
       <Text style={st.planTitle}>{title}</Text>
-      <View style={st.planBar} accessible accessibilityLabel={t('plan.chipA11y', { used, max: FREE_LIMIT })}>
+      <View
+        style={st.planBar}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={t('plan.chipA11y', { used, max: FREE_LIMIT })}
+        accessibilityValue={{ min: 0, max: FREE_LIMIT, now: used }}
+      >
         <View style={{ width: `${(used / FREE_LIMIT) * 100}%`, height: '100%', backgroundColor: C.brass }} />
       </View>
       <Text style={st.planBody}>{kind === 'full' ? t('upsell.fullBody') : t('upsell.body')}</Text>
@@ -331,7 +337,7 @@ function VaultReset({ count, onCancel, onDestroyed }: { count: number | null; on
 }
 
 const st = StyleSheet.create({
-  planCard: { backgroundColor: '#1E1A12', borderWidth: 1, borderColor: C.brassDim, borderRadius: 16, padding: 16, gap: 8 },
+  planCard: { backgroundColor: C.brassSurface, borderWidth: 1, borderColor: C.brassDim, borderRadius: 16, padding: 16, gap: 8 },
   planKicker: { fontFamily: F.body, fontSize: 11, letterSpacing: spacing(2), textTransform: UPPERCASE, color: C.brass },
   planTitle: { fontFamily: F.title, fontSize: 19, lineHeight: 25, color: C.ivory },
   planBar: { height: 6, borderRadius: 3, backgroundColor: C.outline, overflow: 'hidden' },
@@ -341,7 +347,7 @@ const st = StyleSheet.create({
   round: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#2A2F3A', backgroundColor: '#12151C', alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: F.title, fontSize: 28, lineHeight: 34, color: C.ivory },
   body: { fontFamily: F.body, fontSize: 14, lineHeight: 23, color: C.muted },
-  sealed: { padding: 16, borderRadius: 16, backgroundColor: '#1E1A12', borderWidth: 1, borderColor: '#4A3E28', gap: 10 },
+  sealed: { padding: 16, borderRadius: 16, backgroundColor: C.brassSurface, borderWidth: 1, borderColor: '#4A3E28', gap: 10 },
   sealedTitle: { fontFamily: F.title, fontSize: 18, color: '#E6CFA0' },
   check: { width: '50%', flexDirection: 'row', alignItems: 'center', gap: 6 },
   checkText: { fontFamily: F.body, fontSize: 12, color: '#D9D4CA', flexShrink: 1 },

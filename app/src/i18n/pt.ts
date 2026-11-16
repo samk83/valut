@@ -289,9 +289,10 @@ const pt: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '{used} de {max} espaços gratuitos usados',
   'upsell.left': { one: 'Só resta {n} espaço gratuito', other: 'Só restam {n} espaços gratuitos' },
+  'upsell.full': 'Você usou todos os {max} espaços gratuitos',
   'upsell.body': 'Pague uma vez e use para sempre. Sem assinatura.',
   'upsell.fullBody': 'Tudo no seu cofre continua seguro. Desbloqueie o ilimitado para adicionar mais.',
-  'upsell.button': 'Ilimitado · {price} uma vez',
+  'upsell.button': 'Desbloquear · pagamento único {price}',
   'upsell.buttonPlain': 'Desbloquear ilimitado',
   'premium.pending': 'Pagamento pendente',
   'premium.pendingBody': '{store} está aguardando a conclusão do pagamento. O Premium será ativado automaticamente quando isso acontecer.',

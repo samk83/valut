@@ -298,6 +298,7 @@ const en = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '{used} of {max} free spaces used',
   'upsell.left': { one: 'Only {n} free space left', other: 'Only {n} free spaces left' },
+  'upsell.full': 'You’ve used all {max} free spaces',
   'upsell.body': 'Pay once, keep it for good. No subscription.',
   'upsell.fullBody': 'Everything in your vault stays safe. Unlock unlimited to add more.',
   'upsell.button': 'Unlock unlimited · {price} once',

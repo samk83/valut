@@ -289,9 +289,10 @@ const es: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '{used} de {max} espacios gratuitos usados',
   'upsell.left': { one: 'Solo queda {n} espacio gratuito', other: 'Solo quedan {n} espacios gratuitos' },
+  'upsell.full': 'Usaste los {max} espacios gratuitos',
   'upsell.body': 'Paga una vez y es tuyo para siempre. Sin suscripción.',
   'upsell.fullBody': 'Todo en tu bóveda sigue seguro. Desbloquea el almacenamiento ilimitado para agregar más.',
-  'upsell.button': 'Ilimitado · {price} un solo pago',
+  'upsell.button': 'Desbloquear · pago único de {price}',
   'upsell.buttonPlain': 'Desbloquear ilimitado',
   'premium.pending': 'Pago pendiente',
   'premium.pendingBody': '{store} está esperando a que se complete el pago. Premium se activará automáticamente cuando termine.',

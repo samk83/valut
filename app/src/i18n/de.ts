@@ -291,9 +291,10 @@ const de: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '{used} von {max} kostenlosen Plätzen belegt',
   'upsell.left': { one: 'Nur noch {n} kostenloser Platz frei', other: 'Nur noch {n} kostenlose Plätze frei' },
+  'upsell.full': 'Du hast alle {max} kostenlosen Plätze belegt',
   'upsell.body': 'Einmal zahlen, für immer behalten. Kein Abo.',
   'upsell.fullBody': 'Alles in deinem Tresor bleibt sicher. Schalte unbegrenzt frei, um mehr hinzuzufügen.',
-  'upsell.button': 'Unbegrenzt · einmalig {price}',
+  'upsell.button': 'Freischalten · einmalig {price}',
   'upsell.buttonPlain': 'Unbegrenzt freischalten',
   'premium.pending': 'Zahlung ausstehend',
   'premium.pendingBody': '{store} wartet auf den Abschluss der Zahlung. Premium wird danach automatisch aktiviert.',

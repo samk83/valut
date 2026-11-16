@@ -274,6 +274,7 @@ const ko: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '무료 공간 {max}개 중 {used}개 사용',
   'upsell.left': { other: '무료 공간이 {n}개 남았습니다' },
+  'upsell.full': '무료 공간 {max}개 모두 사용',
   'upsell.body': '한 번 결제로 계속 사용. 구독 없음.',
   'upsell.fullBody': '보관함에 있는 모든 항목은 안전하게 유지됩니다. 더 추가하려면 무제한을 잠금 해제하십시오.',
   'upsell.button': '무제한 잠금 해제 · {price} 1회',

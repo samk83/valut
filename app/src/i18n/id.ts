@@ -288,9 +288,10 @@ const id: Pack = {
   // Settings upgrade card (top of Settings)
   'upsell.used': '{used} dari {max} slot gratis terpakai',
   'upsell.left': { other: 'Tinggal {n} slot gratis' },
+  'upsell.full': 'Anda telah memakai semua {max} slot gratis',
   'upsell.body': 'Bayar sekali, milik Anda selamanya. Tanpa langganan.',
   'upsell.fullBody': 'Semua yang ada di brankas Anda tetap aman. Buka tanpa batas untuk menambah lagi.',
-  'upsell.button': 'Tanpa batas · {price} sekali',
+  'upsell.button': 'Buka tanpa batas · {price}',
   'upsell.buttonPlain': 'Buka tanpa batas',
   'premium.pending': 'Pembayaran tertunda',
   'premium.pendingBody': '{store} sedang menunggu pembayaran selesai. Premium akan aktif dengan sendirinya setelah selesai.',

@@ -12,6 +12,8 @@ export const C = {
   faint: '#8F897F',
   danger: '#F0996A',
   ok: '#7BC59A',
+  /** Warm brass-tinted surface for the plan card at the top of Settings. */
+  brassSurface: '#1E1A12',
 };
 
 export const F = {
