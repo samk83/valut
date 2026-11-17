@@ -1,6 +1,7 @@
 # CHANGELOG
 
-## [다음 업데이트] — 개발 중
+## [1.1.1] — 출시 준비 (2026-11-17)
+- 버전 1.1 → 1.1.1, App Store What's New 문구 docs/release/1.1.1.md
 ### Added (2026-11-16, 설정 업그레이드 카드)
 - Settings 맨 위에 요금제 카드: 무료 사용자는 사용량 막대 + "Unlock unlimited · {가격} once" 버튼이 바로 보임 (예전에는 Free plan 줄을 눌러야 보였음)
 - 남은 무료 공간이 10개 이하면 "Only N free spaces left", 100개가 다 차면 "넣은 항목은 안전" 문구로 바뀜 (빨간 경고색 없음)

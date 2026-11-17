@@ -1,6 +1,6 @@
 # STATUS — JellyDock PrivateVault
 
-Last Updated: 2026-11-16 (설정 맨 위 업그레이드 카드)
+Last Updated: 2026-11-17 (1.1 승인, 1.1.1 출시 준비)
 
 | Task / Thread | Status | Progress | Last Updated | Next Action | Owner Action | Branch |
 |---|---|---|---|---|---|---|
@@ -23,7 +23,8 @@ Last Updated: 2026-11-16 (설정 맨 위 업그레이드 카드)
 | 전체화면 갤러리 + 사진 검색 (OCR) | REVIEW | 시안 승인(2026-11-12) 후 구현: 홈 정리, 전체화면 갤러리, 폰 안 글자·사진 인식(iOS Vision / Android ML Kit), 암호화 검색 노트, 검색 화면, 사진 속 글자 표시·복사, 11개 언어. Kotlin·Swift 43개·앱 13개 테스트, 타입·Lint 새 오류 0 | 2026-11-12 | PR 검토 → Merge, 다음 iPhone 빌드에 포함 | PR 확인·Merge, TestFlight에서 검색 확인 | feature/gallery-photo-search |
 | iPhone 개발용 앱 (PVV Dev, TestFlight 없이 화면 확인) | REVIEW | 별도 앱 ID(.dev)·이름 PVV Dev 변형, eas `development` 프로필, `npm run dev`, Dev 백업 폴더 분리(Swift 테스트 55개 통과), 안내서 docs/DEV_BUILD.md. 타입·앱 테스트 13개 통과, Lint 새 오류 0 | 2026-11-13 | Owner가 기기 등록·빌드·설치 → PR #31 확인 | `eas device:create`, `eas build --profile development` 실행(Apple 로그인), iPhone 설치 | feature/dev-build |
 | 홈 화면 수정: 무료/Pro 표시 윗줄, 사진·비디오 카드 글씨 (빌드 4 피드백) | REVIEW | 구현, 타입·테스트 13개·언어팩 통과, Lint 새 오류 0 | 2026-11-13 | PR Merge 후 다음 iPhone 빌드에 포함 | PR 확인·Merge, TestFlight에서 확인 | fix/home-plan-badge-cards |
-| 설정 맨 위 업그레이드 카드 (A안, Owner 승인 2026-11-16) | REVIEW | 무료/거의 참(10개 이하 남음)/다 참/Premium 4가지 상태 카드, 가격은 스토어 값(없으면 가격 없이), 11개 언어. 타입·앱 테스트 14개·언어팩 통과, Lint 새 오류 0, 웹 화면 캡처로 확인 | 2026-11-16 | PR Merge 후 1.1 심사 끝난 다음 업데이트(1.2 또는 1.1.x)에 포함. 심사 중인 build 7과 무관 | PR 확인·Merge, 다음 빌드에서 확인 | feature/settings-upgrade-card |
+| 설정 맨 위 업그레이드 카드 (A안, Owner 승인 2026-11-16) | DONE (실기기 확인 대기) | 무료/거의 참(10개 이하 남음)/다 참/Premium 4가지 상태 카드, 가격은 스토어 값(없으면 가격 없이), 11개 언어. 타입·앱 테스트 14개·언어팩 통과, Lint 새 오류 0, 웹 화면 캡처로 확인 | 2026-11-16 | PR #37 Merge 완료 (2026-11-17, 1.1 승인 후). 1.1.1에 포함 | 1.1.1 빌드 후 TestFlight에서 확인 | main |
+| 1.1.1 출시 준비 | REVIEW | 버전 1.1.1, What's New(영어·한국어) docs/release/1.1.1.md | 2026-11-17 | Owner production 빌드·업로드 → 심사 제출 | 1.1 Release, `eas build`·`eas submit` 실행, App Store Connect 제출 (L3) | main |
 | Phase 3 MVP 개발 | TODO | 0 (미착수) | 2026-10-30 | 디자인 승인 후 | 개발 승인 | - |
 | 베타 홈페이지 (jellydock.com/beta/myvisionvault) | REVIEW | PR #18·#23 Merge. 2026-11-13: 최신 앱 화면 11장(갤러리·사진 검색·백업)으로 영상·스크린샷·설명 교체, 오리지널 배경음악 추가, 개인정보처리방침에 백업·검색 반영 | 2026-11-13 | jellydock.com 배포(PC 연결 필요), Apple 승인 후 `reviewPending: false` | 배포 시 PC 켜기 | feature/beta-video-v2 |
 | 소개 웹사이트 | DONE (미배포) | 영어 기본 소개 페이지 + 개인정보처리방침 + 글꼴 직접 호스팅 (한국어는 ko/ 보관). 1.1 내용(새 핸드폰으로 옮기기, 100개 무료 + 평생 프리미엄 $9.99, 11개 언어, iPhone 먼저 출시) 반영, PR #3 main 머지. 2026-11-12: 이름을 Private Vision Vault로 변경, 틀린 입력은 대기 시간(파기 없음)·가져오기는 복사 전용으로 문구 변경. 암호화 백업·복구 키 반영 (PR #27) | 2026-11-12 | 공개 배포 (Owner 승인 후) | 배포 방식 승인 (L3), 방침의 연락처 이메일·사업자 정보·시행일 [ ] 항목 | main |
