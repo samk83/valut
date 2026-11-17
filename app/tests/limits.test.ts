@@ -26,3 +26,16 @@ test('a selection is cut to what fits, in order', () => {
   assert.deepEqual(fitToSlots([1, 2, 3], 0), { take: [], leftOut: 3 });
   assert.deepEqual(fitToSlots([1, 2, 3], Infinity), { take: [1, 2, 3], leftOut: 0 });
 });
+
+test('settings upgrade card: free, near the limit, full, premium', async () => {
+  const { planCard, NEAR_LIMIT_LEFT } = await import('../src/limits.ts');
+  assert.equal(NEAR_LIMIT_LEFT, 10);
+  assert.equal(planCard(0, false), 'free');
+  assert.equal(planCard(89, false), 'free');
+  assert.equal(planCard(90, false), 'near');
+  assert.equal(planCard(99, false), 'near');
+  assert.equal(planCard(100, false), 'full');
+  assert.equal(planCard(250, false), 'full');
+  assert.equal(planCard(0, true), 'premium');
+  assert.equal(planCard(500, true), 'premium');
+});
