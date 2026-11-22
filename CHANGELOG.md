@@ -1,8 +1,9 @@
 # CHANGELOG
 
 ## [1.1.3] — App Store 이름 바꾸기 (2026-11-21)
-- 버전 1.1.2 → 1.1.3. 앱 코드와 홈 화면 이름은 그대로
-- 스토어 이름: 영어 `Private Vault: Photo & Video`, 한국어 `Private Vault: 사진·동영상 금고` (검색에서 잘 안 나와서)
+- 버전 1.1.2 → 1.1.3. 홈 화면 이름은 그대로. "테스트 빌드" 문구를 개발용 앱에서만 보이게 함 (PR #39)
+- App Store 스크린샷 5번째에 "캡처해도 빈 화면만" 안내 추가 (영어·한국어 8장)
+- 스토어 이름: 영어 `Private Vault: Secret Photos` (Photo & Video는 이미 다른 앱이 써서 거절됨), 한국어 `Private Vault: 사진·동영상 금고` (검색에서 잘 안 나와서)
 - 부제: 영어 `Hide Photos & Videos, PIN Lock`, 한국어 `사진 숨기기·PIN 잠금 비밀 앨범`. 키워드의 pin은 부제와 겹쳐서 camera/카메라로 교체
 
 ## [1.1.2] — App Store 스크린샷 교체 (2026-11-18)
