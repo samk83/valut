@@ -6,9 +6,9 @@
 
 ## en-US
 
-**Name**: `Private Vault: Photo & Video`  
+**Name**: `Private Vault: Secret Photos`  
 **Subtitle**: `Hide Photos & Videos, PIN Lock`  
-**Keywords**: `secret,album,hidden,safe,locker,encrypt,secure,gallery,picture,privacy,password,offline,camera,keep`
+**Keywords**: `conceal,album,hidden,safe,locker,encrypt,secure,gallery,picture,privacy,password,offline,camera,keep`
 
 **Promotional Text**:
 ```

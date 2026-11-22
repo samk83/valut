@@ -8,11 +8,11 @@
     ],
     "info": {
       "en-US": {
-        "title": "Private Vault: Photo & Video",
+        "title": "Private Vault: Secret Photos",
         "subtitle": "Hide Photos & Videos, PIN Lock",
         "description": "Private Vision Vault keeps the photos and videos you choose in an encrypted vault on your iPhone or iPad. No account, no cloud, no ads.\n\nREAL ENCRYPTION, NOT JUST A LOCK SCREEN\n• Every photo and video is encrypted on this device with AES-256-GCM.\n• The vault key is protected by your PIN or pattern together with a key in the device's Secure Enclave, and that key never leaves this device.\n• Two locks: the app first asks for your device's own lock (Face ID, Touch ID or passcode), then your PIN or pattern.\n• No account and no servers. The app does not send your photos, videos or PIN anywhere.\n\nEVERYDAY USE\n• Import from your photo library. The app copies each item into the vault and never touches your originals.\n• Take photos and videos with the in-app camera. They go straight into the vault, never into your photo library.\n• Locks the moment you leave the app and blurs its preview in the app switcher.\n• Made for iPhone and iPad.\n\nNEW PHONE? BRING YOUR VAULT, FREE\n• Move to a new phone sends the vault directly from your old phone to your new one over your own Wi-Fi. It stays encrypted the whole way and never goes through the internet.\n• Optional encrypted backup to a folder you choose, such as iCloud Drive. If you delete the app or lose the phone, restore it with your 52-character recovery key. Free.\n\nPRICE\n• Free: up to 100 photos and videos, with every security feature.\n• Lifetime Premium: unlimited, for a single payment. No subscription. Family Sharing supported.\n\nPLEASE READ BEFORE YOU START\n• Nobody, including the developer, can reset your PIN or read your vault. Keep your recovery key somewhere safe: it is the only way to restore a backup.\n• After 3 wrong tries, you wait 1 minute before the next try, then 5 minutes, 15 minutes and 1 hour.\n• The vault is not part of iCloud or computer backups. Turn on the app's encrypted backup and keep your recovery key, or deleting the app or resetting the device erases the vault.\n• Keep separate copies of anything you cannot afford to lose.",
         "keywords": [
-          "secret",
+          "conceal",
           "album",
           "hidden",
           "safe",
