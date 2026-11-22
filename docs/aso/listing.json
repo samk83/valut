@@ -7,8 +7,8 @@
   ],
   "locales": {
     "en-US": {
-      "title": "Private Vision Vault",
-      "subtitle": "Hide & Lock Photos and Videos",
+      "title": "Private Vault: Photo & Video",
+      "subtitle": "Hide Photos & Videos, PIN Lock",
       "keywords": [
         "secret",
         "album",
@@ -22,7 +22,7 @@
         "privacy",
         "password",
         "offline",
-        "pin",
+        "camera",
         "keep"
       ],
       "promoText": "Hide photos and videos in a vault encrypted on your iPhone or iPad. No account, no cloud, no ads. 100 items free, unlimited with one lifetime payment.",
@@ -93,8 +93,8 @@
       ]
     },
     "ko": {
-      "title": "Private Vision Vault: 사진 금고",
-      "subtitle": "사진·동영상 숨기기, 비밀 앨범 잠금",
+      "title": "Private Vault: 사진·동영상 금고",
+      "subtitle": "사진 숨기기·PIN 잠금 비밀 앨범",
       "keywords": [
         "사진잠금",
         "갤러리",
@@ -116,7 +116,7 @@
         "사진숨김",
         "비공개",
         "안전",
-        "pin"
+        "카메라"
       ],
       "promoText": "사진과 동영상을 iPhone·iPad 안에서 암호화된 금고에 숨기세요. 계정·클라우드·광고 없음. 100개까지 무료, 한 번 결제로 평생 무제한.",
       "description": [
