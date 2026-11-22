@@ -181,8 +181,10 @@ export const s = StyleSheet.create({
 });
 
 export function TestBanner() {
-  // The preview is meant to look like the finished app, so it shows no banner.
-  if (VaultCore.isDemo) return null;
+  // Only the development build (PVV Dev, JavaScript loaded live from the PC) shows this
+  // warning. TestFlight and App Store builds are release builds (__DEV__ is false) and must
+  // look like the finished app, so they show no banner. The preview shows none either.
+  if (!__DEV__ || VaultCore.isDemo) return null;
   return (
     <View style={s.testBanner}>
       <Text style={[s.small, { color: '#F3B7AA' }]}>
