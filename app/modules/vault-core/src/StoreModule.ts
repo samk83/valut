@@ -7,8 +7,10 @@ export type StoreStatus = {
   premium: boolean;
   /** Google Play: a purchase is waiting for payment (for example cash at a shop). */
   pending: boolean;
-  /** Localised price from the store, e.g. "$9.99" or "₩14,000". */
+  /** Localised price from the store, e.g. "$9.99" or "₩14,000" (premium.ts adds the code where needed). */
   price: string | null;
+  /** ISO 4217 code of the store's currency, e.g. "CAD". Native only; null when unknown. */
+  currency?: string | null;
 };
 
 export type PurchaseOutcome = 'purchased' | 'pending' | 'cancelled' | 'unavailable' | 'error';

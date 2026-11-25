@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { PurchaseOutcome, Store, StoreStatus } from '../modules/vault-core';
+import { clearPrice } from './price';
 
 export { FREE_LIMIT, fitToSlots, freeSlots, planCard } from './limits';
 
@@ -18,7 +19,9 @@ function publish(next: StoreStatus) {
 
 export async function refreshPremium(): Promise<StoreStatus> {
   try {
-    publish(await Store.status());
+    const st = await Store.status();
+    // A Canadian phone gets CAD as a bare "$12.99": say which currency it is ("$12.99 CAD").
+    publish({ ...st, price: clearPrice(st.price, st.currency) });
   } catch {
     // Keep the last answer; the store may be busy or offline.
   }

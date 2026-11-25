@@ -7,8 +7,6 @@ import { t } from '../i18n';
 import { C, F } from '../theme';
 import { Body, Busy, Button, s, Title } from '../ui';
 
-const FALLBACK_PRICE = '$9.99';
-
 /**
  * Premium: one payment, unlimited photos and videos for good. No subscription, no ads.
  * [reason] says why the screen opened ("limit" when the free 100 are used up).
@@ -74,7 +72,8 @@ export function Premium({
     );
   }
 
-  const price = st.price ?? FALLBACK_PRICE;
+  // Only the store's own price for this country; never a made-up US price.
+  const price = st.price;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={{ paddingTop: 56, paddingHorizontal: 24, paddingBottom: 24 }}>
@@ -95,7 +94,7 @@ export function Premium({
         <View style={[s.card, { borderColor: C.brassDim, gap: 12 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <Text style={{ fontFamily: F.titleBold, fontSize: 22, color: C.ivory }}>{t('premium.product')}</Text>
-            <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.brass }}>{price}</Text>
+            {price && <Text style={{ fontFamily: F.bold, fontSize: 20, color: C.brass }}>{price}</Text>}
           </View>
           <Text style={s.small}>{t('premium.once')}</Text>
           {[
@@ -118,7 +117,7 @@ export function Premium({
         </Text>
       </ScrollView>
       <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 30, gap: 10 }}>
-        <Button label={t('premium.unlock', { price })} onPress={buy} disabled={!!busy || (st.loaded && !st.available)} />
+        <Button label={price ? t('premium.unlock', { price }) : t('upsell.buttonPlain')} onPress={buy} disabled={!!busy || (st.loaded && !st.available)} />
         {st.loaded && !st.available && <Text style={[s.small, { textAlign: 'center' }]}>{t('premium.unreachable', { store })}</Text>}
         {st.pending && <Text style={[s.small, { textAlign: 'center' }]}>{t('premium.pendingNote')}</Text>}
         <Button label={t('plan.restore')} kind="ghost" onPress={restore} disabled={!!busy} />
