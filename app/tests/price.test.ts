@@ -30,12 +30,15 @@ test('unique symbols stay as written', () => {
   assert.equal(clearPrice('₩14,000', 'KRW'), '₩14,000');
   assert.equal(clearPrice('9,99 €', 'EUR'), '9,99 €');
   assert.equal(clearPrice('¥1,500', 'JPY'), '¥1,500');
+  assert.equal(clearPrice('￥1,500', 'JPY'), '￥1,500');
   assert.equal(clearPrice('£9.99', 'GBP'), '£9.99');
   assert.equal(clearPrice('₹999', 'INR'), '₹999');
 });
 
 test('shared non-dollar symbols get the code', () => {
   assert.equal(clearPrice('¥78.00', 'CNY'), '¥78.00 CNY');
+  assert.equal(clearPrice('12,99 $', 'CAD'), '12,99 $ CAD');
+  assert.equal(clearPrice('9,99 $ US', 'USD'), '9,99 $ US');
   assert.equal(clearPrice('129,00 kr', 'SEK'), '129,00 kr SEK');
 });
 

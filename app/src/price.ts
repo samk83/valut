@@ -10,7 +10,7 @@
 const SHARED_SYMBOLS = ['$', 'kr', '¥', '￥', 'Fr', '£'];
 
 /** Currencies whose bare symbol is read as that currency almost everywhere. */
-const OWNS_SYMBOL: Record<string, string> = { USD: '$', JPY: '¥', GBP: '£' };
+const OWNS_SYMBOL: Record<string, string[]> = { USD: ['$'], JPY: ['¥', '￥'], GBP: ['£'] };
 
 export function clearPrice(formatted: string | null | undefined, currency: string | null | undefined): string | null {
   if (!formatted) return null;
@@ -22,6 +22,6 @@ export function clearPrice(formatted: string | null | undefined, currency: strin
   if (/[A-Za-z]\$/.test(text)) return text;
   const symbol = SHARED_SYMBOLS.find((s) => text.includes(s));
   if (!symbol) return text;
-  if (OWNS_SYMBOL[code] && text.includes(OWNS_SYMBOL[code]) && !(code === 'JPY' && text.includes('￥'))) return text;
+  if (OWNS_SYMBOL[code]?.some((s) => text.includes(s))) return text;
   return `${text} ${code}`;
 }
