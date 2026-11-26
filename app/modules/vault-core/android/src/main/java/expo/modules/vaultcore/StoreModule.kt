@@ -24,7 +24,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * 1.1 Premium (one-time, lifetime, unlimited storage) through Google Play Billing directly,
  * with no third-party SDK and no server: Google Play itself keeps the purchase, so nothing
  * about the user is collected by the app. JS API (same as the iPhone StoreModule):
- *   status()   -> { available, premium, pending, price }
+ *   status()   -> { available, premium, pending, price, currency }
  *   purchase() -> "purchased" | "pending" | "cancelled" | "unavailable" | "error"
  *   restore()  -> premium (Boolean)
  *   event "onPremiumChanged" { premium }
@@ -138,6 +138,7 @@ class StoreModule : Module() {
     "premium" to cachedPremium(),
     "pending" to pending,
     "price" to details?.oneTimePurchaseOfferDetails?.formattedPrice,
+    "currency" to details?.oneTimePurchaseOfferDetails?.priceCurrencyCode,
   )
 
   private fun connect(onReady: (Boolean) -> Unit) {

@@ -4,7 +4,7 @@ import StoreKit
 /// 1.1 Premium (one-time, lifetime, unlimited storage) through StoreKit 2 directly, with no
 /// third-party SDK and no server: Apple keeps the purchase and signs it, so nothing about
 /// the user is collected by the app. Same JS API as android/.../StoreModule.kt:
-///   status()   -> { available, premium, pending, price }
+///   status()   -> { available, premium, pending, price, currency }
 ///   purchase() -> "purchased" | "pending" | "cancelled" | "unavailable" | "error"
 ///   restore()  -> premium (Bool)
 ///   event "onPremiumChanged" { premium }
@@ -37,7 +37,14 @@ public final class StoreModule: Module {
       let product = try? await Product.products(for: [Self.productId]).first
       let premium = await Self.isPremium()
       self.remember(premium)
-      return ["available": product != nil, "premium": premium, "pending": false, "price": product?.displayPrice ?? NSNull()]
+      return [
+        "available": product != nil,
+        "premium": premium,
+        "pending": false,
+        "price": product?.displayPrice ?? NSNull(),
+        // ISO 4217 code of the storefront's currency ("CAD"), so JS can say which dollar it is.
+        "currency": product?.priceFormatStyle.currencyCode ?? NSNull(),
+      ]
     }
 
     AsyncFunction("purchase") { () async -> String in
