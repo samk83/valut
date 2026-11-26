@@ -12,7 +12,7 @@ import * as searchIndex from '../searchIndex';
 import { Thumb } from '../thumb';
 import { Body, Button, READABLE_WIDTH, s, TestBanner, Title } from '../ui';
 import { loadAlbums, resetAlbums } from '../albumStore';
-import { AlbumNameSheet, AlbumRow, AlbumScreen } from './Albums';
+import { AddToAlbumSheet, AlbumNameSheet, AlbumRow, AlbumScreen, FolderPlusIcon } from './Albums';
 import { Gallery } from './Gallery';
 import { Search } from './Search';
 
@@ -85,6 +85,9 @@ export function Home({
   };
   const [albumId, setAlbumId] = useState<string | null>(remembered.albumId);
   const [naming, setNaming] = useState(false);
+  // "Add to album" from the gallery's select mode.
+  const [addIds, setAddIds] = useState<string[] | null>(null);
+  const exitSelect = useRef<(() => void) | null>(null);
   // Right after making an album: open "Add photos" at once.
   const [pickNow, setPickNow] = useState(false);
   const openAlbum = (id: string, pick = false) => {
@@ -323,15 +326,47 @@ export function Home({
 
   if (mode === 'PHOTO' || mode === 'VIDEO') {
     return (
-      <Gallery
-        kind={mode}
-        items={mode === 'PHOTO' ? photos : videos}
-        onBack={() => setMode('home')}
-        onOpen={(item) => onOpen(item)}
-        onSearch={() => setMode('search')}
-        onDeleted={load}
-        actionBar={actionBar}
-      />
+      <>
+        <Gallery
+          kind={mode}
+          items={mode === 'PHOTO' ? photos : videos}
+          onBack={() => setMode('home')}
+          onOpen={(item) => onOpen(item)}
+          onSearch={() => setMode('search')}
+          onDeleted={load}
+          actionBar={actionBar}
+          selectionActions={(ids, exit) => (
+            <Pressable
+              accessibilityRole="button"
+              disabled={ids.length === 0}
+              onPress={() => {
+                exitSelect.current = exit;
+                setAddIds(ids);
+              }}
+              style={({ pressed }) => [
+                { flex: 1, height: 52, borderRadius: 16, backgroundColor: C.brass, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+                ids.length === 0 && { opacity: 0.35 },
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <FolderPlusIcon size={18} color={C.bg} />
+              <Text style={{ flexShrink: 1, fontFamily: F.bold, fontSize: 15, color: C.bg }} numberOfLines={1}>
+                {t('album.addAction')}
+              </Text>
+            </Pressable>
+          )}
+        />
+        <AddToAlbumSheet
+          visible={addIds !== null}
+          ids={addIds ?? []}
+          items={items}
+          onCancel={() => setAddIds(null)}
+          onDone={() => {
+            setAddIds(null);
+            exitSelect.current?.();
+          }}
+        />
+      </>
     );
   }
   if (mode === 'album' && albumId) {
