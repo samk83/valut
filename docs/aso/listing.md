@@ -6,9 +6,9 @@
 
 ## en-US
 
-**Name**: `Private Vision Vault`  
-**Subtitle**: `Hide & Lock Photos and Videos`  
-**Keywords**: `secret,album,hidden,safe,locker,encrypt,secure,gallery,picture,privacy,password,offline,pin,keep`
+**Name**: `Private Vault: Secret Photos`  
+**Subtitle**: `Hide Photos & Videos, PIN Lock`  
+**Keywords**: `conceal,album,hidden,safe,locker,encrypt,secure,gallery,picture,privacy,password,offline,camera,keep`
 
 **Promotional Text**:
 ```
@@ -58,9 +58,9 @@ PLEASE READ BEFORE YOU START
 
 ## ko
 
-**Name**: `Private Vision Vault: 사진 금고`  
-**Subtitle**: `사진·동영상 숨기기, 비밀 앨범 잠금`  
-**Keywords**: `사진잠금,갤러리,숨김,암호화,개인,보안,비밀번호,잠금앱,사진보관,오프라인,보관함,프라이버시,자물쇠,동영상보관,사생활,동영상잠금,시크릿,사진숨김,비공개,안전,pin`
+**Name**: `Private Vault: 사진·동영상 금고`  
+**Subtitle**: `사진 숨기기·PIN 잠금 비밀 앨범`  
+**Keywords**: `사진잠금,갤러리,숨김,암호화,개인,보안,비밀번호,잠금앱,사진보관,오프라인,보관함,프라이버시,자물쇠,동영상보관,사생활,동영상잠금,시크릿,사진숨김,비공개,안전,카메라`
 
 **Promotional Text**:
 ```

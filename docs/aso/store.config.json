@@ -8,11 +8,11 @@
     ],
     "info": {
       "en-US": {
-        "title": "Private Vision Vault",
-        "subtitle": "Hide & Lock Photos and Videos",
+        "title": "Private Vault: Secret Photos",
+        "subtitle": "Hide Photos & Videos, PIN Lock",
         "description": "Private Vision Vault keeps the photos and videos you choose in an encrypted vault on your iPhone or iPad. No account, no cloud, no ads.\n\nREAL ENCRYPTION, NOT JUST A LOCK SCREEN\n• Every photo and video is encrypted on this device with AES-256-GCM.\n• The vault key is protected by your PIN or pattern together with a key in the device's Secure Enclave, and that key never leaves this device.\n• Two locks: the app first asks for your device's own lock (Face ID, Touch ID or passcode), then your PIN or pattern.\n• No account and no servers. The app does not send your photos, videos or PIN anywhere.\n\nEVERYDAY USE\n• Import from your photo library. The app copies each item into the vault and never touches your originals.\n• Take photos and videos with the in-app camera. They go straight into the vault, never into your photo library.\n• Locks the moment you leave the app and blurs its preview in the app switcher.\n• Made for iPhone and iPad.\n\nNEW PHONE? BRING YOUR VAULT, FREE\n• Move to a new phone sends the vault directly from your old phone to your new one over your own Wi-Fi. It stays encrypted the whole way and never goes through the internet.\n• Optional encrypted backup to a folder you choose, such as iCloud Drive. If you delete the app or lose the phone, restore it with your 52-character recovery key. Free.\n\nPRICE\n• Free: up to 100 photos and videos, with every security feature.\n• Lifetime Premium: unlimited, for a single payment. No subscription. Family Sharing supported.\n\nPLEASE READ BEFORE YOU START\n• Nobody, including the developer, can reset your PIN or read your vault. Keep your recovery key somewhere safe: it is the only way to restore a backup.\n• After 3 wrong tries, you wait 1 minute before the next try, then 5 minutes, 15 minutes and 1 hour.\n• The vault is not part of iCloud or computer backups. Turn on the app's encrypted backup and keep your recovery key, or deleting the app or resetting the device erases the vault.\n• Keep separate copies of anything you cannot afford to lose.",
         "keywords": [
-          "secret",
+          "conceal",
           "album",
           "hidden",
           "safe",
@@ -24,16 +24,16 @@
           "privacy",
           "password",
           "offline",
-          "pin",
+          "camera",
           "keep"
         ],
         "promoText": "Hide photos and videos in a vault encrypted on your iPhone or iPad. No account, no cloud, no ads. 100 items free, unlimited with one lifetime payment.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "ko": {
-        "title": "Private Vision Vault: 사진 금고",
-        "subtitle": "사진·동영상 숨기기, 비밀 앨범 잠금",
+        "title": "Private Vault: 사진·동영상 금고",
+        "subtitle": "사진 숨기기·PIN 잠금 비밀 앨범",
         "description": "Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호화된 금고에 보관합니다. 계정도, 클라우드도, 광고도 없습니다.\n\n잠금 화면이 아니라 진짜 암호화\n• 모든 사진·동영상을 이 기기 안에서 AES-256-GCM으로 암호화합니다.\n• 금고 열쇠는 PIN 또는 패턴과 기기의 Secure Enclave 키를 함께 써서 보호하며, 이 키는 기기 밖으로 나가지 않습니다.\n• 잠금 두 겹: 먼저 기기 자체 잠금(Face ID, Touch ID 또는 암호), 그다음 앱의 PIN 또는 패턴을 묻습니다.\n• 계정과 서버가 없습니다. 앱은 사진·동영상·PIN을 어디로도 보내지 않습니다.\n\n매일 쓰기\n• 사진 앱에서 가져오면 금고로 복사만 하고 원본은 건드리지 않습니다.\n• 앱 안 카메라로 찍은 사진·동영상은 사진 앱에 저장되지 않고 바로 금고에 들어갑니다.\n• 앱을 벗어나는 순간 잠기고, 앱 전환 화면에서는 흐리게 가려집니다.\n• iPhone과 iPad 모두 지원합니다.\n\n새 폰으로 그대로, 무료\n• 새 휴대폰으로 옮기기: 내 Wi-Fi로 기존 폰에서 새 폰으로 직접 보냅니다. 옮기는 동안에도 암호화된 상태이고 인터넷을 거치지 않습니다.\n• 내가 고른 폴더(iCloud Drive 등)에 암호화 백업을 켤 수 있습니다. 앱을 지우거나 폰을 잃어버려도 52자리 복구 키로 되살릴 수 있습니다. 무료입니다.\n\n가격\n• 무료: 사진·동영상 100개까지, 모든 보안 기능 포함.\n• Lifetime Premium: 한 번 결제로 개수 제한 없음. 구독 아님. 가족 공유 지원.\n\n시작하기 전에 꼭 읽어 주세요\n• 개발자를 포함해 누구도 PIN을 재설정하거나 금고를 볼 수 없습니다. 복구 키는 백업을 되살리는 유일한 방법이니 안전한 곳에 보관하세요.\n• 3번 틀린 뒤에는 다음 시도까지 1분, 그다음 5분, 15분, 1시간을 기다려야 합니다.\n• 금고는 iCloud·컴퓨터 백업에 포함되지 않습니다. 앱의 암호화 백업을 켜고 복구 키를 보관하지 않으면, 앱을 지우거나 기기를 초기화할 때 금고도 지워집니다.\n• 잃으면 안 되는 자료는 따로 사본을 보관하세요.",
         "keywords": [
           "사진잠금",
@@ -56,11 +56,11 @@
           "사진숨김",
           "비공개",
           "안전",
-          "pin"
+          "카메라"
         ],
         "promoText": "사진과 동영상을 iPhone·iPad 안에서 암호화된 금고에 숨기세요. 계정·클라우드·광고 없음. 100개까지 무료, 한 번 결제로 평생 무제한.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "ja": {
         "title": "Private Vision Vault: 写真金庫",
@@ -89,8 +89,8 @@
           "pin"
         ],
         "promoText": "写真と動画をiPhone・iPadの中で暗号化された金庫に隠せます。アカウント、クラウド、広告なし。100件まで無料、1回の購入でずっと無制限。",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "zh-Hans": {
         "title": "Private Vision Vault: 私密相册",
@@ -121,8 +121,8 @@
           "pin"
         ],
         "promoText": "把照片和视频藏进 iPhone、iPad 本机加密的保险箱。无账户、无云端、无广告。免费存 100 项，一次付费终身无限。",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "hi": {
         "title": "Private Vision Vault: तिजोरी",
@@ -145,8 +145,8 @@
           "pin"
         ],
         "promoText": "अपनी फ़ोटो और वीडियो को iPhone या iPad पर एन्क्रिप्टेड तिजोरी में छिपाएँ। न अकाउंट, न क्लाउड, न विज्ञापन। 100 आइटम मुफ़्त, एक बार भुगतान पर असीमित।",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "id": {
         "title": "Private Vision Vault: Brankas",
@@ -168,8 +168,8 @@
           "pin"
         ],
         "promoText": "Sembunyikan foto dan video di brankas terenkripsi di iPhone atau iPad. Tanpa akun, tanpa cloud, tanpa iklan. Gratis 100 item, tanpa batas dengan sekali bayar.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "pt-BR": {
         "title": "Private Vision Vault: Cofre",
@@ -191,8 +191,8 @@
           "pin"
         ],
         "promoText": "Esconda fotos e vídeos num cofre criptografado no seu iPhone ou iPad. Sem conta, sem nuvem, sem anúncios. 100 itens grátis, ilimitado com um único pagamento vitalício.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "ru": {
         "title": "Private Vision Vault: Сейф",
@@ -212,8 +212,8 @@
           "pin"
         ],
         "promoText": "Прячьте фото и видео в зашифрованный сейф прямо на iPhone или iPad. Без аккаунта, облака и рекламы. 100 файлов бесплатно, безлимит за один пожизненный платёж.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "es-MX": {
         "title": "Private Vision Vault: Bóveda",
@@ -235,8 +235,8 @@
           "pin"
         ],
         "promoText": "Oculta fotos y videos en una bóveda cifrada en tu iPhone o iPad. Sin cuenta, sin nube, sin anuncios. 100 elementos gratis, ilimitado con un solo pago de por vida.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "de-DE": {
         "title": "Private Vision Vault: Tresor",
@@ -258,8 +258,8 @@
           "pin"
         ],
         "promoText": "Verstecke Fotos und Videos in einem verschlüsselten Tresor auf iPhone oder iPad. Kein Konto, keine Cloud, keine Werbung. 100 Dateien gratis, unbegrenzt mit einer Zahlung.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       },
       "tr": {
         "title": "Private Vision Vault: Kasa",
@@ -281,8 +281,8 @@
           "pin"
         ],
         "promoText": "Fotoğraf ve videolarını iPhone veya iPad'inde şifreli bir kasada gizle. Hesap yok, bulut yok, reklam yok. 100 öğe ücretsiz, tek seferlik ödemeyle ömür boyu sınırsız.",
-        "supportUrl": "https://REPLACE-WITH-WEBSITE/",
-        "privacyPolicyUrl": "https://REPLACE-WITH-WEBSITE/privacy.html"
+        "supportUrl": "https://jellydock.com/beta/myvisionvault/",
+        "privacyPolicyUrl": "https://jellydock.com/beta/myvisionvault/privacy.html"
       }
     }
   }
