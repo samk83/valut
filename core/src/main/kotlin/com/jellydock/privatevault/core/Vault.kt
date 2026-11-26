@@ -575,10 +575,8 @@ class Vault(
             }
             val file = BackupFormat.albumsFile(bk, albums)
             folder.write(BackupFormat.ALBUMS) { it.write(file) }
-        } catch (e: IntegrityException) {
-            // Damaged album list on this phone: keep the backup's copy.
-        } catch (e: IOException) {
-            // Next backup tries again.
+        } catch (e: Exception) {
+            // Damaged list, lock or storage error: keep the backup's copy; the next backup tries again.
         }
     }
 
@@ -692,7 +690,11 @@ class Vault(
             // Albums come back too; the app merges them with any made here meanwhile.
             if (BackupFormat.ALBUMS in folder.list()) {
                 runCatching {
-                    folder.openRead(BackupFormat.ALBUMS).use { BackupFormat.openAlbums(it.readBytes(), bk) }
+                    folder.openRead(BackupFormat.ALBUMS).use { input ->
+                        // Bounded read: a file far bigger than any album list is ignored.
+                        val bytes = input.readNBytes(MAX_ALBUMS + 64 + 1)
+                        if (bytes.size > MAX_ALBUMS + 64) null else BackupFormat.openAlbums(bytes, bk)
+                    }
                         ?.let { addIncomingAlbums(AlbumOrigin.BACKUP, it) }
                 }
             }

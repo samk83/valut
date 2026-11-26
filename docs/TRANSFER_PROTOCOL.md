@@ -57,7 +57,7 @@ u32 길이(BE) ‖ AES-256-GCM(key, nonce = 0x00000000 ‖ u64 순번(BE), 메�
 기록이 깨져도 결과는 "한 번 더 보냄"뿐, 자료 손실은 없습니다.
 
 ## 앨범 (2026-11-26)
-새 폰은 DONE에 붙은 앨범 목록을 `albums.in/t-…`에 봉인해 둡니다. 앱이 잠금 해제 때 `receivedMap()`(새 id → 원래 id)으로 항목 id를 바꿔 기존 앨범에 더하기만 하고, 도착하지 않은 항목은 빠집니다. 앨범은 라벨이라 사진을 지우거나 바꾸지 않습니다.
+새 폰은 DONE에 붙은 앨범 목록을 `albums.in/t-…`에 봉인해 둡니다. 앱이 잠금 해제 때 `receivedMap()`(새 id → 원래 id)으로 항목 id를 바꿔 기존 앨범에 더하기만 하고, 도착하지 않은 항목은 빠집니다. 앨범은 라벨이라 사진을 지우거나 바꾸지 않습니다. 한계: 목록이 메시지 최대 크기(약 1 MiB, 앨범에 넣은 사진 약 3만 장)를 넘으면 앨범 없이 사진만 옮겨집니다(백업·복원으로는 옮겨짐).
 
 ## 앱 이벤트 (JS `onTransfer`)
 `{ phase: waiting | connected | progress | done | error, itemsDone, itemsTotal, bytesDone, bytesTotal, skipped, alreadyThere, error? }`.

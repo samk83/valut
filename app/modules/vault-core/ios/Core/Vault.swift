@@ -632,7 +632,8 @@ final class Vault {
     }
     // Albums come back too; the app merges them with any made here meanwhile.
     if (try? folder.list())?.contains(BackupFormat.albums) == true,
-       let albums = try? BackupFormat.openAlbums(BackupFormat.readAll(folder.openRead(BackupFormat.albums)), bk) {
+       let bytes = try? BackupFormat.readAll(folder.openRead(BackupFormat.albums), limit: Vault.maxAlbums + 64),
+       let albums = BackupFormat.openAlbums(bytes, bk) {
       try? addIncomingAlbums(.BACKUP, albums)
     }
     return RestoreReport(restored: restored, alreadyHere: already, damaged: damaged)

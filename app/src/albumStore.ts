@@ -40,7 +40,14 @@ export function resetAlbums() {
  * old phone. A list from another phone uses that phone's item ids; they are translated to
  * this phone's ids, and albums of items that did not arrive are simply left empty.
  */
-export async function loadAlbums(): Promise<void> {
+export function loadAlbums(): Promise<void> {
+  // In the same queue as the writes, so a read never puts back a list older than a save.
+  const p = queue.then(readAndMerge, readAndMerge);
+  queue = p.catch(() => {});
+  return p;
+}
+
+async function readAndMerge(): Promise<void> {
   const gen = generation;
   let doc: AlbumDoc = EMPTY;
   try {
@@ -91,7 +98,7 @@ export async function loadAlbums(): Promise<void> {
 /** Applies [change] and saves the result. Rejects (and changes nothing) if saving fails. */
 export function changeAlbums(change: (doc: AlbumDoc) => AlbumDoc): Promise<AlbumDoc> {
   const run = async () => {
-    if (!state.loaded) await loadAlbums();
+    if (!state.loaded) await readAndMerge();
     if (state.unreadable) throw new Error('Album list unreadable');
     const gen = generation;
     const next = change(state.doc);

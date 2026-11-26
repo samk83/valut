@@ -20,7 +20,7 @@ export type AlbumDoc = { v: 1; albums: Album[] };
 
 export const EMPTY: AlbumDoc = { v: 1, albums: [] };
 export const MAX_NAME = 40;
-/** Same cap as the native side (4 MB); far above any real use. */
+/** Most albums kept; far above any real use. (The native side separately caps the file at 4 MB.) */
 export const MAX_ALBUMS = 1000;
 
 const ID = /^[0-9a-f]{32}$/;

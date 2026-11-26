@@ -268,6 +268,18 @@ enum BackupFormat {
     return sink.bytes
   }
 
+  /// Reads at most [limit] bytes; nil if [input] holds more.
+  static func readAll(_ input: ByteSource, limit: Int) throws -> [UInt8]? {
+    var out = [UInt8]()
+    var buffer = [UInt8](repeating: 0, count: 64 * 1024)
+    while true {
+      let n = try input.read(into: &buffer, offset: 0, max: buffer.count)
+      if n == 0 { return out }
+      out.append(contentsOf: buffer[0..<n])
+      if out.count > limit { return nil }
+    }
+  }
+
   /// Copies the rest of [input] into [output].
   static func copy(_ input: ByteSource, _ output: ByteSink) throws {
     var buffer = [UInt8](repeating: 0, count: 256 * 1024)
