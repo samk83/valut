@@ -387,7 +387,10 @@ class TransferSender(private val vault: Vault) {
             progress = progress.copy(itemsDone = progress.itemsDone + 1, bytesDone = progress.bytesDone + item.meta.sizeBytes)
             onProgress(progress)
         }
-        channel.send(byteArrayOf(Msg.DONE))
+        // The album list rides on DONE (1.2). Older receivers read only the first byte of
+        // DONE, so they finish normally and just don't get albums. Too large: left out.
+        val albums = runCatching { vault.readAlbums() }.getOrNull()?.takeIf { it.size < SecureChannel.MAX_FRAME }
+        channel.send(if (albums != null) byteArrayOf(Msg.DONE) + albums else byteArrayOf(Msg.DONE))
         expect(channel, Msg.DONE_OK)
         return progress
     }
@@ -515,6 +518,8 @@ class TransferReceiver(private val vault: Vault) {
             val frame = channel.receive()
             when (frame.firstOrNull()) {
                 Msg.DONE -> {
+                    // Albums are labels only: if they can't be kept, the items still are.
+                    if (frame.size > 1) runCatching { vault.addIncomingAlbums(AlbumOrigin.TRANSFER, frame.copyOfRange(1, frame.size)) }
                     channel.send(byteArrayOf(Msg.DONE_OK))
                     return progress
                 }

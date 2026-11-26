@@ -295,4 +295,36 @@ class TransferTest {
         assertFailsWith<TransferException> { TransferCode.parse("PVT1:192.168.0.2:0:" + code.encode().substringAfterLast(':')) }
         assertFailsWith<TransferException> { TransferCode.parse("hello") }
     }
+
+    @Test
+    fun `album list travels with the transfer and maps to the new phone's ids`() {
+        val old = oldVault().apply { create(pin("482915")) }
+        fill(old)
+        val albums = """{"v":1,"albums":[{"id":"a1","name":"여행","items":["${old.list().first().id}"]}]}""".toByteArray()
+        old.writeAlbums(albums)
+        val new = newVault().apply { create(pin("731904")) }
+
+        val out = transfer(old, new)
+        assertEquals(5, out.received.getOrThrow().itemsDone)
+        val incoming = new.incomingAlbums().single()
+        assertEquals(AlbumOrigin.TRANSFER, incoming.origin)
+        assertContentEquals(albums, incoming.data)
+        // Every received item maps back to its id on the old phone.
+        assertEquals(old.list().map { it.id }.toSet(), new.receivedMap().values.toSet())
+        assertEquals(new.list().map { it.id }.toSet(), new.receivedMap().keys)
+        new.clearIncomingAlbums(listOf(incoming.name))
+        assertTrue(new.incomingAlbums().isEmpty())
+        // The old phone keeps its albums and every item.
+        assertContentEquals(albums, old.readAlbums())
+        assertEquals(5, old.list().size)
+    }
+
+    @Test
+    fun `transfer without albums sends a plain DONE`() {
+        val old = oldVault().apply { create(pin("482915")) }
+        fill(old)
+        val new = newVault().apply { create(pin("731904")) }
+        transfer(old, new).received.getOrThrow()
+        assertTrue(new.incomingAlbums().isEmpty())
+    }
 }
