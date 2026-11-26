@@ -11,6 +11,8 @@ import { t, tn } from '../i18n';
 import * as searchIndex from '../searchIndex';
 import { Thumb } from '../thumb';
 import { Body, Button, READABLE_WIDTH, s, TestBanner, Title } from '../ui';
+import { loadAlbums, resetAlbums } from '../albumStore';
+import { AlbumNameSheet, AlbumRow, AlbumScreen } from './Albums';
 import { Gallery } from './Gallery';
 import { Search } from './Search';
 
@@ -28,10 +30,10 @@ type Result = {
 type Progress = { index: number; total: number; sealed: number; sealedCurrent: boolean };
 type View_ = 'home' | 'importing' | 'result';
 
-/** Home, a full-screen gallery (photos or videos) or search. */
-type Mode = 'home' | ItemKind | 'search';
-// Kept while the app runs, so Back from a photo lands on the same gallery or search results.
-const remembered: { mode: Mode; searchFrom: Mode } = { mode: 'home', searchFrom: 'home' };
+/** Home, a full-screen gallery (photos or videos), an album, or search. */
+type Mode = 'home' | ItemKind | 'search' | 'album';
+// Kept while the app runs, so Back from a photo lands on the same gallery, album or search results.
+const remembered: { mode: Mode; searchFrom: Mode; albumId: string | null } = { mode: 'home', searchFrom: 'home', albumId: null };
 
 function rememberMode(m: Mode) {
   if (m === 'search' && remembered.mode !== 'search') remembered.searchFrom = remembered.mode;
@@ -42,6 +44,8 @@ function rememberMode(m: Mode) {
 export function resetHomeMode() {
   remembered.mode = 'home';
   remembered.searchFrom = 'home';
+  remembered.albumId = null;
+  resetAlbums();
 }
 
 function searchOrigin(): Mode {
@@ -79,6 +83,21 @@ export function Home({
     rememberMode(m);
     setModeState(m);
   };
+  const [albumId, setAlbumId] = useState<string | null>(remembered.albumId);
+  const [naming, setNaming] = useState(false);
+  // Right after making an album: open "Add photos" at once.
+  const [pickNow, setPickNow] = useState(false);
+  const openAlbum = (id: string, pick = false) => {
+    remembered.albumId = id;
+    setAlbumId(id);
+    setPickNow(pick);
+    setMode('album');
+  };
+  const leaveAlbum = useCallback(() => {
+    remembered.albumId = null;
+    rememberMode('home');
+    setModeState('home');
+  }, []);
   const importing = useRef(false);
   const [view, setView] = useState<View_>('home');
   const [progress, setProgress] = useState<Progress>({ index: 0, total: 0, sealed: 0, sealedCurrent: false });
@@ -98,6 +117,8 @@ export function Home({
     } catch {
       setItems([]);
     }
+    // Albums, plus any that came with a restored backup or from the old phone.
+    loadAlbums();
     // Anything new (imports, camera, deletes) goes to the backup folder in the background.
     autoBackup();
     VaultCore.backupStatus().then(setBackup).catch(() => {});
@@ -313,6 +334,9 @@ export function Home({
       />
     );
   }
+  if (mode === 'album' && albumId) {
+    return <AlbumScreen key={albumId} albumId={albumId} items={items} startPicking={pickNow} onBack={leaveAlbum} onOpen={(item) => onOpen(item)} />;
+  }
   if (mode === 'search') {
     return <Search items={items} onBack={() => setMode(searchOrigin())} onOpen={(item, query) => onOpen(item, query)} />;
   }
@@ -402,6 +426,8 @@ export function Home({
           <CategoryCard kind="VIDEO" count={videos.length} cover={videos.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 1)} onPress={() => setMode('VIDEO')} />
         </View>
 
+        <AlbumRow items={items} onOpenAlbum={(id) => openAlbum(id)} onNewAlbum={() => setNaming(true)} />
+
         {items.length === 0 ? (
           <View style={[s.card, { margin: 22 }]}>
             <Body>{t('home.noPhotos')}</Body>
@@ -426,6 +452,15 @@ export function Home({
         )}
       </ScrollView>
       {actionBar}
+      <AlbumNameSheet
+        visible={naming}
+        album={null}
+        onCancel={() => setNaming(false)}
+        onDone={(id) => {
+          setNaming(false);
+          openAlbum(id, true);
+        }}
+      />
     </View>
   );
 }
