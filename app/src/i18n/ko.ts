@@ -478,6 +478,18 @@ const ko: Pack = {
   'backup.errForeign': '이 폴더에는 다른 보관함의 백업이 있습니다. 다른 폴더를 선택하십시오.',
   'backup.errFailed': '문제가 발생했습니다. 다시 시도하십시오.',
   'backup.errUnavailable': '이 미리보기에서는 백업을 사용할 수 없습니다.',
+  'select.count': { other: "{n}개 선택됨" },
+  'select.action': "선택",
+  'select.all': "전체 선택",
+  'select.none': "전체 해제",
+  'select.cancel': "선택 취소",
+  'select.destroy': "파기 ({n})",
+  'bulk.title': { other: "항목 {n}개를 파기하시겠습니까?" },
+  'bulk.body': "이 항목들의 암호화 키가 삭제됩니다. 본인조차 다시 열 수 없으며, 복원할 수 있는 휴지통도 없습니다.",
+  'bulk.confirm': { other: "{n}개 파기" },
+  'bulk.working': "{n}개 중 {done}개 파기하는 중…",
+  'bulk.failedTitle': "일부 항목이 파기되지 않음",
+  'bulk.failedBody': { other: "항목 {n}개를 파기하지 못해 보관함에 그대로 있습니다. 다시 시도할 수 있도록 선택된 상태로 둡니다." },
 };
 
 export default ko;

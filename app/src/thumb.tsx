@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Image, Pressable, View, ViewStyle } from 'react-native';
 
 import VaultCore, { VaultItem } from '../modules/vault-core';
+import { t } from './i18n';
 import { C } from './theme';
 
 // Decrypted thumbnails, kept only while the vault is open (clearThumbs() on lock) so the
@@ -50,30 +51,73 @@ export function useThumb(id: string): string | null {
   return known ?? (loaded?.id === id ? loaded.uri : null);
 }
 
-/** A square tile. [rounded] for cards on Home; the full-screen gallery uses square corners. */
+/**
+ * A square tile. [rounded] for cards on Home; the full-screen gallery uses square corners.
+ * [selected] is set only in the gallery's select mode: true shows a brass check and an inset
+ * picture, false an empty circle.
+ */
 export function Thumb({
   item,
   onPress,
+  onLongPress,
+  onPressOut,
+  onSelectAction,
   rounded = false,
   style,
   label,
+  selected,
 }: {
   item: VaultItem;
   onPress?: () => void;
+  onLongPress?: () => void;
+  onPressOut?: () => void;
+  /** Screen readers: a "Select" action, since a long press is hard to do with one. */
+  onSelectAction?: () => void;
   rounded?: boolean;
   style?: ViewStyle;
   label?: string;
+  selected?: boolean;
 }) {
   const uri = useThumb(item.id);
+  const selecting = selected !== undefined;
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={label}
+      accessibilityState={selecting ? { selected } : undefined}
+      accessibilityActions={onSelectAction ? [{ name: 'select', label: t('select.action') }] : undefined}
+      onAccessibilityAction={onSelectAction ? (e) => e.nativeEvent.actionName === 'select' && onSelectAction() : undefined}
       onPress={onPress}
+      onLongPress={onLongPress}
+      onPressOut={onPressOut}
+      delayLongPress={350}
       disabled={!onPress}
-      style={({ pressed }) => [{ aspectRatio: 1, backgroundColor: C.surface, borderRadius: rounded ? 6 : 0, overflow: 'hidden' }, style, pressed && { opacity: 0.8 }]}
+      style={({ pressed }) => [
+        { aspectRatio: 1, backgroundColor: selected ? '#1A1E27' : C.surface, borderRadius: rounded ? 6 : 0, overflow: 'hidden' },
+        style,
+        pressed && !selecting && { opacity: 0.8 },
+      ]}
     >
-      {uri && <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />}
+      {uri && <Image source={{ uri }} style={selected ? { position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderRadius: 8 } : { width: '100%', height: '100%' }} />}
+      {selecting && (
+        <View
+          style={{
+            position: 'absolute',
+            top: selected ? 3 : 6,
+            left: selected ? 3 : 6,
+            width: 24,
+            height: 24,
+            borderRadius: 12,
+            borderWidth: 2,
+            borderColor: selected ? C.brass : 'rgba(255,255,255,0.9)',
+            backgroundColor: selected ? C.brass : 'rgba(0,0,0,0.25)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {selected && <Ionicons name="checkmark" size={15} color={C.bg} />}
+        </View>
+      )}
       {item.kind === 'VIDEO' && (
         <View style={{ position: 'absolute', bottom: 4, right: 4, backgroundColor: 'rgba(11,13,18,0.7)', borderRadius: 10, padding: 3 }}>
           <Ionicons name="play" size={12} color={C.ivory} />

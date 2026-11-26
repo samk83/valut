@@ -495,6 +495,18 @@ const de: Pack = {
   'backup.errForeign': 'Dieser Ordner enthält das Backup eines anderen Tresors. Wähle einen anderen Ordner.',
   'backup.errFailed': 'Etwas ist schiefgelaufen. Versuche es erneut.',
   'backup.errUnavailable': 'Backup ist in dieser Vorschau nicht verfügbar.',
+  'select.count': { one: "{n} ausgewählt", other: "{n} ausgewählt" },
+  'select.action': "Auswählen",
+  'select.all': "Alle auswählen",
+  'select.none': "Auswahl aufheben",
+  'select.cancel': "Auswahl abbrechen",
+  'select.destroy': "Vernichten ({n})",
+  'bulk.title': { one: "1 Objekt vernichten?", other: "{n} Objekte vernichten?" },
+  'bulk.body': "Ihre Verschlüsselungsschlüssel werden gelöscht. Nicht einmal du kannst sie danach wieder öffnen, und es gibt keinen Papierkorb zum Wiederherstellen.",
+  'bulk.confirm': { one: "1 Objekt vernichten", other: "{n} Objekte vernichten" },
+  'bulk.working': "Vernichte {done} von {n}…",
+  'bulk.failedTitle': "Einige Objekte wurden nicht vernichtet",
+  'bulk.failedBody': { one: "1 Objekt konnte nicht vernichtet werden und ist noch im Tresor. Es bleibt ausgewählt, damit du es erneut versuchen kannst.", other: "{n} Objekte konnten nicht vernichtet werden und sind noch im Tresor. Sie bleiben ausgewählt, damit du es erneut versuchen kannst." },
 };
 
 export default de;

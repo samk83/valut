@@ -494,6 +494,18 @@ const id: Pack = {
   'backup.errForeign': 'Folder ini berisi cadangan brankas lain. Pilih folder lain.',
   'backup.errFailed': 'Terjadi kesalahan. Coba lagi.',
   'backup.errUnavailable': 'Cadangan tidak tersedia di pratinjau ini.',
+  'select.count': { other: "{n} dipilih" },
+  'select.action': "Pilih",
+  'select.all': "Pilih semua",
+  'select.none': "Batalkan semua",
+  'select.cancel': "Batalkan pilihan",
+  'select.destroy': "Hancurkan ({n})",
+  'bulk.title': { other: "Hancurkan {n} item?" },
+  'bulk.body': "Kunci enkripsinya akan dihapus. Bahkan Anda tidak akan bisa membukanya lagi, dan tidak ada sampah untuk memulihkannya.",
+  'bulk.confirm': { other: "Hancurkan {n} item" },
+  'bulk.working': "Menghancurkan {done} dari {n}…",
+  'bulk.failedTitle': "Beberapa item tidak dihancurkan",
+  'bulk.failedBody': { other: "{n} item tidak dapat dihancurkan dan masih ada di brankas. Item tersebut tetap dipilih agar Anda bisa mencoba lagi." },
 };
 
 export default id;

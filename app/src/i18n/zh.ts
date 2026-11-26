@@ -480,6 +480,18 @@ const zh: Pack = {
   'backup.errForeign': '此文件夹中存放的是另一个保险库的备份。请选择其他文件夹。',
   'backup.errFailed': '出现问题。请重试。',
   'backup.errUnavailable': '此预览版中无法使用备份。',
+  'select.count': { other: "已选择 {n} 项" },
+  'select.action': "选择",
+  'select.all': "全选",
+  'select.none': "全部取消",
+  'select.cancel': "取消选择",
+  'select.destroy': "销毁 ({n})",
+  'bulk.title': { other: "销毁 {n} 个项目？" },
+  'bulk.body': "它们的加密密钥将被抹掉。即使是你也无法再打开它们，也没有回收站可供恢复。",
+  'bulk.confirm': { other: "销毁 {n} 个项目" },
+  'bulk.working': "正在销毁第 {done} 个，共 {n} 个…",
+  'bulk.failedTitle': "部分项目未被销毁",
+  'bulk.failedBody': { other: "有 {n} 个项目无法销毁，仍在保险库中。它们保持选中状态，你可以再试一次。" },
 };
 
 export default zh;

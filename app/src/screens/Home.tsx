@@ -308,6 +308,7 @@ export function Home({
         onBack={() => setMode('home')}
         onOpen={(item) => onOpen(item)}
         onSearch={() => setMode('search')}
+        onDeleted={load}
         actionBar={actionBar}
       />
     );

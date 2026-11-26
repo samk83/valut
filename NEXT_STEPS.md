@@ -7,6 +7,12 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## 여러 장 선택 파기 (2026-11-26)
+- 시안: 공유 폴더 privatevault/multi-select-mockup/A2-ko.png
+- 앱 코드만 바뀜(네이티브 변경 없음). 다음 앱 버전 빌드에 포함, 빌드·제출은 Owner 승인
+- 실기기 확인: iPhone·iPad에서 길게 누른 뒤 끌어서 선택, 화면 위·아래 끝에서 자동 스크롤, 확인 화면 파기
+- 다음 단계 추천: 선택 시작 때 짧은 진동(expo-haptics, 네이티브 빌드 필요), 앨범 폴더 작업이 선택 바에 "앨범에 넣기" 버튼 추가 (`selectionActions`)
+
 ## 설정 업그레이드 카드 (2026-11-16)
 - 1.1(build 7) 심사와 무관. 심사 끝난 뒤 다음 업데이트 빌드에 포함
 - Owner: PR 확인 후 Merge → 다음 빌드에서 무료 계정으로 Settings 열어 카드 확인, 버튼 → Premium 화면 이동 확인

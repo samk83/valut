@@ -493,6 +493,18 @@ const tr: Pack = {
   'backup.errForeign': 'Bu klasörde başka bir kasanın yedeği var. Farklı bir klasör seç.',
   'backup.errFailed': 'Bir şeyler ters gitti. Tekrar dene.',
   'backup.errUnavailable': 'Yedekleme bu önizlemede kullanılamaz.',
+  'select.count': { one: "{n} seçildi", other: "{n} seçildi" },
+  'select.action': "Seç",
+  'select.all': "Tümünü seç",
+  'select.none': "Seçimi kaldır",
+  'select.cancel': "Seçimden çık",
+  'select.destroy': "Yok et ({n})",
+  'bulk.title': { one: "1 öğe yok edilsin mi?", other: "{n} öğe yok edilsin mi?" },
+  'bulk.body': "Şifreleme anahtarları silinecek. Sen bile onları bir daha açamayacaksın ve geri yükleme yapılabilecek bir çöp kutusu yok.",
+  'bulk.confirm': { one: "1 öğeyi yok et", other: "{n} öğeyi yok et" },
+  'bulk.working': "{n} öğeden {done} tanesi yok ediliyor…",
+  'bulk.failedTitle': "Bazı öğeler yok edilemedi",
+  'bulk.failedBody': { one: "1 öğe yok edilemedi ve hâlâ kasada. Yeniden deneyebilmen için seçili kalıyor.", other: "{n} öğe yok edilemedi ve hâlâ kasada. Yeniden deneyebilmen için seçili kalıyorlar." },
 };
 
 export default tr;
