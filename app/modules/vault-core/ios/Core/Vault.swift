@@ -15,6 +15,19 @@ struct VaultItem: Equatable {
   let meta: ItemMeta
 }
 
+/// Where an album list that is waiting to be merged came from (same as core/Vault.kt).
+enum AlbumOrigin: String, CaseIterable {
+  case BACKUP = "b-", TRANSFER = "t-"
+  var prefix: String { rawValue }
+}
+
+/// An album list that arrived from a backup or another phone, see [Vault.incomingAlbums].
+struct IncomingAlbums {
+  let name: String
+  let origin: AlbumOrigin
+  let data: [UInt8]
+}
+
 /// [safeToDeleteOriginal] is true only when the encrypted copy was re-read, decrypted and
 /// matched the SHA-256 the caller computed from the original itself (SPEC AC-30).
 struct ImportResult {
@@ -23,7 +36,8 @@ struct ImportResult {
 }
 
 /// The vault on disk. Port of core/Vault.kt, same layout under [root]:
-///   vault.key, attempts, items/<id>/{key,key.bak,meta,meta.bak,data,thumb}, staging/<id>/
+///   vault.key, attempts, items/<id>/{key,key.bak,meta,meta.bak,data,thumb}, staging/<id>/,
+///   albums(.bak), albums.in/
 final class Vault {
   private let root: URL
   private let items: URL
@@ -38,6 +52,10 @@ final class Vault {
   private static let deletedMarker = "deleted"
   private static let sourceFile = "source"
   private static let searchFile = "search"
+  private static let albumsName = "albums"
+  private static let albumsAad = Array("PrivateVault albums v1".utf8)
+  /// Largest album list kept (same as core/Vault.kt).
+  static let maxAlbums = 4 * 1024 * 1024
 
   init(root: URL, hardwareKey: HardwareKey, params: Argon2Params = .phone, chunkSize: Int = ChunkedCipher.defaultChunkSize,
        clock: MonotonicClock = SystemMonotonicClock()) throws {
@@ -94,6 +112,7 @@ final class Vault {
     SecureFiles.deleteTree(items)
     // A recovery key left by a destroyed vault was sealed with its old master key.
     clearBackupState()
+    clearAlbums()
     try setMasterKey(mk, generation)
   }
 
@@ -216,15 +235,18 @@ final class Vault {
 
   /// Ids (on the old phone) of items received by transfer, so an interrupted transfer can run
   /// again without duplicates. Same as core/Vault.kt: each item's sealed "source" file.
-  func receivedSources() throws -> Set<String> {
+  func receivedSources() throws -> Set<String> { Set(try receivedMap().values) }
+
+  /// This vault's id -> the old phone's id, for every item received by transfer.
+  func receivedMap() throws -> [String: String] {
     var mk = try requireUnlocked()
     mk.wipe()
-    var out = Set<String>()
+    var out: [String: String] = [:]
     for dir in SecureFiles.list(items) where isLiveItem(dir) && SecureFiles.exists(dir.appendingPathComponent(Vault.sourceFile)) {
       if let id = try? withFileKey(dir.lastPathComponent, { fk, idBytes in
         try open(fk, try SecureFiles.readBytes(dir.appendingPathComponent(Vault.sourceFile)), aad(Vault.sourceFile, idBytes))
       }) {
-        out.insert(id.map { String(format: "%02x", $0) }.joined())
+        out[dir.lastPathComponent] = id.map { String(format: "%02x", $0) }.joined()
       }
     }
     return out
@@ -248,6 +270,89 @@ final class Vault {
       guard SecureFiles.exists(file) else { return nil }
       return try? open(fk, try SecureFiles.readBytes(file), aad(Vault.searchFile, idBytes))
     }
+  }
+
+  // MARK: - Albums (owner decision 2026-11-25)
+  // Labels only, same as core/Vault.kt: one sealed file with album names and the ids each
+  // holds. The app owns the content (JSON). Nothing here touches a photo. Lists from a backup
+  // or another phone wait in albums.in/ until the app has merged them.
+
+  private var albumsFile: URL { root.appendingPathComponent(Vault.albumsName) }
+  private var incomingAlbumsDir: URL { root.appendingPathComponent("albums.in") }
+  private let albumsLock = NSRecursiveLock()
+
+  /// The app's album list, or nil if none was saved yet. Needs the vault unlocked.
+  func readAlbums() throws -> [UInt8]? {
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    albumsLock.lock()
+    defer { albumsLock.unlock() }
+    guard SecureFiles.exists(albumsFile) || SecureFiles.exists(root.appendingPathComponent(Vault.albumsName + ".bak")) else { return nil }
+    return try openEither(root, Vault.albumsName) { try open(mk, $0, Vault.albumsAad) }
+  }
+
+  /// Saves the app's album list (replacing the previous one).
+  func writeAlbums(_ data: [UInt8]) throws {
+    guard data.count <= Vault.maxAlbums else { throw VaultError.state("Album list too large") }
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    let sealed = try seal(mk, data, Vault.albumsAad)
+    albumsLock.lock()
+    defer { albumsLock.unlock() }
+    try keys.whileKeyIsLive(mk) {
+      try SecureFiles.writeAtomic(albumsFile, sealed)
+      try SecureFiles.writeAtomic(root.appendingPathComponent(Vault.albumsName + ".bak"), sealed)
+    }
+  }
+
+  /// Album lists from a backup (same ids) or another phone (its ids, see [receivedMap]) that
+  /// are not merged yet. Damaged entries are left out.
+  func incomingAlbums() throws -> [IncomingAlbums] {
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    albumsLock.lock()
+    let files = SecureFiles.list(incomingAlbumsDir).filter { !$0.lastPathComponent.hasSuffix(".tmp") && !SecureFiles.isDirectory($0) }
+    albumsLock.unlock()
+    return files.sorted { $0.lastPathComponent < $1.lastPathComponent }.compactMap { f in
+      let name = f.lastPathComponent
+      guard let origin = AlbumOrigin.allCases.first(where: { name.hasPrefix($0.prefix) }),
+            let data = try? open(mk, try SecureFiles.readBytes(f), incomingAad(origin)) else { return nil }
+      return IncomingAlbums(name: name, origin: origin, data: data)
+    }
+  }
+
+  /// Forgets incoming album lists the app has merged (call after [writeAlbums]).
+  func clearIncomingAlbums(_ names: [String]) {
+    albumsLock.lock()
+    defer { albumsLock.unlock() }
+    for n in names where AlbumOrigin.allCases.contains(where: { n.hasPrefix($0.prefix) }) && !n.contains("/") && !n.contains("..") {
+      unlink(incomingAlbumsDir.appendingPathComponent(n).path)
+    }
+  }
+
+  func addIncomingAlbums(_ origin: AlbumOrigin, _ data: [UInt8]) throws {
+    guard !data.isEmpty, data.count <= Vault.maxAlbums else { return }
+    var mk = try requireUnlocked()
+    defer { mk.wipe() }
+    let sealed = try seal(mk, data, incomingAad(origin))
+    let name = origin.prefix + String(Int64(Date().timeIntervalSince1970 * 1000)) + "-" +
+      Primitives.randomBytes(4).map { String(format: "%02x", $0) }.joined()
+    albumsLock.lock()
+    defer { albumsLock.unlock() }
+    try keys.whileKeyIsLive(mk) {
+      try SecureFiles.mkdirs(incomingAlbumsDir)
+      try SecureFiles.writeAtomic(incomingAlbumsDir.appendingPathComponent(name), sealed)
+    }
+  }
+
+  private func incomingAad(_ origin: AlbumOrigin) -> [UInt8] { Array("PrivateVault incoming albums \(origin.prefix) v1".utf8) }
+
+  private func clearAlbums() {
+    albumsLock.lock()
+    defer { albumsLock.unlock() }
+    SecureFiles.shred(albumsFile)
+    SecureFiles.shred(root.appendingPathComponent(Vault.albumsName + ".bak"))
+    SecureFiles.deleteTree(incomingAlbumsDir)
   }
 
   /// Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2).
@@ -283,6 +388,7 @@ final class Vault {
     SecureFiles.deleteTree(staging)
     // Backup files in the user's folder are left alone: they are the user's copy.
     clearBackupState()
+    clearAlbums()
   }
 
   // MARK: - Backup (owner decision 2026-11-12: photos must survive deleting the app)
@@ -382,7 +488,19 @@ final class Vault {
       if replacing, backupCopyLooksComplete(id, folder.size(id + BackupFormat.ext)) { continue }
       if try writeBackupItem(id, bk, folder, replacing: replacing) { written += 1 }
     }
+    backupAlbums(bk, folder, names)
     return BackupReport(written: written, removed: removed, total: live.count)
+  }
+
+  /// Copies the album list into the backup when it changed. Albums are only labels, so a
+  /// failure here never stops the photo backup. A vault without albums leaves the file alone.
+  private func backupAlbums(_ bk: [UInt8], _ folder: BackupFolder, _ names: [String]) {
+    guard let albums = try? readAlbums() else { return }
+    if names.contains(BackupFormat.albums),
+       let old = try? BackupFormat.openAlbums(BackupFormat.readAll(folder.openRead(BackupFormat.albums)), bk),
+       old == albums { return }
+    guard let file = try? BackupFormat.albumsFile(bk, albums) else { return }
+    try? folder.write(BackupFormat.albums) { try $0.write(file) }
   }
 
   private func readDeletes() -> Set<String> {
@@ -511,6 +629,11 @@ final class Vault {
         }
       }
       progress(index + 1, names.count)
+    }
+    // Albums come back too; the app merges them with any made here meanwhile.
+    if (try? folder.list())?.contains(BackupFormat.albums) == true,
+       let albums = try? BackupFormat.openAlbums(BackupFormat.readAll(folder.openRead(BackupFormat.albums)), bk) {
+      try? addIncomingAlbums(.BACKUP, albums)
     }
     return RestoreReport(restored: restored, alreadyHere: already, damaged: damaged)
   }

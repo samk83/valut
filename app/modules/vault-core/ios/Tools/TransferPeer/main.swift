@@ -2,6 +2,7 @@
 // over a real socket, proving the two implementations speak the same protocol.
 //   TransferPeer receive <dir>         prints "CODE <qr text>", then the received items
 //   TransferPeer send <dir> <code>     fills a vault, prints its items, sends them
+// The sender also saves an album list (ALBUMS <hex>); the receiver prints what it got.
 // Items are printed as: ITEM <createdAt> <kind> <mime> <sha256 of content> <thumb hex or ->
 import Foundation
 @testable import VaultCoreKit
@@ -51,6 +52,7 @@ do {
     let p = try TransferReceiver(vault: vault).run(channel)
     channel.close()
     try printItems(vault)
+    for a in try vault.incomingAlbums() { print("ALBUMS \(hex(a.data))") }
     print("DONE \(p.itemsDone)")
   } else {
     for (i, size) in [0, 1, 4096, 20_000, 300_000].enumerated() {
@@ -60,6 +62,9 @@ do {
                                thumbnail: i == 3 ? nil : [UInt8(i), 7, 7])
     }
     try printItems(vault)
+    let albums = Array("{\"v\":1,\"albums\":[{\"id\":\"swift\",\"name\":\"앨범\",\"items\":[]}]}".utf8)
+    try vault.writeAlbums(albums)
+    print("ALBUMS \(hex(albums))")
     let code = try TransferCode.parse(args[3])
     let channel = try SecureChannel.client(try SocketStream.connect(host: code.host, port: code.port), secret: code.secret)
     let p = try TransferSender(vault: vault).run(channel)

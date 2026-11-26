@@ -62,6 +62,8 @@ class TransferInteropTest {
         assumeTrue(peer != null, "PV_SWIFT_PEER not set")
         val old = Vault(File(dir, "old"), FakeHardwareKey(), TEST_PARAMS, 4096).apply { create(pin("482915")) }
         fill(old)
+        val albums = """{"v":1,"albums":[{"id":"kt","name":"여행","items":[]}]}""".toByteArray()
+        old.writeAlbums(albums)
         val process = ProcessBuilder(peer, "receive", File(dir, "swift").path).redirectErrorStream(true).start()
         val out = process.inputStream.bufferedReader()
         val codeLine = out.readLine()
@@ -75,6 +77,7 @@ class TransferInteropTest {
         assertEquals(0, process.exitValue(), lines.joinToString("\n"))
         assertEquals("DONE 5", lines.last())
         assertEquals(items(old), lines.filter { it.startsWith("ITEM ") })
+        assertEquals(listOf("ALBUMS " + albums.joinToString("") { "%02x".format(it) }), lines.filter { it.startsWith("ALBUMS ") })
     }
 
     @Test
@@ -102,5 +105,7 @@ class TransferInteropTest {
         assertEquals(5, rx.get(30, TimeUnit.SECONDS).itemsDone)
         pool.shutdown()
         assertEquals(lines.filter { it.startsWith("ITEM ") }, items(new))
+        val sent = lines.single { it.startsWith("ALBUMS ") }.removePrefix("ALBUMS ")
+        assertEquals(listOf(sent), new.incomingAlbums().map { a -> a.data.joinToString("") { "%02x".format(it) } })
     }
 }

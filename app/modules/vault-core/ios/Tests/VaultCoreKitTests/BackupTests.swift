@@ -300,4 +300,31 @@ final class BackupTests: XCTestCase {
     XCTAssertEqual(try read(v, video.id), BackupTests.fixtureContent(1))
     XCTAssertEqual(try v.thumbnail(id: photo.id), [1, 2, 3])
   }
+
+  func testAlbumsAreBackedUpAndRestored() throws {
+    let old = try phone("old")
+    try old.create(pin: pin)
+    let idA = try importBytes(old, Primitives.randomBytes(1000))
+    _ = try importBytes(old, Primitives.randomBytes(2000))
+    let keyText = RecoveryKey.format(try old.createRecoveryKey())
+    _ = try old.backup(to: folder())
+    XCTAssertFalse(try folder().list().contains(BackupFormat.albums))
+    XCTAssertNil(try old.readAlbums())
+    let albums = Array("{\"v\":1,\"albums\":[{\"id\":\"a1\",\"name\":\"family\",\"items\":[\"\(idA)\"]}]}".utf8)
+    try old.writeAlbums(albums)
+    XCTAssertEqual(try old.readAlbums(), albums)
+    _ = try old.backup(to: folder())
+    XCTAssertTrue(try folder().list().contains(BackupFormat.albums))
+
+    let fresh = try phone("new")
+    try fresh.create(pin: Array("739201".utf8))
+    XCTAssertEqual(try fresh.restore(from: folder(), recoveryKey: RecoveryKey.parse(keyText)!),
+                   RestoreReport(restored: 2, alreadyHere: 0, damaged: 0))
+    let incoming = try fresh.incomingAlbums()
+    XCTAssertEqual(incoming.count, 1)
+    XCTAssertEqual(incoming[0].origin, .BACKUP)
+    XCTAssertEqual(incoming[0].data, albums)
+    try fresh.destroy()
+    XCTAssertFalse(FileManager.default.fileExists(atPath: tmp.appendingPathComponent("new/albums.in").path))
+  }
 }

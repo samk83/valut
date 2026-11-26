@@ -278,6 +278,21 @@ enum BackupFormat {
     }
   }
 
+  /// The album list (labels only). Older apps ignore this file and never delete it.
+  static let albums = "albums.pvba"
+  private static let albumsMagic = Array("PVBA".utf8)
+  private static let albumsAad = Array("PrivateVault backup albums v1".utf8)
+
+  static func albumsFile(_ backupKey: [UInt8], _ albums: [UInt8]) throws -> [UInt8] {
+    albumsMagic + [version] + (try seal(backupKey, albums, albumsAad))
+  }
+
+  /// The album list in an albums file, or nil if it is not one made with [backupKey].
+  static func openAlbums(_ bytes: [UInt8], _ backupKey: [UInt8]) -> [UInt8]? {
+    guard bytes.count >= 5, Array(bytes[0..<4]) == albumsMagic, bytes[4] == version else { return nil }
+    return try? open(backupKey, Array(bytes[5...]), albumsAad)
+  }
+
   static func seal(_ key: [UInt8], _ plaintext: [UInt8], _ aad: [UInt8]) throws -> [UInt8] {
     let nonce = Primitives.randomBytes(12)
     return nonce + (try Primitives.aesGcmSeal(key: key, nonce: nonce, plaintext: plaintext, aad: aad))

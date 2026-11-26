@@ -301,4 +301,26 @@ final class TransferTests: XCTestCase {
     new.lock()
     XCTAssertThrowsError(try rx.startReceiving())
   }
+
+  func testAlbumListTravelsWithTransfer() throws {
+    let old = try makeVault("old", chunk: 4096)
+    try old.create(pin: oldPin)
+    try fill(old)
+    let first = try old.list()[0].id
+    let albums = Array("{\"v\":1,\"albums\":[{\"id\":\"a1\",\"name\":\"여행\",\"items\":[\"\(first)\"]}]}".utf8)
+    try old.writeAlbums(albums)
+    let new = try makeVault("new", chunk: 8192)
+    try new.create(pin: newPin)
+    let out = try transfer(old, new)
+    XCTAssertEqual(try out.received.get().itemsDone, 5)
+    let incoming = try new.incomingAlbums()
+    XCTAssertEqual(incoming.count, 1)
+    XCTAssertEqual(incoming[0].origin, .TRANSFER)
+    XCTAssertEqual(incoming[0].data, albums)
+    XCTAssertEqual(Set(try new.receivedMap().values), Set(try old.list().map { $0.id }))
+    XCTAssertEqual(Set(try new.receivedMap().keys), Set(try new.list().map { $0.id }))
+    new.clearIncomingAlbums([incoming[0].name])
+    XCTAssertTrue(try new.incomingAlbums().isEmpty)
+    XCTAssertEqual(try old.readAlbums(), albums)
+  }
 }
