@@ -493,6 +493,17 @@ const es: Pack = {
   'backup.errForeign': 'Esta carpeta contiene la copia de seguridad de otra bóveda. Elige otra carpeta.',
   'backup.errFailed': 'Algo salió mal. Inténtalo de nuevo.',
   'backup.errUnavailable': 'La copia de seguridad no está disponible en esta vista previa.',
+  'select.count': { one: "{n} seleccionado", other: "{n} seleccionados" },
+  'select.all': "Seleccionar todo",
+  'select.none': "Quitar selección",
+  'select.cancel': "Cancelar selección",
+  'select.destroy': "Destruir ({n})",
+  'bulk.title': { one: "¿Destruir 1 elemento?", other: "¿Destruir {n} elementos?" },
+  'bulk.body': "Sus claves de cifrado se borrarán. Ni siquiera tú podrás volver a abrirlos, y no hay papelera de donde restaurarlos.",
+  'bulk.confirm': { one: "Destruir 1 elemento", other: "Destruir {n} elementos" },
+  'bulk.working': "Destruyendo {done} de {n}…",
+  'bulk.failedTitle': "Algunos elementos no se destruyeron",
+  'bulk.failedBody': { one: "1 elemento no se pudo destruir y sigue en la bóveda. Queda seleccionado para que puedas intentarlo de nuevo.", other: "{n} elementos no se pudieron destruir y siguen en la bóveda. Quedan seleccionados para que puedas intentarlo de nuevo." },
 };
 
 export default es;

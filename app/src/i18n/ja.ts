@@ -478,6 +478,17 @@ const ja: Pack = {
   'backup.errForeign': 'このフォルダには別の保管庫のバックアップがあります。別のフォルダを選んでください。',
   'backup.errFailed': '問題が発生しました。もう一度お試しください。',
   'backup.errUnavailable': 'このプレビューではバックアップを利用できません。',
+  'select.count': { other: "{n} 件を選択" },
+  'select.all': "すべて選択",
+  'select.none': "選択をすべて解除",
+  'select.cancel': "選択をキャンセル",
+  'select.destroy': "破棄 ({n})",
+  'bulk.title': { other: "{n} 件の項目を破棄しますか？" },
+  'bulk.body': "これらの項目の暗号化キーが消去されます。あなた自身も二度と開けなくなり、復元できるゴミ箱もありません。",
+  'bulk.confirm': { other: "{n} 件を破棄" },
+  'bulk.working': "{n} 件中 {done} 件を破棄しています…",
+  'bulk.failedTitle': "一部の項目を破棄できませんでした",
+  'bulk.failedBody': { other: "{n} 件の項目を破棄できず、保管庫に残っています。再試行できるよう選択したままにします。" },
 };
 
 export default ja;

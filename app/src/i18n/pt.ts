@@ -495,6 +495,17 @@ const pt: Pack = {
   'backup.errForeign': 'Esta pasta contém o backup de outro cofre. Escolha uma pasta diferente.',
   'backup.errFailed': 'Algo deu errado. Tente novamente.',
   'backup.errUnavailable': 'O backup não está disponível nesta prévia.',
+  'select.count': { one: "{n} selecionado", other: "{n} selecionados" },
+  'select.all': "Selecionar tudo",
+  'select.none': "Desmarcar tudo",
+  'select.cancel': "Cancelar seleção",
+  'select.destroy': "Destruir ({n})",
+  'bulk.title': { one: "Destruir 1 item?", other: "Destruir {n} itens?" },
+  'bulk.body': "As chaves de criptografia deles serão apagadas. Nem você poderá abri-los de novo, e não há lixeira de onde restaurá-los.",
+  'bulk.confirm': { one: "Destruir 1 item", other: "Destruir {n} itens" },
+  'bulk.working': "Destruindo {done} de {n}…",
+  'bulk.failedTitle': "Alguns itens não foram destruídos",
+  'bulk.failedBody': { one: "1 item não pôde ser destruído e continua no cofre. Ele fica selecionado para você tentar de novo.", other: "{n} itens não puderam ser destruídos e continuam no cofre. Eles ficam selecionados para você tentar de novo." },
 };
 
 export default pt;

@@ -504,6 +504,17 @@ const en = {
   'backup.errForeign': 'This folder holds another vault’s backup. Choose a different folder.',
   'backup.errFailed': 'Something went wrong. Try again.',
   'backup.errUnavailable': 'Backup isn’t available in this preview.',
+  'select.count': { one: "{n} selected", other: "{n} selected" },
+  'select.all': "Select all",
+  'select.none': "Deselect all",
+  'select.cancel': "Cancel selection",
+  'select.destroy': "Destroy ({n})",
+  'bulk.title': { one: "Destroy 1 item?", other: "Destroy {n} items?" },
+  'bulk.body': "Their encryption keys will be erased. Not even you will be able to open them again, and there is no trash to restore from.",
+  'bulk.confirm': { one: "Destroy 1 item", other: "Destroy {n} items" },
+  'bulk.working': "Destroying {done} of {n}…",
+  'bulk.failedTitle': "Some items were not destroyed",
+  'bulk.failedBody': { one: "1 item could not be destroyed and is still in the vault. It stays selected so you can try again.", other: "{n} items could not be destroyed and are still in the vault. They stay selected so you can try again." },
 } as const;
 
 export default en;
