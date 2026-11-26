@@ -47,7 +47,7 @@ u32 길이(BE) ‖ AES-256-GCM(key, nonce = 0x00000000 ‖ u64 순번(BE), 메�
 | 6 END | 기존→새 | 보낸 원본 전체의 SHA-256 (32) |
 | 7 ITEM_OK | 새→기존 | 새 폰이 자기 키로 저장하고 디스크에서 다시 풀어 검증 완료 |
 | 11 ITEM_ABORT | 기존→새 | 기존 폰에서 이 항목이 손상됨. 새 폰은 이 항목을 버리고 계속 |
-| 9 DONE / 10 DONE_OK | | 끝 |
+| 9 DONE / 10 DONE_OK | | 끝. DONE 뒤에 앨범 목록 JSON을 붙일 수 있음(메시지 최대 크기 미만일 때만). 예전 앱은 첫 바이트만 읽어 무시, 앨범 없는 DONE도 그대로 받음 |
 | 8 FAIL | 양쪽 | 이유 코드(1): 0 잘못된 코드 · 1 저장공간 부족 · 2 잠김 · 3 무결성 · 4 취소 · 5 기타 · 6 다른 기기 · 7 연결 끊김 |
 
 ## 중복 방지 (이어 받기)
@@ -55,6 +55,9 @@ u32 길이(BE) ‖ AES-256-GCM(key, nonce = 0x00000000 ‖ u64 순번(BE), 메�
 (파일 키로 AES-GCM, aad = 항목 id). 항목과 같은 순간에 함께 생기고 함께 지워지므로,
 새 폰에서 사진을 지우면 다음 전송 때 그 사진만 다시 오고, 금고 초기화 때 기록도 사라집니다.
 기록이 깨져도 결과는 "한 번 더 보냄"뿐, 자료 손실은 없습니다.
+
+## 앨범 (2026-11-26)
+새 폰은 DONE에 붙은 앨범 목록을 `albums.in/t-…`에 봉인해 둡니다. 앱이 잠금 해제 때 `receivedMap()`(새 id → 원래 id)으로 항목 id를 바꿔 기존 앨범에 더하기만 하고, 도착하지 않은 항목은 빠집니다. 앨범은 라벨이라 사진을 지우거나 바꾸지 않습니다.
 
 ## 앱 이벤트 (JS `onTransfer`)
 `{ phase: waiting | connected | progress | done | error, itemsDone, itemsTotal, bytesDone, bytesTotal, skipped, alreadyThere, error? }`.
