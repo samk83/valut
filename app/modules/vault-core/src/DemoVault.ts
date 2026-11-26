@@ -1,7 +1,7 @@
 // Preview-only stand-in for the native vault, used where the native module is absent
 // (iPhone, Expo Go). NOTHING IS ENCRYPTED: items are kept in memory as plain file URIs and
 // the PIN only lives until the app is closed. It exists so the screens can be tried out.
-import type { ItemKind, PinCheck, PinResult, VaultItem, VaultStatus } from './VaultCoreModule';
+import type { IncomingAlbums, ItemKind, PinCheck, PinResult, VaultItem, VaultStatus } from './VaultCoreModule';
 
 // Same rule as the real vault: wrong attempts never erase; after 3 each try waits longer.
 const FREE_ATTEMPTS = 3;
@@ -14,6 +14,7 @@ let pinHash: string | null = null;
 let failures = 0;
 let unlocked = false;
 let items: (VaultItem & { uri: string })[] = [];
+let albums: string | null = null;
 // Bumped by lock(); a create/unlock that was waiting when the vault locked must not succeed.
 let lockGeneration = 0;
 
@@ -105,7 +106,23 @@ export const DemoVault = {
     requireUnlocked();
     items = items.filter((i) => i.id !== id);
   },
+  async readAlbums(): Promise<string | null> {
+    requireUnlocked();
+    return albums;
+  },
+  async writeAlbums(json: string) {
+    requireUnlocked();
+    albums = json;
+  },
+  async incomingAlbums(): Promise<IncomingAlbums[]> {
+    return [];
+  },
+  async clearIncomingAlbums(_names: string[]) {},
+  async receivedMap(): Promise<Record<string, string>> {
+    return {};
+  },
   async destroy() {
+    albums = null;
     unlocked = false;
     pinHash = null;
     failures = 0;

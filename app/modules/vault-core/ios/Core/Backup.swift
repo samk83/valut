@@ -268,6 +268,18 @@ enum BackupFormat {
     return sink.bytes
   }
 
+  /// Reads at most [limit] bytes; nil if [input] holds more.
+  static func readAll(_ input: ByteSource, limit: Int) throws -> [UInt8]? {
+    var out = [UInt8]()
+    var buffer = [UInt8](repeating: 0, count: 64 * 1024)
+    while true {
+      let n = try input.read(into: &buffer, offset: 0, max: buffer.count)
+      if n == 0 { return out }
+      out.append(contentsOf: buffer[0..<n])
+      if out.count > limit { return nil }
+    }
+  }
+
   /// Copies the rest of [input] into [output].
   static func copy(_ input: ByteSource, _ output: ByteSink) throws {
     var buffer = [UInt8](repeating: 0, count: 256 * 1024)
@@ -276,6 +288,21 @@ enum BackupFormat {
       if n == 0 { return }
       try output.write(n == buffer.count ? buffer : Array(buffer[0..<n]))
     }
+  }
+
+  /// The album list (labels only). Older apps ignore this file and never delete it.
+  static let albums = "albums.pvba"
+  private static let albumsMagic = Array("PVBA".utf8)
+  private static let albumsAad = Array("PrivateVault backup albums v1".utf8)
+
+  static func albumsFile(_ backupKey: [UInt8], _ albums: [UInt8]) throws -> [UInt8] {
+    albumsMagic + [version] + (try seal(backupKey, albums, albumsAad))
+  }
+
+  /// The album list in an albums file, or nil if it is not one made with [backupKey].
+  static func openAlbums(_ bytes: [UInt8], _ backupKey: [UInt8]) -> [UInt8]? {
+    guard bytes.count >= 5, Array(bytes[0..<4]) == albumsMagic, bytes[4] == version else { return nil }
+    return try? open(backupKey, Array(bytes[5...]), albumsAad)
   }
 
   static func seal(_ key: [UInt8], _ plaintext: [UInt8], _ aad: [UInt8]) throws -> [UInt8] {

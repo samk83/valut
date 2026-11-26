@@ -309,4 +309,28 @@ class BackupTest {
         assertContentEquals(fixtureContent(1), read(v, videoItem.id))
         assertContentEquals(byteArrayOf(1, 2, 3), v.thumbnail(photoItem.id))
     }
+
+    @Test
+    fun `albums are backed up and come back after a restore, photos untouched`() {
+        val (old, ids) = vaultWith(Aead.randomBytes(1000), Aead.randomBytes(2000))
+        val keyText = RecoveryKey.format(old.createRecoveryKey())
+        old.backupTo(folder())
+        // No albums yet: no albums file in the backup.
+        assertFalse(BackupFormat.ALBUMS in folder().list())
+        val albums = """{"v":1,"albums":[{"id":"a1","name":"가족","items":["${ids[0]}"]}]}""".toByteArray()
+        old.writeAlbums(albums)
+        old.backupTo(folder())
+        assertTrue(BackupFormat.ALBUMS in folder().list())
+        // The backup file holds no plaintext album names.
+        val raw = File(tmp, "icloud/Private Vision Vault Backup/${BackupFormat.ALBUMS}").readBytes()
+        assertFalse(String(raw, Charsets.ISO_8859_1).contains("a1"))
+
+        val fresh = phone("new")
+        fresh.create(pin("739201"))
+        assertEquals(RestoreReport(2, 0, 0), fresh.restoreFrom(folder(), RecoveryKey.parse(keyText)))
+        val incoming = fresh.incomingAlbums().single()
+        assertEquals(AlbumOrigin.BACKUP, incoming.origin)
+        assertContentEquals(albums, incoming.data)
+        assertEquals(ids.toSet(), fresh.list().map { it.id }.toSet())
+    }
 }

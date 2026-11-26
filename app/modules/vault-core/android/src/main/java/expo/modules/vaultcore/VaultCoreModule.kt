@@ -15,6 +15,7 @@ import android.os.Looper
 import android.os.PersistableBundle
 import android.os.SystemClock
 import android.util.Base64
+import com.jellydock.privatevault.core.AlbumOrigin
 import com.jellydock.privatevault.core.Argon2Params
 import com.jellydock.privatevault.core.IncompleteEntryException
 import com.jellydock.privatevault.core.ItemKind
@@ -357,6 +358,25 @@ class VaultCoreModule : Module() {
       Function("closeVideo") { clearPlayback() }
 
       AsyncFunction("delete") { id: String -> vault.delete(id) }
+
+      // Albums (owner decision 2026-11-25): labels only, the app owns the JSON. Same API on iPhone.
+      AsyncFunction("readAlbums") { vault.readAlbums()?.let { String(it, Charsets.UTF_8) } }
+
+      AsyncFunction("writeAlbums") { json: String -> vault.writeAlbums(json.toByteArray(Charsets.UTF_8)) }
+
+      AsyncFunction("incomingAlbums") {
+        vault.incomingAlbums().map {
+          mapOf(
+            "name" to it.name,
+            "origin" to if (it.origin == AlbumOrigin.BACKUP) "backup" else "transfer",
+            "json" to String(it.data, Charsets.UTF_8),
+          )
+        }
+      }
+
+      AsyncFunction("clearIncomingAlbums") { names: List<String> -> vault.clearIncomingAlbums(names) }
+
+      AsyncFunction("receivedMap") { vault.receivedMap() }
 
       /** 1.1 new-phone transfer: this phone receives. Returns the QR code text. */
       // Encrypted backup + recovery key (owner decision 2026-11-12). Same API on iPhone.

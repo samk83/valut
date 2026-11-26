@@ -17,6 +17,7 @@ import java.io.OutputStream
  *   <item id>.pvb     "PVB1" | v1 | id(16) | u16 len | seal(backupKey, fileKey, aad KEY_AAD+id)
  *                     | u32 len | sealed meta | u32 len | sealed thumbnail (0 = none)
  *                     | item data exactly as stored in the vault ([ChunkedCipher])
+ *   albums.pvba       "PVBA" | v1 | seal(backupKey, album list, aad ALBUMS_AAD)  (1.2, optional)
  *
  * Meta, thumbnail and data are the vault's own ciphertext under the item's file key, so a
  * backup never holds plaintext and never re-encrypts photos. backupKey = HKDF(recovery key).
@@ -225,6 +226,29 @@ internal object BackupFormat {
             return ItemHeader(id, fileKey, meta, thumb)
         } catch (e: EOFException) {
             throw IntegrityException("Backup item is cut short")
+        }
+    }
+
+    /** The album list (labels only). Older apps ignore this file and never delete it. */
+    const val ALBUMS = "albums.pvba"
+    private val ALBUMS_MAGIC = "PVBA".toByteArray(Charsets.US_ASCII)
+    private val ALBUMS_AAD = "PrivateVault backup albums v1".toByteArray(Charsets.US_ASCII)
+
+    fun albumsFile(
+        backupKey: ByteArray,
+        albums: ByteArray,
+    ): ByteArray = ALBUMS_MAGIC + byteArrayOf(VERSION.toByte()) + Aead.seal(backupKey, albums, ALBUMS_AAD)
+
+    /** The album list in an albums file, or null if it is not one made with [backupKey]. */
+    fun openAlbums(
+        bytes: ByteArray,
+        backupKey: ByteArray,
+    ): ByteArray? {
+        if (bytes.size < 5 || !bytes.copyOfRange(0, 4).contentEquals(ALBUMS_MAGIC) || bytes[4].toInt() != VERSION) return null
+        return try {
+            Aead.open(backupKey, bytes.copyOfRange(5, bytes.size), ALBUMS_AAD)
+        } catch (e: IntegrityException) {
+            null
         }
     }
 

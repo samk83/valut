@@ -563,7 +563,13 @@ final class TransferSender {
       progress.bytesDone += item.meta.sizeBytes
       onProgress(progress)
     }
-    try channel.send([Msg.done])
+    // The album list rides on DONE (1.2). Older receivers read only the first byte of DONE,
+    // so they finish normally and just don't get albums. Too large: left out.
+    if let albums = (try? vault.readAlbums()) ?? nil, albums.count < SecureChannel.maxFrame {
+      try channel.send([Msg.done] + albums)
+    } else {
+      try channel.send([Msg.done])
+    }
     _ = try expect(channel, Msg.doneOk)
     return progress
   }
@@ -668,6 +674,8 @@ final class TransferReceiver {
       let frame = try channel.receive()
       switch frame.first {
       case Msg.done:
+        // Albums are labels only: if they can't be kept, the items still are.
+        if frame.count > 1 { try? vault.addIncomingAlbums(.TRANSFER, Array(frame[1...])) }
         try channel.send([Msg.doneOk])
         return progress
       case Msg.fail:

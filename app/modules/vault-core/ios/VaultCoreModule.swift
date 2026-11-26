@@ -327,6 +327,29 @@ public final class VaultCoreModule: Module {
       try self.requireVault().delete(id: id)
     }.runOnQueue(queue)
 
+    // Albums (owner decision 2026-11-25): labels only, the app owns the JSON. Same API on Android.
+    AsyncFunction("readAlbums") { () -> String? in
+      try self.requireVault().readAlbums().map { String(decoding: $0, as: UTF8.self) }
+    }.runOnQueue(queue)
+
+    AsyncFunction("writeAlbums") { (json: String) in
+      try self.requireVault().writeAlbums(Array(json.utf8))
+    }.runOnQueue(queue)
+
+    AsyncFunction("incomingAlbums") { () -> [[String: String]] in
+      try self.requireVault().incomingAlbums().map {
+        ["name": $0.name, "origin": $0.origin == .BACKUP ? "backup" : "transfer", "json": String(decoding: $0.data, as: UTF8.self)]
+      }
+    }.runOnQueue(queue)
+
+    AsyncFunction("clearIncomingAlbums") { (names: [String]) in
+      try self.requireVault().clearIncomingAlbums(names)
+    }.runOnQueue(queue)
+
+    AsyncFunction("receivedMap") { () -> [String: String] in
+      try self.requireVault().receivedMap()
+    }.runOnQueue(queue)
+
     AsyncFunction("destroy") { () -> Void in
       self.transfer.cancel()
       try self.requireVault().destroy()

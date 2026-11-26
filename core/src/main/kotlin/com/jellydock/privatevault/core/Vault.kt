@@ -23,11 +23,18 @@ data class ItemMeta(
 
 data class VaultItem(val id: String, val meta: ItemMeta)
 
+/** Where an album list that is waiting to be merged came from. */
+enum class AlbumOrigin(val prefix: String) { BACKUP("b-"), TRANSFER("t-") }
+
+/** An album list that arrived from a backup or another phone, see [Vault.incomingAlbums]. */
+class IncomingAlbums(val name: String, val origin: AlbumOrigin, val data: ByteArray)
+
 /**
  * Result of an import. [safeToDeleteOriginal] is true only when the encrypted copy was
  * written, re-read, decrypted and matched against the SHA-256 the caller computed from the
  * original by itself. Only then may the app ask the OS to delete the original (SPEC AC-30).
  */
+
 data class ImportResult(val item: VaultItem, val safeToDeleteOriginal: Boolean)
 
 /**
@@ -42,6 +49,8 @@ data class ImportResult(val item: VaultItem, val safeToDeleteOriginal: Boolean)
  *   recovery.key(.bak)   backup recovery key sealed with the master key ([Backup.kt])
  *   backup.deletes       ids the user deleted, still to be removed from the backup folder
  *   recovery.confirmed   present once the user confirmed they saved the recovery key
+ *   albums(.bak)         the app's album list (labels only), sealed with the master key
+ *   albums.in/           album lists from a backup or another phone, not merged yet
  */
 class Vault(
     private val root: File,
@@ -104,6 +113,7 @@ class Vault(
         SecureFiles.deleteTree(items)
         // A recovery key left by a destroyed vault was sealed with its old master key.
         clearBackupState()
+        clearAlbums()
         setMasterKey(mk, generation)
     }
 
@@ -243,18 +253,23 @@ class Vault(
      * transfer can be run again without duplicates. Read from each item's sealed "source"
      * file. An item the user deleted here is no longer counted and would be sent again.
      */
-    fun receivedSources(): Set<String> {
+    fun receivedSources(): Set<String> = receivedMap().values.toSet()
+
+    /** This vault's id -> the old phone's id, for every item received by transfer. */
+    fun receivedMap(): Map<String, String> {
         requireUnlocked().wipe()
-        val dirs = items.listFiles { f -> isLiveItem(f) && File(f, SOURCE).exists() } ?: return emptySet()
+        val dirs = items.listFiles { f -> isLiveItem(f) && File(f, SOURCE).exists() } ?: return emptyMap()
         return dirs.mapNotNull { dir ->
             try {
-                withFileKey(dir.name) { fk, idBytes -> Aead.open(fk, File(dir, SOURCE).readBytes(), aad(SOURCE, idBytes)).toHex() }
+                withFileKey(
+                    dir.name,
+                ) { fk, idBytes -> dir.name to Aead.open(fk, File(dir, SOURCE).readBytes(), aad(SOURCE, idBytes)).toHex() }
             } catch (e: IntegrityException) {
                 null // Worst case that item is sent again; nothing is lost.
             } catch (e: IOException) {
                 null
             }
-        }.toSet()
+        }.toMap()
     }
 
     /**
@@ -293,6 +308,104 @@ class Vault(
             }
         }
 
+    // --- Albums (owner decision 2026-11-25) ---
+    // Albums are labels only: one sealed file with the album names and the ids each holds.
+    // The app owns its content (JSON); this class only keeps it sealed, durable and in sync
+    // with backups and transfers. Nothing here ever touches a photo, so no album action can
+    // lose one. Albums that arrive from a backup or another phone wait in albums.in/ until
+    // the app has merged them, so a crash between the two steps loses nothing.
+
+    private val albumsFile = File(root, ALBUMS)
+    private val incomingAlbums = File(root, "albums.in")
+    private val albumsLock = Any()
+
+    /** The app's album list, or null if none was saved yet. Needs the vault unlocked. */
+    fun readAlbums(): ByteArray? {
+        val mk = requireUnlocked()
+        try {
+            synchronized(albumsLock) {
+                if (!albumsFile.exists() && !File(root, "$ALBUMS.bak").exists()) return null
+                return openEither(root, ALBUMS) { Aead.open(mk, it, ALBUMS_AAD) }
+            }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    /** Saves the app's album list (replacing the previous one). */
+    fun writeAlbums(data: ByteArray) {
+        require(data.size <= MAX_ALBUMS) { "Album list too large" }
+        val mk = requireUnlocked()
+        try {
+            val sealed = Aead.seal(mk, data, ALBUMS_AAD)
+            synchronized(albumsLock) {
+                keys.whileKeyIsLive(mk) {
+                    SecureFiles.writeAtomic(albumsFile, sealed)
+                    SecureFiles.writeAtomic(File(root, "$ALBUMS.bak"), sealed)
+                }
+            }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    /**
+     * Album lists that came from a backup ([AlbumOrigin.BACKUP], same item ids) or another
+     * phone ([AlbumOrigin.TRANSFER], the other phone's ids, see [receivedMap]) and are not
+     * merged yet. Damaged entries are left out.
+     */
+    fun incomingAlbums(): List<IncomingAlbums> {
+        val mk = requireUnlocked()
+        try {
+            val files =
+                synchronized(albumsLock) {
+                    incomingAlbums.listFiles {
+                            f ->
+                        f.isFile && !f.name.endsWith(".tmp")
+                    }
+                } ?: return emptyList()
+            return files.sortedBy { it.name }.mapNotNull { f ->
+                val origin = AlbumOrigin.entries.firstOrNull { f.name.startsWith(it.prefix) } ?: return@mapNotNull null
+                runCatching { IncomingAlbums(f.name, origin, Aead.open(mk, f.readBytes(), incomingAad(origin))) }.getOrNull()
+            }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    /** Forgets incoming album lists the app has merged (call after [writeAlbums]). */
+    fun clearIncomingAlbums(names: List<String>) =
+        synchronized(albumsLock) {
+            names.filter { n -> AlbumOrigin.entries.any { n.startsWith(it.prefix) } && !n.contains('/') && !n.contains("..") }
+                .forEach { File(incomingAlbums, it).delete() }
+        }
+
+    internal fun addIncomingAlbums(
+        origin: AlbumOrigin,
+        data: ByteArray,
+    ) {
+        if (data.isEmpty() || data.size > MAX_ALBUMS) return
+        val mk = requireUnlocked()
+        try {
+            val sealed = Aead.seal(mk, data, incomingAad(origin))
+            val name = origin.prefix + System.currentTimeMillis() + "-" + Aead.randomBytes(4).toHex()
+            synchronized(albumsLock) {
+                keys.whileKeyIsLive(mk) { SecureFiles.writeAtomic(File(incomingAlbums, name), sealed) }
+            }
+        } finally {
+            mk.wipe()
+        }
+    }
+
+    private fun incomingAad(origin: AlbumOrigin) = "PrivateVault incoming albums ${origin.prefix} v1".toByteArray(Charsets.US_ASCII)
+
+    private fun clearAlbums() =
+        synchronized(albumsLock) {
+            SecureFiles.shred(albumsFile)
+            SecureFiles.shred(File(root, "$ALBUMS.bak"))
+            SecureFiles.deleteTree(incomingAlbums)
+        }
+
     /** Permanent deletion: the wrapped file key goes first, then the ciphertext (PRD 9.2). */
     fun delete(id: String) = synchronized(itemLock) { deleteLocked(id) }
 
@@ -324,6 +437,7 @@ class Vault(
         SecureFiles.deleteTree(staging)
         // Backup files in the user's folder are left alone: they are the user's copy.
         clearBackupState()
+        clearAlbums()
     }
 
     // --- Backup (owner decision 2026-11-12: photos must survive deleting the app) ---
@@ -431,11 +545,40 @@ class Vault(
                     if (replacing && backupCopyLooksComplete(id, folder.size(id + BackupFormat.EXT))) continue
                     if (writeBackupItem(id, bk, folder, replacing)) written++
                 }
+                backupAlbums(bk, folder, names)
                 BackupReport(written, removed, live.size)
             } finally {
                 bk.wipe()
             }
         }
+
+    /**
+     * Copies the album list into the backup when it changed. Albums are only labels, so a
+     * failure here never stops the photo backup; the next run tries again. A vault without
+     * albums leaves an existing albums file alone.
+     */
+    private fun backupAlbums(
+        bk: ByteArray,
+        folder: BackupFolder,
+        names: List<String>,
+    ) {
+        try {
+            val albums = readAlbums() ?: return
+            if (BackupFormat.ALBUMS in names) {
+                val old =
+                    runCatching {
+                        folder.openRead(
+                            BackupFormat.ALBUMS,
+                        ).use { BackupFormat.openAlbums(it.readBytes(), bk) }
+                    }.getOrNull()
+                if (old != null && old.contentEquals(albums)) return
+            }
+            val file = BackupFormat.albumsFile(bk, albums)
+            folder.write(BackupFormat.ALBUMS) { it.write(file) }
+        } catch (e: Exception) {
+            // Damaged list, lock or storage error: keep the backup's copy; the next backup tries again.
+        }
+    }
 
     /** Removes [ids] from the delete log, keeping any added meanwhile. */
     private fun forgetDeletes(ids: Set<String>) =
@@ -543,6 +686,17 @@ class Vault(
                     }
                 }
                 progress(index + 1, names.size)
+            }
+            // Albums come back too; the app merges them with any made here meanwhile.
+            if (BackupFormat.ALBUMS in folder.list()) {
+                runCatching {
+                    folder.openRead(BackupFormat.ALBUMS).use { input ->
+                        // Bounded read: a file far bigger than any album list is ignored.
+                        val bytes = input.readNBytes(MAX_ALBUMS + 64 + 1)
+                        if (bytes.size > MAX_ALBUMS + 64) null else BackupFormat.openAlbums(bytes, bk)
+                    }
+                        ?.let { addIncomingAlbums(AlbumOrigin.BACKUP, it) }
+                }
             }
             return RestoreReport(restored, already, damaged)
         } finally {
@@ -743,6 +897,11 @@ class Vault(
         private const val DELETED = "deleted"
         private const val SOURCE = "source"
         private const val SEARCH = "search"
+        private const val ALBUMS = "albums"
+        private val ALBUMS_AAD = "PrivateVault albums v1".toByteArray(Charsets.US_ASCII)
+
+        /** Largest album list kept (about 100,000 album entries). */
+        const val MAX_ALBUMS = 4 * 1024 * 1024
         private val RECOVERY_AAD = "PrivateVault recovery key v1".toByteArray(Charsets.US_ASCII)
 
         /** Throws unless [folder] holds a backup that [recoveryKey] opens. Needs no vault. */
