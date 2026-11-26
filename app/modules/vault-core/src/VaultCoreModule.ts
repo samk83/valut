@@ -38,6 +38,9 @@ export type PinCheck = {
   strength: 'WEAK' | 'FAIR' | 'STRONG' | 'FORTRESS';
 };
 
+/** An album list from a backup (same ids) or another phone (its ids), not merged yet. */
+export type IncomingAlbums = { name: string; origin: 'backup' | 'transfer'; json: string };
+
 /** 1.1 new-phone transfer progress, from the native side. */
 export type TransferEvent = {
   phase: 'waiting' | 'connected' | 'progress' | 'done' | 'error';
@@ -98,6 +101,13 @@ declare class VaultCoreModule extends NativeModule<Events> {
   closeVideo(): void;
   delete(id: string): Promise<void>;
   destroy(): Promise<void>;
+  /** Albums (labels only): the app's sealed album list as JSON, or null if none yet. */
+  readAlbums(): Promise<string | null>;
+  writeAlbums(json: string): Promise<void>;
+  incomingAlbums(): Promise<IncomingAlbums[]>;
+  clearIncomingAlbums(names: string[]): Promise<void>;
+  /** This phone's item id -> the old phone's id, for items received by transfer. */
+  receivedMap(): Promise<Record<string, string>>;
   /** Photo search: the photo's sealed search note (JSON), reading the photo on the device first if needed. */
   analyze(id: string): Promise<string | null>;
   /** Saved search notes of many items (missing ones left out). Never reads a photo. */
@@ -156,6 +166,11 @@ const Vault = native
       closeVideo: () => native.closeVideo(),
       delete: (id: string) => native.delete(id),
       destroy: () => native.destroy(),
+      readAlbums: () => native.readAlbums(),
+      writeAlbums: (json: string) => native.writeAlbums(json),
+      incomingAlbums: () => native.incomingAlbums(),
+      clearIncomingAlbums: (names: string[]) => native.clearIncomingAlbums(names),
+      receivedMap: () => native.receivedMap(),
       /** Native photo reading exists in Android and iPhone/iPad builds only. */
       canRead: true as const,
       analyze: (id: string) => native.analyze(id),
