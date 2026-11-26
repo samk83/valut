@@ -479,6 +479,7 @@ const ko: Pack = {
   'backup.errFailed': '문제가 발생했습니다. 다시 시도하십시오.',
   'backup.errUnavailable': '이 미리보기에서는 백업을 사용할 수 없습니다.',
   'select.count': { other: "{n}개 선택됨" },
+  'select.action': "선택",
   'select.all': "전체 선택",
   'select.none': "전체 해제",
   'select.cancel': "선택 취소",

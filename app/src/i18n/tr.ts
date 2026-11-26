@@ -494,6 +494,7 @@ const tr: Pack = {
   'backup.errFailed': 'Bir şeyler ters gitti. Tekrar dene.',
   'backup.errUnavailable': 'Yedekleme bu önizlemede kullanılamaz.',
   'select.count': { one: "{n} seçildi", other: "{n} seçildi" },
+  'select.action': "Seç",
   'select.all': "Tümünü seç",
   'select.none': "Seçimi kaldır",
   'select.cancel': "Seçimden çık",

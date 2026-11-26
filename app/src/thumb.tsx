@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Image, Pressable, View, ViewStyle } from 'react-native';
 
 import VaultCore, { VaultItem } from '../modules/vault-core';
+import { t } from './i18n';
 import { C } from './theme';
 
 // Decrypted thumbnails, kept only while the vault is open (clearThumbs() on lock) so the
@@ -60,6 +61,7 @@ export function Thumb({
   onPress,
   onLongPress,
   onPressOut,
+  onSelectAction,
   rounded = false,
   style,
   label,
@@ -69,6 +71,8 @@ export function Thumb({
   onPress?: () => void;
   onLongPress?: () => void;
   onPressOut?: () => void;
+  /** Screen readers: a "Select" action, since a long press is hard to do with one. */
+  onSelectAction?: () => void;
   rounded?: boolean;
   style?: ViewStyle;
   label?: string;
@@ -81,6 +85,8 @@ export function Thumb({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={label}
       accessibilityState={selecting ? { selected } : undefined}
+      accessibilityActions={onSelectAction ? [{ name: 'select', label: t('select.action') }] : undefined}
+      onAccessibilityAction={onSelectAction ? (e) => e.nativeEvent.actionName === 'select' && onSelectAction() : undefined}
       onPress={onPress}
       onLongPress={onLongPress}
       onPressOut={onPressOut}

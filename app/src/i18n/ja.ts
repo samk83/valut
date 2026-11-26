@@ -479,6 +479,7 @@ const ja: Pack = {
   'backup.errFailed': '問題が発生しました。もう一度お試しください。',
   'backup.errUnavailable': 'このプレビューではバックアップを利用できません。',
   'select.count': { other: "{n} 件を選択" },
+  'select.action': "選択",
   'select.all': "すべて選択",
   'select.none': "選択をすべて解除",
   'select.cancel': "選択をキャンセル",

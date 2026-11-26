@@ -494,6 +494,7 @@ const es: Pack = {
   'backup.errFailed': 'Algo salió mal. Inténtalo de nuevo.',
   'backup.errUnavailable': 'La copia de seguridad no está disponible en esta vista previa.',
   'select.count': { one: "{n} seleccionado", other: "{n} seleccionados" },
+  'select.action': "Seleccionar",
   'select.all': "Seleccionar todo",
   'select.none': "Quitar selección",
   'select.cancel': "Cancelar selección",

@@ -482,6 +482,7 @@ const hi: Pack = {
   'backup.errFailed': 'कुछ गलत हो गया। फिर से कोशिश करें।',
   'backup.errUnavailable': 'इस प्रीव्यू में बैकअप उपलब्ध नहीं है।',
   'select.count': { one: "{n} चुना गया", other: "{n} चुने गए" },
+  'select.action': "चुनें",
   'select.all': "सभी चुनें",
   'select.none': "सभी हटाएँ",
   'select.cancel': "चयन रद्द करें",

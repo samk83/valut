@@ -521,6 +521,7 @@ const ru: Pack = {
   'backup.errFailed': 'Что-то пошло не так. Повторите попытку.',
   'backup.errUnavailable': 'В режиме предпросмотра резервное копирование недоступно.',
   'select.count': { one: "Выбран {n}", few: "Выбрано {n}", many: "Выбрано {n}", other: "Выбрано {n}" },
+  'select.action': "Выбрать",
   'select.all': "Выбрать все",
   'select.none': "Снять выбор",
   'select.cancel': "Отменить выбор",

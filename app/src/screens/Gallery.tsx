@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ItemKind, VaultItem } from '../../modules/vault-core';
 import { monthStandalone, t, tn } from '../i18n';
-import { dragSelection, inOrder, tileAt, toggle } from '../selection';
+import { clampOffset, dragSelection, inOrder, tileAt, toggle } from '../selection';
 import { C, F } from '../theme';
 import { Thumb } from '../thumb';
 import { Body, s } from '../ui';
@@ -122,6 +122,15 @@ export function Gallery({
   const origin = useRef({ x: 0, y: 0 });
   const geo = useRef({ cols, size, padTop: barHeight, ids });
   const viewHeight = useRef(0);
+  const contentHeight = useRef(0);
+  const measure = () =>
+    rootRef.current?.measureInWindow((x, y) => {
+      origin.current = { x, y };
+    });
+  // A new column count remounts the list at the top, so the remembered offset must follow.
+  useEffect(() => {
+    lastY.current = 0;
+  }, [cols]);
   const drag = useRef<{ armed: boolean; moving: boolean; anchor: number; base: Set<string>; last: { x: number; y: number } | null }>({
     armed: false,
     moving: false,
@@ -131,6 +140,13 @@ export function Gallery({
   });
   const edgeTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [dragging, setDragging] = useState(false);
+  const releaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (releaseTimer.current) clearTimeout(releaseTimer.current);
+    },
+    [],
+  );
 
   const selectUnder = (pageX: number, pageY: number) => {
     const g = geo.current;
@@ -157,7 +173,9 @@ export function Gallery({
     const bottom = origin.current.y + viewHeight.current;
     const dir = d.last.y > bottom - EDGE ? 1 : d.last.y < top + EDGE ? -1 : 0;
     if (dir === 0) return stopEdge();
-    const next = Math.max(0, lastY.current + dir * EDGE_STEP);
+    // Never past either end: the offset is what maps the finger to a tile.
+    const next = clampOffset(lastY.current, dir * EDGE_STEP, contentHeight.current, viewHeight.current);
+    if (next === lastY.current) return;
     lastY.current = next;
     listRef.current?.scrollToOffset({ offset: next, animated: false });
     selectUnder(d.last.x, d.last.y);
@@ -186,9 +204,7 @@ export function Gallery({
     const id = ids[index];
     if (id === undefined) return;
     const base = new Set(selected ?? []);
-    rootRef.current?.measureInWindow((x, y) => {
-      origin.current = { x, y };
-    });
+    measure();
     drag.current = { armed: true, moving: false, anchor: index, base, last: null };
     setDragging(true);
     showBar(true);
@@ -197,7 +213,8 @@ export function Gallery({
   // A long press that ends without moving: disarm. When the drag took over the touch, the tile
   // also gets a press-out; the drag ends itself on release, so leave it running.
   const tileReleased = () => {
-    setTimeout(() => {
+    if (releaseTimer.current) clearTimeout(releaseTimer.current);
+    releaseTimer.current = setTimeout(() => {
       if (drag.current.armed && !drag.current.moving) endDrag();
     }, 0);
   };
@@ -217,6 +234,7 @@ export function Gallery({
       style={{ flex: 1, backgroundColor: C.bg }}
       onLayout={(e) => {
         viewHeight.current = e.nativeEvent.layout.height;
+        measure();
       }}
       {...pan.panHandlers}
     >
@@ -228,11 +246,15 @@ export function Gallery({
         numColumns={cols}
         keyExtractor={(i) => i.id}
         scrollEnabled={!dragging}
+        onContentSizeChange={(_, h) => {
+          contentHeight.current = h;
+        }}
         renderItem={({ item, index }) => (
           <Thumb
             item={item}
-            onPress={() => (selected ? setSelected(toggle(selected, item.id)) : onOpen(item))}
+            onPress={() => (selected ? setSelected((cur) => (cur ? toggle(cur, item.id) : cur)) : onOpen(item))}
             onLongPress={() => startSelect(index)}
+            onSelectAction={() => (selected ? setSelected((cur) => (cur ? toggle(cur, item.id) : cur)) : setSelected(new Set([item.id])))}
             onPressOut={tileReleased}
             selected={selected ? selected.has(item.id) : undefined}
             style={{ width: size, height: size }}
@@ -290,7 +312,7 @@ export function Gallery({
             </View>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setSelected(chosen.length === ids.length ? new Set() : new Set(ids))}
+              onPress={() => setSelected((cur) => (cur && inOrder(ids, cur).length === ids.length ? new Set() : new Set(ids)))}
               hitSlop={6}
               style={({ pressed }) => [
                 { height: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: 'center', backgroundColor: 'rgba(201,166,107,0.12)' },

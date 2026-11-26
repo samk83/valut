@@ -496,6 +496,7 @@ const de: Pack = {
   'backup.errFailed': 'Etwas ist schiefgelaufen. Versuche es erneut.',
   'backup.errUnavailable': 'Backup ist in dieser Vorschau nicht verfügbar.',
   'select.count': { one: "{n} ausgewählt", other: "{n} ausgewählt" },
+  'select.action': "Auswählen",
   'select.all': "Alle auswählen",
   'select.none': "Auswahl aufheben",
   'select.cancel': "Auswahl abbrechen",

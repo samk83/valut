@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import VaultCore, { VaultItem } from '../../modules/vault-core';
 import { spacing, t, tn } from '../i18n';
@@ -56,6 +56,9 @@ export function BulkDestroySheet({
   const [working, setWorking] = useState(false);
   const [done, setDone] = useState(0);
   const inFlight = useRef(false);
+  // iOS drops an alert raised while a modal is closing, so it waits for onDismiss there.
+  const pendingAlert = useRef<number>(0);
+  const showFailed = (count: number) => Alert.alert(t('bulk.failedTitle'), tn('bulk.failedBody', count));
   const n = items.length;
   const photos = items.filter((i) => i.kind === 'PHOTO').length;
   const videos = n - photos;
@@ -69,7 +72,10 @@ export function BulkDestroySheet({
     setWorking(true);
     try {
       const failed = await destroyAll(items, setDone);
-      if (failed.length > 0) Alert.alert(t('bulk.failedTitle'), tn('bulk.failedBody', failed.length));
+      if (failed.length > 0) {
+        if (Platform.OS === 'ios') pendingAlert.current = failed.length;
+        else showFailed(failed.length);
+      }
       onDone(failed);
     } finally {
       inFlight.current = false;
@@ -86,8 +92,13 @@ export function BulkDestroySheet({
         if (!working) onCancel();
       }}
       statusBarTranslucent
+      onDismiss={() => {
+        const count = pendingAlert.current;
+        pendingAlert.current = 0;
+        if (count > 0) showFailed(count);
+      }}
     >
-      <Pressable style={bs.scrim} onPress={() => !working && onCancel()} accessibilityLabel={t('viewer.keep')} />
+      <Pressable style={bs.scrim} onPress={() => !working && onCancel()} accessibilityRole="button" accessibilityLabel={t('viewer.keep')} />
       <View style={bs.sheet}>
         <View style={bs.grabber} />
         <Text style={[s.label, { color: C.danger, letterSpacing: spacing(3), marginTop: 6 }]}>{t('viewer.permanent')}</Text>

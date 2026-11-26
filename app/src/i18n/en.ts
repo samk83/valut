@@ -505,6 +505,7 @@ const en = {
   'backup.errFailed': 'Something went wrong. Try again.',
   'backup.errUnavailable': 'Backup isn’t available in this preview.',
   'select.count': { one: "{n} selected", other: "{n} selected" },
+  'select.action': "Select",
   'select.all': "Select all",
   'select.none': "Deselect all",
   'select.cancel': "Cancel selection",

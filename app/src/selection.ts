@@ -37,3 +37,9 @@ export function toggle(selected: ReadonlySet<string>, id: string): Set<string> {
 export function inOrder(ids: readonly string[], selected: ReadonlySet<string>): string[] {
   return ids.filter((id) => selected.has(id));
 }
+
+/** Scroll offset moved by [step], kept between the top and the last full screen of the list. */
+export function clampOffset(current: number, step: number, contentHeight: number, viewHeight: number): number {
+  const max = Math.max(0, contentHeight - viewHeight);
+  return Math.min(max, Math.max(0, current + step));
+}

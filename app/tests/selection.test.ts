@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { dragSelection, inOrder, tileAt, toggle } from '../src/selection.ts';
+import { clampOffset, dragSelection, inOrder, tileAt, toggle } from '../src/selection.ts';
 
 const ids = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
 
@@ -39,4 +39,13 @@ test('toggle and inOrder', () => {
   const s = toggle(toggle(new Set(['a']), 'c'), 'a');
   assert.deepEqual([...s], ['c']);
   assert.deepEqual(inOrder(ids, new Set(['f', 'b', 'zz'])), ['b', 'f']);
+});
+
+test('clampOffset never scrolls past either end', () => {
+  assert.equal(clampOffset(100, 18, 2000, 800), 118);
+  assert.equal(clampOffset(1190, 18, 2000, 800), 1200);
+  assert.equal(clampOffset(1200, 18, 2000, 800), 1200);
+  assert.equal(clampOffset(5, -18, 2000, 800), 0);
+  // A list shorter than the screen never scrolls.
+  assert.equal(clampOffset(0, 18, 500, 800), 0);
 });

@@ -481,6 +481,7 @@ const zh: Pack = {
   'backup.errFailed': '出现问题。请重试。',
   'backup.errUnavailable': '此预览版中无法使用备份。',
   'select.count': { other: "已选择 {n} 项" },
+  'select.action': "选择",
   'select.all': "全选",
   'select.none': "全部取消",
   'select.cancel': "取消选择",

@@ -495,6 +495,7 @@ const id: Pack = {
   'backup.errFailed': 'Terjadi kesalahan. Coba lagi.',
   'backup.errUnavailable': 'Cadangan tidak tersedia di pratinjau ini.',
   'select.count': { other: "{n} dipilih" },
+  'select.action': "Pilih",
   'select.all': "Pilih semua",
   'select.none': "Batalkan semua",
   'select.cancel': "Batalkan pilihan",

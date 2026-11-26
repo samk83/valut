@@ -496,6 +496,7 @@ const pt: Pack = {
   'backup.errFailed': 'Algo deu errado. Tente novamente.',
   'backup.errUnavailable': 'O backup não está disponível nesta prévia.',
   'select.count': { one: "{n} selecionado", other: "{n} selecionados" },
+  'select.action': "Selecionar",
   'select.all': "Selecionar tudo",
   'select.none': "Desmarcar tudo",
   'select.cancel': "Cancelar seleção",
