@@ -21,6 +21,7 @@
     "expo-localization": "~58.0.5",
     "expo-screen-capture": "~58.0.6",
     "expo-status-bar": "~58.0.5",
+    "expo-store-review": "~58.0.3",
     "expo-updates": "~58.0.22",
     "expo-video": "~58.0.14",
     "qrcode-generator": "1.4.4",
