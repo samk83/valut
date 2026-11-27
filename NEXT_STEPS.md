@@ -7,6 +7,12 @@
 4. ~~iOS 빌드 경로~~ → 확정: Android 먼저, iPhone은 Expo로 확인 (2026-10-30)
 5. Android SDK 다운로드를 위해 클라우드 환경에서 `dl.google.com` 허용 (선택)
 
+## ASO / 1.1.5 스토어 문구 (2026-11-27)
+- 1.1.4 승인 뒤: 버전만 올린 1.1.5 빌드 → App Store Connect에 docs/aso/listing.md 값 입력(영어·한국어·일본어, 스페인어(멕시코) 페이지 새로 추가) → 제출 (L3, Owner 승인)
+- 별점 0개가 순위를 가장 크게 막음: 앱 안 별점 요청(Apple 기본 창) 추가 여부 Owner 결정
+- 2~3주 뒤 같은 검색어로 순위 다시 측정 (공유 폴더 privatevault/aso-2026-11-27/검색순위-측정-2026-11-27.csv 기준)
+- iPad 스크린샷이 아직 1.1 옛 디자인: 사진 배경(A안) iPad 세트 만들기
+
 ## 앨범 폴더 (2026-11-26)
 - 시안: 공유 폴더 privatevault/album-mockup/A-앨범-추천.png
 - 네이티브 코드(Kotlin·Swift)가 바뀌어 새 빌드 필요(무선 업데이트로는 안 됨). iOS 모듈은 Mac 컴파일 전이라 EAS 빌드에서 처음 확인됨

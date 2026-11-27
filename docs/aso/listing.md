@@ -6,9 +6,9 @@
 
 ## en-US
 
-**Name**: `Private Vision Vault`  
-**Subtitle**: `Hide & Lock Photos and Videos`  
-**Keywords**: `secret,album,hidden,safe,locker,encrypt,secure,gallery,picture,privacy,password,offline,pin,keep`
+**Name**: `Private Vault: Secret Photos`  
+**Subtitle**: `Hide Videos, Album Lock & Safe`  
+**Keywords**: `hidden,locker,gallery,picture,pic,folder,protect,encrypted,password,pin,conceal,secure,offline`
 
 **Promotional Text**:
 ```
@@ -16,7 +16,7 @@ Hide photos and videos in a vault encrypted on your iPhone or iPad. No account, 
 ```
 **Description**:
 ```
-Private Vision Vault keeps the photos and videos you choose in an encrypted vault on your iPhone or iPad. No account, no cloud, no ads.
+Private Vault keeps the photos and videos you choose in an encrypted vault on your iPhone or iPad. No account, no cloud, no ads.
 
 REAL ENCRYPTION, NOT JUST A LOCK SCREEN
 • Every photo and video is encrypted on this device with AES-256-GCM.
@@ -28,6 +28,7 @@ EVERYDAY USE
 • Import from your photo library. The app copies each item into the vault and never touches your originals.
 • Take photos and videos with the in-app camera. They go straight into the vault, never into your photo library.
 • Locks the moment you leave the app and blurs its preview in the app switcher.
+• Sort photos into albums. Touch and hold, then drag to select many at once.
 • Made for iPhone and iPad.
 
 NEW PHONE? BRING YOUR VAULT, FREE
@@ -58,9 +59,9 @@ PLEASE READ BEFORE YOU START
 
 ## ko
 
-**Name**: `Private Vision Vault: 사진 금고`  
-**Subtitle**: `사진·동영상 숨기기, 비밀 앨범 잠금`  
-**Keywords**: `사진잠금,갤러리,숨김,암호화,개인,보안,비밀번호,잠금앱,사진보관,오프라인,보관함,프라이버시,자물쇠,동영상보관,사생활,동영상잠금,시크릿,사진숨김,비공개,안전,pin`
+**Name**: `Private Vault: 비밀앨범 사진·동영상 금고`  
+**Subtitle**: `사진숨기기·앨범 잠금·보안폴더`  
+**Keywords**: `사진잠금,사진숨김,비밀사진,비밀금고,시크릿,숨김,암호화,비밀번호,잠금앱,사진보관,보관함,프라이버시,갤러리,동영상숨기기,비공개,사생활,안전,pin,오프라인`
 
 **Promotional Text**:
 ```
@@ -68,7 +69,7 @@ PLEASE READ BEFORE YOU START
 ```
 **Description**:
 ```
-Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호화된 금고에 보관합니다. 계정도, 클라우드도, 광고도 없습니다.
+Private Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호화된 금고에 보관합니다. 계정도, 클라우드도, 광고도 없습니다.
 
 잠금 화면이 아니라 진짜 암호화
 • 모든 사진·동영상을 이 기기 안에서 AES-256-GCM으로 암호화합니다.
@@ -80,6 +81,7 @@ Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호
 • 사진 앱에서 가져오면 금고로 복사만 하고 원본은 건드리지 않습니다.
 • 앱 안 카메라로 찍은 사진·동영상은 사진 앱에 저장되지 않고 바로 금고에 들어갑니다.
 • 앱을 벗어나는 순간 잠기고, 앱 전환 화면에서는 흐리게 가려집니다.
+• 앨범으로 정리하고, 길게 눌러 끌면 여러 장을 한 번에 고를 수 있습니다.
 • iPhone과 iPad 모두 지원합니다.
 
 새 폰으로 그대로, 무료
@@ -110,17 +112,19 @@ Private Vision Vault는 고른 사진과 동영상을 iPhone·iPad 안의 암호
 
 ## ja
 
-**Name**: `Private Vision Vault: 写真金庫`  
-**Subtitle**: `写真・動画を隠す秘密のアルバム`  
-**Keywords**: `シークレット,非表示,ロック,鍵,パスワード,プライベート,暗号化,ギャラリー,保護,画像,隠し,セキュリティ,オフライン,保管,写真ロック,動画ロック,カギ,プライバシー,アプリロック,pin`
+**Name**: `Private Vault: 鍵付きアルバム・写真金庫`  
+**Subtitle**: `動画も隠せる秘密の写真保存`  
+**Keywords**: `シークレット,非表示,ロック,パスワード,プライベート,暗号化,ギャラリー,保護,画像,隠し,隠す,セキュリティ,オフライン,保管,カギ,プライバシー,アプリロック,隠しフォルダ,pin`
 
 **Promotional Text**:
 ```
-写真と動画をiPhone・iPadの中で暗号化された金庫に隠せます。アカウント、クラウド、広告なし。100件まで無料、1回の購入でずっと無制限。
+秘密の幸せな瞬間を、あなただけに。写真と動画をiPhoneの中で暗号化して保管。アカウント・クラウド・広告なし。100件まで無料、1回の購入でずっと無制限。
 ```
 **Description**:
 ```
-Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗号化された金庫に保管します。アカウントもクラウドも広告もありません。
+Private Vaultは、選んだ写真と動画をiPhone・iPadの中の暗号化された金庫に保管します。アカウントもクラウドも広告もありません。
+
+恋人との旅行、記念日、ふたりだけの写真。誰にも見せたくない、でも消したくない大切な瞬間を、あなたしか開けられない金庫にそっとしまっておけます。
 
 画面ロックではなく、本物の暗号化
 • すべての写真と動画をこの端末内でAES-256-GCMで暗号化します。
@@ -132,6 +136,7 @@ Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗�
 • 写真アプリから取り込むと金庫にコピーするだけで、元の写真には一切触れません。
 • アプリ内カメラで撮った写真・動画は写真アプリに保存されず、そのまま金庫に入ります。
 • アプリを離れた瞬間にロックし、アプリ切り替え画面ではぼかして隠します。
+• アルバムで整理でき、長押ししてなぞると複数の写真をまとめて選べます。
 • iPhoneとiPadに対応。
 
 新しいスマホへそのまま、無料
@@ -162,7 +167,7 @@ Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗�
 
 ## zh-Hans
 
-**Name**: `Private Vision Vault: 私密相册`  
+**Name**: `Private Vault: 私密相册`  
 **Subtitle**: `隐藏照片视频，加密锁定，无需账户`  
 **Keywords**: `隐私,保险箱,相册锁,加锁,私密空间,密码,照片锁,视频锁,保密,离线,安全,图片,保护,秘密,图库,加密相册,隐私相册,私人,应用锁,保险柜,密码锁,pin`
 
@@ -172,7 +177,7 @@ Private Vision Vaultは、選んだ写真と動画をiPhone・iPadの中の暗�
 ```
 **Description**:
 ```
-Private Vision Vault 将你选择的照片和视频保存在 iPhone、iPad 本机的加密保险箱中。无账户、无云端、无广告。
+Private Vault 将你选择的照片和视频保存在 iPhone、iPad 本机的加密保险箱中。无账户、无云端、无广告。
 
 真正的加密，而不只是一个锁屏
 • 每张照片和每段视频都在本机使用 AES-256-GCM 加密。
@@ -214,7 +219,7 @@ Private Vision Vault 将你选择的照片和视频保存在 iPhone、iPad 本�
 
 ## hi
 
-**Name**: `Private Vision Vault: तिजोरी`  
+**Name**: `Private Vault: तिजोरी`  
 **Subtitle**: `फ़ोटो-वीडियो छिपाएँ, लॉक करें`  
 **Keywords**: `गुप्त,एल्बम,गैलरी,सुरक्षित,पासवर्ड,निजी,छुपाना,locker,hide,photo,lock,gallery,secret,pin`
 
@@ -224,7 +229,7 @@ Private Vision Vault 将你选择的照片和视频保存在 iPhone、iPad 本�
 ```
 **Description**:
 ```
-Private Vision Vault आपकी चुनी हुई फ़ोटो और वीडियो को आपके iPhone या iPad पर एक एन्क्रिप्टेड तिजोरी में रखता है। न अकाउंट, न क्लाउड, न विज्ञापन।
+Private Vault आपकी चुनी हुई फ़ोटो और वीडियो को आपके iPhone या iPad पर एक एन्क्रिप्टेड तिजोरी में रखता है। न अकाउंट, न क्लाउड, न विज्ञापन।
 
 सिर्फ़ लॉक स्क्रीन नहीं, असली एन्क्रिप्शन
 • हर फ़ोटो और वीडियो इसी डिवाइस पर AES-256-GCM से एन्क्रिप्ट होता है।
@@ -266,7 +271,7 @@ Private Vision Vault आपकी चुनी हुई फ़ोटो और 
 
 ## id
 
-**Name**: `Private Vision Vault: Brankas`  
+**Name**: `Private Vault: Brankas`  
 **Subtitle**: `Sembunyikan & Kunci Foto Video`  
 **Keywords**: `rahasia,album,galeri,privat,aman,sandi,gembok,enkripsi,simpan,tersembunyi,privasi,gambar,pin`
 
@@ -276,7 +281,7 @@ Sembunyikan foto dan video di brankas terenkripsi di iPhone atau iPad. Tanpa aku
 ```
 **Description**:
 ```
-Private Vision Vault menyimpan foto dan video pilihanmu di brankas terenkripsi di iPhone atau iPad. Tanpa akun, tanpa cloud, tanpa iklan.
+Private Vault menyimpan foto dan video pilihanmu di brankas terenkripsi di iPhone atau iPad. Tanpa akun, tanpa cloud, tanpa iklan.
 
 ENKRIPSI SUNGGUHAN, BUKAN SEKADAR LAYAR KUNCI
 • Setiap foto dan video dienkripsi di perangkat ini dengan AES-256-GCM.
@@ -318,7 +323,7 @@ BACA SEBELUM MULAI
 
 ## pt-BR
 
-**Name**: `Private Vision Vault: Cofre`  
+**Name**: `Private Vault: Cofre`  
 **Subtitle**: `Esconda fotos e vídeos`  
 **Keywords**: `secreto,álbum,oculto,privado,galeria,seguro,trancar,senha,cadeado,guardar,proteger,bloqueio,pin`
 
@@ -328,7 +333,7 @@ Esconda fotos e vídeos num cofre criptografado no seu iPhone ou iPad. Sem conta
 ```
 **Description**:
 ```
-O Private Vision Vault guarda as fotos e os vídeos que você escolher num cofre criptografado no seu iPhone ou iPad. Sem conta, sem nuvem, sem anúncios.
+O Private Vault guarda as fotos e os vídeos que você escolher num cofre criptografado no seu iPhone ou iPad. Sem conta, sem nuvem, sem anúncios.
 
 CRIPTOGRAFIA DE VERDADE, NÃO SÓ UMA TELA DE BLOQUEIO
 • Cada foto e vídeo é criptografado neste aparelho com AES-256-GCM.
@@ -370,7 +375,7 @@ LEIA ANTES DE COMEÇAR
 
 ## ru
 
-**Name**: `Private Vision Vault: Сейф`  
+**Name**: `Private Vault: Сейф`  
 **Subtitle**: `Скрыть фото и видео под замком`  
 **Keywords**: `секретный,альбом,скрытые,галерея,приватный,пароль,защита,шифрование,хранилище,блокировка,pin`
 
@@ -380,7 +385,7 @@ LEIA ANTES DE COMEÇAR
 ```
 **Description**:
 ```
-Private Vision Vault хранит выбранные вами фото и видео в зашифрованном сейфе на iPhone или iPad. Без аккаунта, без облака, без рекламы.
+Private Vault хранит выбранные вами фото и видео в зашифрованном сейфе на iPhone или iPad. Без аккаунта, без облака, без рекламы.
 
 НАСТОЯЩЕЕ ШИФРОВАНИЕ, А НЕ ПРОСТО ЭКРАН БЛОКИРОВКИ
 • Каждое фото и видео шифруется на этом устройстве с помощью AES-256-GCM.
@@ -422,9 +427,9 @@ Private Vision Vault хранит выбранные вами фото и вид
 
 ## es-MX
 
-**Name**: `Private Vision Vault: Bóveda`  
-**Subtitle**: `Oculta y bloquea fotos, videos`  
-**Keywords**: `secreto,álbum,oculto,privado,galería,seguro,cifrado,candado,contraseña,esconder,guardar,proteger,pin`
+**Name**: `Private Vault: Fotos Secretas`  
+**Subtitle**: `Esconde videos: álbum con PIN`  
+**Keywords**: `bóveda,oculto,privado,galería,seguro,cifrado,candado,contraseña,ocultar,guardar,proteger,imágenes`
 
 **Promotional Text**:
 ```
@@ -432,7 +437,7 @@ Oculta fotos y videos en una bóveda cifrada en tu iPhone o iPad. Sin cuenta, si
 ```
 **Description**:
 ```
-Private Vision Vault guarda las fotos y los videos que elijas en una bóveda cifrada en tu iPhone o iPad. Sin cuenta, sin nube, sin anuncios.
+Private Vault guarda las fotos y los videos que elijas en una bóveda cifrada en tu iPhone o iPad. Sin cuenta, sin nube, sin anuncios.
 
 CIFRADO REAL, NO SOLO UNA PANTALLA DE BLOQUEO
 • Cada foto y video se cifra en este dispositivo con AES-256-GCM.
@@ -474,7 +479,7 @@ LEE ANTES DE EMPEZAR
 
 ## de-DE
 
-**Name**: `Private Vision Vault: Tresor`  
+**Name**: `Private Vault: Tresor`  
 **Subtitle**: `Fotos und Videos verstecken`  
 **Keywords**: `geheim,album,privat,safe,versteckt,sperren,sicher,galerie,bilder,passwort,schützen,offline,pin`
 
@@ -484,7 +489,7 @@ Verstecke Fotos und Videos in einem verschlüsselten Tresor auf iPhone oder iPad
 ```
 **Description**:
 ```
-Private Vision Vault bewahrt die Fotos und Videos, die du auswählst, in einem verschlüsselten Tresor auf deinem iPhone oder iPad auf. Kein Konto, keine Cloud, keine Werbung.
+Private Vault bewahrt die Fotos und Videos, die du auswählst, in einem verschlüsselten Tresor auf deinem iPhone oder iPad auf. Kein Konto, keine Cloud, keine Werbung.
 
 ECHTE VERSCHLÜSSELUNG, NICHT NUR EIN SPERRBILDSCHIRM
 • Jedes Foto und Video wird auf diesem Gerät mit AES-256-GCM verschlüsselt.
@@ -526,7 +531,7 @@ BITTE VOR DEM START LESEN
 
 ## tr
 
-**Name**: `Private Vision Vault: Kasa`  
+**Name**: `Private Vault: Kasa`  
 **Subtitle**: `Fotoğraf ve video gizle`  
 **Keywords**: `gizli,albüm,özel,şifre,güvenli,galeri,resim,saklama,koruma,şifreleme,kilitle,gizlilik,pin`
 
@@ -536,7 +541,7 @@ Fotoğraf ve videolarını iPhone veya iPad'inde şifreli bir kasada gizle. Hesa
 ```
 **Description**:
 ```
-Private Vision Vault, seçtiğin fotoğraf ve videoları iPhone veya iPad'indeki şifreli bir kasada saklar. Hesap yok, bulut yok, reklam yok.
+Private Vault, seçtiğin fotoğraf ve videoları iPhone veya iPad'indeki şifreli bir kasada saklar. Hesap yok, bulut yok, reklam yok.
 
 SADECE KİLİT EKRANI DEĞİL, GERÇEK ŞİFRELEME
 • Her fotoğraf ve video bu cihazda AES-256-GCM ile şifrelenir.

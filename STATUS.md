@@ -1,6 +1,6 @@
 # STATUS — JellyDock PrivateVault
 
-Last Updated: 2026-11-26 (앨범 폴더)
+Last Updated: 2026-11-27 (ASO 점검)
 
 | Task / Thread | Status | Progress | Last Updated | Next Action | Owner Action | Branch |
 |---|---|---|---|---|---|---|
@@ -27,6 +27,7 @@ Last Updated: 2026-11-26 (앨범 폴더)
 | 1.1.1 출시 준비 | REVIEW | 버전 1.1.1, What's New(영어·한국어) docs/release/1.1.1.md | 2026-11-17 | Owner production 빌드·업로드 → 심사 제출 | 1.1 Release, `eas build`·`eas submit` 실행, App Store Connect 제출 (L3) | main |
 | 사진·동영상 여러 장 선택 파기 (A안, Owner 승인 2026-11-26) | REVIEW | 갤러리 길게 누르기→선택 모드, 탭·끌기·전체 선택, 아래 "파기 (N)" → 확인 화면(개수·사진/동영상 수·용량·미리보기)의 파기 버튼으로만 파기, 실패 항목은 선택 유지. 11개 언어. 타입·앱 테스트 26개·언어팩 통과, Lint 새 오류 0, 웹 화면으로 동작 확인 | 2026-11-26 | PR Merge → 다음 앱 버전 빌드에 포함 | 새 버전 빌드·제출 승인(L3), 실기기에서 길게 눌러 끌기 확인 | feature/multi-select-destroy |
 | 앨범 폴더 (A안 홈 앨범 줄, Owner 승인 2026-11-26) | REVIEW | 홈 앨범 줄·폴더+ 버튼·이름 짓기, 선택 모드 "앨범에 넣기", 앨범 화면(⋯: 사진 추가·빼기·대표 사진·이름 바꾸기·앨범 삭제). 앨범은 라벨만(사진은 파기 버튼으로만 지워짐). 봉인 저장, 암호화 백업(albums.pvba)·새 폰 옮기기 포함(예전 버전과 호환). 11개 언어. Kotlin·Swift 테스트 + Android↔iPhone 상호 전송, 앱 테스트 34개, 타입 통과, Lint 새 오류 0, 웹 화면 확인 | 2026-11-26 | PR Merge → 다음 앱 버전 빌드(네이티브 변경 있음, 새 빌드 필요) | 새 버전 빌드·제출 승인(L3), 실기기 확인 | feature/albums |
+| ASO 점검 + 1.1.5 스토어 문구 (영어·한국어·일본어·스페인어(멕시코)) | REVIEW | 4개국 71개 검색어 순위 측정(iTunes 검색 API), 경쟁 앱 비교, 이름·부제·키워드·설명 개선안을 docs/aso/listing.json에 반영(build.py 글자 수·중복 검사 통과). 설명의 옛 이름 Private Vision Vault 제거, 앨범·여러 장 선택 문장 추가 | 2026-11-27 | 1.1.4 승인 후 1.1.5(버전만 올린 빌드)와 함께 App Store Connect 입력 | 1.1.5 빌드·제출 승인(L3), 앱 안 별점 요청 기능 추가 여부 결정 | aso/1.1.5-keywords |
 | Phase 3 MVP 개발 | TODO | 0 (미착수) | 2026-10-30 | 디자인 승인 후 | 개발 승인 | - |
 | 베타 홈페이지 (jellydock.com/beta/myvisionvault) | REVIEW | PR #18·#23 Merge. 2026-11-13: 최신 앱 화면 11장(갤러리·사진 검색·백업)으로 영상·스크린샷·설명 교체, 오리지널 배경음악 추가, 개인정보처리방침에 백업·검색 반영 | 2026-11-13 | jellydock.com 배포(PC 연결 필요), Apple 승인 후 `reviewPending: false` | 배포 시 PC 켜기 | feature/beta-video-v2 |
 | 소개 웹사이트 | DONE (미배포) | 영어 기본 소개 페이지 + 개인정보처리방침 + 글꼴 직접 호스팅 (한국어는 ko/ 보관). 1.1 내용(새 핸드폰으로 옮기기, 100개 무료 + 평생 프리미엄 $9.99, 11개 언어, iPhone 먼저 출시) 반영, PR #3 main 머지. 2026-11-12: 이름을 Private Vision Vault로 변경, 틀린 입력은 대기 시간(파기 없음)·가져오기는 복사 전용으로 문구 변경. 암호화 백업·복구 키 반영 (PR #27) | 2026-11-12 | 공개 배포 (Owner 승인 후) | 배포 방식 승인 (L3), 방침의 연락처 이메일·사업자 정보·시행일 [ ] 항목 | main |
