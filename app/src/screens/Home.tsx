@@ -6,6 +6,7 @@ import { BackHandler, Pressable, ScrollView, Text, useWindowDimensions, View } f
 import VaultCore, { BackupStatus, ItemKind, VaultItem } from '../../modules/vault-core';
 import { autoBackup, backupErrorText } from '../backup';
 import { fitToSlots, FREE_LIMIT, freeSlots, refreshPremium, usePremium } from '../premium';
+import { maybeAskRating, noteVaultOpened } from '../rating';
 import { C, F } from '../theme';
 import { t, tn } from '../i18n';
 import * as searchIndex from '../searchIndex';
@@ -125,6 +126,10 @@ export function Home({
     // Anything new (imports, camera, deletes) goes to the backup folder in the background.
     autoBackup();
     VaultCore.backupStatus().then(setBackup).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    noteVaultOpened();
   }, []);
 
   useEffect(() => {
@@ -267,8 +272,11 @@ export function Home({
       <ImportResult
         result={result}
         onDone={() => {
+          const added = result.ok;
           setResult(null);
           setView('home');
+          // A good moment: something was just added. The rule decides if the rating sheet shows.
+          maybeAskRating(itemsRef.current.length, added, suspendAutoLock);
         }}
       />
     );
