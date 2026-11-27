@@ -8,6 +8,7 @@ import { enableAppSwitcherProtectionAsync, usePreventScreenCapture } from 'expo-
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, Platform, View } from 'react-native';
+import { newHold } from './src/autoLockHold';
 import { initialWindowMetrics, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import VaultCore, { VaultItem } from './modules/vault-core';
@@ -77,6 +78,7 @@ export default function App() {
     (on: boolean) => {
       suspended.current = on;
       if (on) {
+        newHold();
         backgroundedAt.current = null;
         return;
       }

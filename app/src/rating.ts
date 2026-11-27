@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as StoreReview from 'expo-store-review';
 import { AppState } from 'react-native';
 
+import { currentHold } from './autoLockHold';
 import { parseRating, RatingState, shouldAskRating, withAsked, withFirstUse } from './ratingRule';
 
 // Only dates are stored (first use, when the sheet was shown). Nothing about photos, and nothing
@@ -51,6 +52,7 @@ export async function maybeAskRating(itemCount: number, added: number, suspendAu
   }
   save(withAsked(s, now));
   suspendAutoLock(true);
+  const mine = currentHold();
   let left = false;
   let done = false;
   const finish = () => {
@@ -58,7 +60,8 @@ export async function maybeAskRating(itemCount: number, added: number, suspendAu
     done = true;
     sub.remove();
     clearTimeout(timer);
-    suspendAutoLock(false);
+    // A picker or another flow paused auto-lock after us: that flow releases it, not us.
+    if (currentHold() === mine) suspendAutoLock(false);
   };
   const sub = AppState.addEventListener('change', (state) => {
     if (state !== 'active') left = true;
